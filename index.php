@@ -2,7 +2,7 @@
 <html lang="en">
 	<?php
 		include_once('menu.php');
-		// include_once('db.php');
+		include_once('db.php');
 		?>
 	<head>
 		<meta charset="utf-8">
@@ -22,7 +22,7 @@
 		<link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
 		<link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
 		<link href="assets/css/main.css" rel="stylesheet">
-		<script src="assets/js/jquery.min.js"></script>
+		<link href="assets/css/ragu.css" rel="stylesheet">
 	</head>
 	<body>
 		<?php
@@ -41,6 +41,8 @@
 		<script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
 		<script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
 		<script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
-		<script src="assets/js/main.js"></script>
+		<script src="assets/vendor/jquery3.7/jquery.min.js"></script>
+		<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+		<!-- <script src="assets/js/main.js"></script> -->
 	</body>
 </html>

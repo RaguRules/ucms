@@ -44,7 +44,7 @@
 						<ul>
 							<li><a href="index.php?pg=courts.php">Courts</a></li>
 							<li><a href="index.php?pg=lawyers.php">Lawyers</a></li>
-							<li><a href="http://localhost/icms/index.php?pg=staff.php&option=add">Staff</a></li>
+							<li><a href="http://localhost/ucms/index.php?pg=staff.php&option=view">Staff</a></li>
 							<li><a href="index.php?pg=roles.php">Roles</a></li>
 						</ul>
 					</li>

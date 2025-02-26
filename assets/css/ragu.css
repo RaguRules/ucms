@@ -1,0 +1,50 @@
+/* Custom styles for a more attractive look */
+.attractive-table {
+    border-collapse: separate; /* Prevents double borders */
+    border-spacing: 0;      /* Removes spacing between cells */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    border-radius: 10px;  /* Rounded corners for the whole table */
+    overflow: hidden;    /* Ensures rounded corners are visible */
+    transition: transform 0.3s ease-in-out; /* Smooth hover effect */
+}
+
+.attractive-table:hover {
+    transform: translateY(-5px); /* Slight lift on hover */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+}
+
+.attractive-table thead th {
+    background-color: #f8f9fa; /* Light gray header background */
+    color: #343a40;          /* Dark gray header text */
+    border-bottom: 2px solid #dee2e6; /* Slightly thicker bottom border for header */
+    font-weight: 600;       /* Make header text bolder */
+    text-transform: uppercase; /* Uppercase header text */
+    letter-spacing: 0.5px;    /* Subtle letter spacing */
+    padding: 1rem 0.75rem; /* Increased padding */
+
+}
+
+.attractive-table tbody td {
+    background-color: #fff;   /* White cell background */
+    border-bottom: 1px solid #dee2e6; /* Light gray border between rows */
+    padding: 0.75rem;       /*Consistent padding*/
+}
+
+
+.attractive-table tbody tr:last-child td {
+    border-bottom: none; /* Remove border from the last row */
+}
+.attractive-table tbody tr:nth-child(even) td{
+    background-color: #f8f9fa33;
+}
+
+/* Responsive adjustments (optional, but recommended) */
+@media (max-width: 768px) {  /* Bootstrap's 'md' breakpoint */
+    .attractive-table {
+        font-size: 0.9rem; /* Slightly smaller font on smaller screens */
+    }
+    .attractive-table thead th,
+    .attractive-table tbody td {
+        padding: 0.5rem; /* Reduce padding on smaller screens */
+    }
+}
