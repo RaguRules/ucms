@@ -1,9 +1,13 @@
+<?php
+	include_once('menu.php');
+	include_once('db.php');
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
-	<?php
-		include_once('menu.php');
-		include_once('db.php');
-		?>
+
 	<head>
 		<meta charset="utf-8">
 		<meta content="width=device-width, initial-scale=1.0" name="viewport">

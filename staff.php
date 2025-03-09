@@ -71,6 +71,16 @@
 	    $resultInsert = mysqli_query($conn, $sqlInsert) or die("Error in sqlInsert: " . mysqli_error($conn));
 	
 	    if ($resultInsert) {
+
+
+
+
+
+
+
+
+
+
 	        echo '<script>alert("Successfully added staff member."); window.location.href="index.php?pg=staff.php&option=view";</script>';
 	    } else {
 	        echo '<script>alert("Error: " . mysqli_error($conn) . ".");</script>';

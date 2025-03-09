@@ -1,3 +1,120 @@
+<?php
+if (!isset($_SESSION)){
+    session_start();
+}
+
+include_once('db.php');
+
+if (isset($_POST["btn_login"])) {
+
+    $txt_username = mysqli_real_escape_string($conn, $_POST["txt_username"]);
+    $txt_password = mysqli_real_escape_string($conn, $_POST["txt_password"]);
+		
+    // $hashedPassword = password_hash($txt_password, PASSWORD_DEFAULT);
+    $hashedPassword = 'abc';
+
+    $sqlUser = "SELECT * FROM login WHERE username = '$txt_username'";
+    $resultUser = mysqli_query($conn, $sqlUser);
+    if (mysqli_num_rows($resultUser) > 0){
+        $rowUser = mysqli_fetch_assoc($resultUser);
+        
+        $extractedUsername = $rowUser['username'];
+        $extractedPassword = $rowUser['password'];
+
+        if($hashedPassword == $extractedPassword){
+
+            echo "$hashedPassword";
+            echo "$extractedPassword";
+
+            $attempt = 0 ;
+            $sqlAttemptReset="UPDATE login SET attempt = '$attempt' WHERE username='$extractedUsername'";
+            $sqlAttemptReset=mysqli_query($conn,$sqlAttemptReset)or die("Error in sql_update".mysqli_error($con));
+                
+            $status = $rowUser['status'];
+            // if($status == "Active"){
+            //     $_SESSION["USERNAME"] = $rowUser['username'];
+            //     $_SESSION["USERTYPE"] = $rowUser['usertype'];
+            //     echo "<script> location.href='index.php?pg=staff.php&option=view'; </script>";
+			// exit;
+
+            // }elseif{
+
+
+            switch ($status) {
+                case "Active":
+                    $_SESSION["USERNAME"] = $rowUser['username'];
+                    $_SESSION["USERTYPE"] = $rowUser['usertype'];
+                    echo "<script> alert('Good to go')</script>";
+                    echo "<script> location.href='index.php?pg=staff.php&option=view'; </script>";
+                    break;
+
+                case "Pending":
+                    echo '<script> alert("Your membership is pending for approval. Check later"); </script>';
+                    break;
+
+                case "Blocked":
+                    echo '<script> alert("Your account is Blocked. Contact Administrator"); </script>';
+                    break;
+
+                case "Deleted":
+                    echo '<script> alert("Your account is deleted"); </script>';
+                    break;
+
+                default:
+                    echo '<script> alert("Something went wrong. Conatact Admin Officer"); </script>';
+                }
+
+
+
+
+
+
+
+
+            // }else{
+
+            // }
+
+
+
+
+
+
+
+
+
+
+
+
+        }elseif($rowUser['attempt'] < 3){
+                $attempt = $rowUser['attempt'];
+                $attempt = $attempt + 1 ;
+                $sqlUpdate="UPDATE login SET attempt = '$attempt' WHERE username='$extractedUsername'";
+	
+                $attemptUpdate=mysqli_query($conn,$sqlUpdate)or die("Error in sql_update".mysqli_error($con));
+                echo "<script> alert('Incorrect Credentials 3, Please check your Username/ Password')</script>";
+
+        }else{
+            $_SESSION["ForgotUser"] = $extractedUsername;
+            echo "<script> alert('You have exceeded maximum attemps, Kindly reset your password')</script>";
+        }   
+
+
+    }else{
+        echo "<script> alert('Incorrect Credentials 2, Please check your Username/ Password')</script>";
+    }
+
+}
+
+
+
+
+
+
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,14 +153,14 @@
                     </div>
 
                     <!-- Login Form -->
-                    <form action="index.php" method="POST" id="loginForm">
+                    <form action="#" method="POST" id="loginForm">
                         <div class="mb-3">
                             <label>Email address</label>
-                            <input type="email" class="form-control" placeholder="Enter your email">
+                            <input type="email" class="form-control" placeholder="Enter your email" id="txt_username" name="txt_username">
                         </div>
                         <div class="mb-3">
                             <label>Password</label>
-                            <input type="password" class="form-control" placeholder="Enter your password">
+                            <input type="password" class="form-control" placeholder="Enter your password" id="txt_password" name="txt_password">
                         </div>
 
                         <div class="d-flex justify-content-between">
@@ -54,7 +171,8 @@
                             <a href="forgot.php" class="small-text text-info">Forgot password?</a>
                         </div>
 
-                        <button type="submit" class="btn btn-custom mt-3">Login</button>
+                        <button type="submit" class="btn btn-custom mt-3" id="btn_login" name="btn_login">Login</button>
+						
                     </form>
 
                     <!-- Register Link -->
@@ -76,10 +194,6 @@
     <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="assets/vendor/jquery3.7/jquery.min.js"></script>
     
-
-    <!-- Scripts -->
-    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/vendor/jquery3.7/jquery.min.js"></script>
     <script>
 
         // Function to set a cookie

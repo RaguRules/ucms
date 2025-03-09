@@ -1,3 +1,21 @@
+<?php
+
+if(isset($_SESSION["ForgotUser"])){
+    $forgotUser = $_SESSION["ForgotUser"];
+    $readOnly = "readOnly";
+
+}else{
+    $forgotUser = "";
+    $readOnly = "";
+
+}
+
+
+
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,7 +57,12 @@
                     <form action="send-otp.php" method="POST" id="forgotPwdForm">
                         <div class="mb-3">
                             <label>Enter your Registered Email to reset password</label>
-                            <input type="email" class="form-control" placeholder="Enter your email">
+                            <input type="email" <?php echo "$readOnly"; ?> class="form-control" placeholder="Enter your email">
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Enter your Registered Email to reset password</label>
+                            <input value="<?php echo $forgotUser; ?>" type="email" <?php echo "$readOnly"; ?> class="form-control" placeholder="Enter your email">
                         </div>
 
                         <button type="submit" class="btn btn-custom mt-3">Reset Password</button>
