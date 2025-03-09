@@ -1,0 +1,152 @@
+/* General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+table th,
+table td {
+    padding: 8px;
+    text-align: left;
+}
+
+/* Light Mode (default) */
+body.light-mode {
+    background: #f8f9fa;
+    color: #222;
+}
+
+body.light-mode table {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+body.light-mode table th,
+body.light-mode table td {
+    border: 1px solid #ddd;
+}
+
+/* Dark Mode */
+body.dark-mode {
+    background: #1c1c1c;
+    color: white;
+}
+
+body.dark-mode table {
+    background-color: #1e1e1e;
+    color: #ffffff;
+    border-color: #555;
+}
+
+body.dark-mode table th,
+body.dark-mode table td {
+    border: 1px solid #555;
+}
+
+/* Login Container */
+.login-container {
+    max-width: 450px;
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+body.dark-mode .login-container {
+    background: #222;
+    color: white;
+}
+
+/* Form Elements */
+.form-control {
+    background: #f1f1f1;
+    color: black;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.form-control:focus {
+    background: #fff;
+    border-color: #17a2b8;
+}
+
+/* Dark Mode Form */
+body.dark-mode .form-control {
+    background: #333;
+    color: white;
+    border: 1px solid #555;
+}
+
+body.dark-mode .form-control:focus {
+    background: #444;
+    border-color: #17a2b8;
+}
+
+/* Custom Button */
+.btn-custom {
+    background: #17a2b8;
+    color: white;
+    width: 100%;
+    font-weight: 500;
+    border-radius: 5px;
+}
+
+.btn-custom:hover {
+    background: #138496;
+}
+
+/* Theme Toggle Button */
+#theme-toggle {
+    border: none;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+/* Social Icons */
+.social-icons a {
+    color: black;
+    font-size: 18px;
+    margin: 0 8px;
+    transition: 0.3s;
+}
+
+.social-icons a:hover {
+    color: #17a2b8;
+}
+
+body.dark-mode .social-icons a {
+    color: white;
+}
+
+body.dark-mode .social-icons a:hover {
+    color: #17a2b8;
+}
+
+/* Small Text */
+.small-text {
+    font-size: 14px;
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #666;
+}
+
+body.dark-mode .footer {
+    color: #bbb;
+}
+
+/* Login Image */
+.login-image {
+    max-width: 100%;
+    border-radius: 10px;
+}

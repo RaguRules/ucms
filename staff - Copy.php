@@ -130,7 +130,7 @@ if(isset($_POST["btn_update"])){
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Staff Page</title>
 	</head>
-	<body class="light-mode">
+	<body>
 		<?php
 			if(isset($_GET['option']) && $_GET['option'] == "view") {
 			
@@ -194,7 +194,7 @@ if(isset($_POST["btn_update"])){
 										<i class="fas fa-edit"></i> Edit
 										</a> -->
 											<button class="btn btn-info btn-sm">
-											<i class="fas fa-eye"></i> <a href="http://localhost/ucms/index.php?pg=staff.php&option=full_view"> Full View </a>
+											<i class="fas fa-eye"></i> Full View
 											</button>				
 										<a>
 										<form class="d-inline" method="POST" action="#">
@@ -214,73 +214,6 @@ if(isset($_POST["btn_update"])){
 				</div>
 			</div>
 		</div>
-
-
-
-<!-- --- START : CAN BE REMOVED --- -->
-
-		<?php
-			}
-			// <!-- FULL VIEW SECTION -->
-			}elseif (isset($_GET['option']) && $_GET['option'] == "full_view") {
-		
-	
-				$sql_read = "SELECT staff_id, first_name, last_name, nic_number, mobile_number, court_name, staff_id, email, date_of_birth, address, join_date FROM staff";
-				$result = mysqli_query($conn, $sql_read);
-			
-				if ($result && mysqli_num_rows($result) > 0) {
-				?>
-
-			<div class="card bg-dark shadow-2-strong">
-			<!-- <div class="card shadow-lg p-3" style="background: linear-gradient(135deg, #003366, #0055A4); color: white;"> -->
-
-			<div class="card-body">
-				<div class="table-responsive">
-					<table class="table table-dark table-borderless mb-0">
-						<thead>
-						<tr>
-							<th scope="col"><u>No.</u></th>
-							<th scope="col"><u>FIRST NAME</u></th>
-							<th scope="col"><u>LAST NAME</u></th>
-							<th scope="col"><u>EMAIL</u></th>
-							<th scope="col"><u>DATE OF BIRTH</u></th>
-							<th scope="col"><u>ADDRESS</u></th>
-							<th scope="col"><u>MOBILE</u></th>
-							<th scope="col"><u>JOINED DATE</u></th>
-							<th scope="col"><u>DEPARTMENT</u></th>
-							<th scope="col"><u>NATIONAL IDENTITY NUMBER</u></th>
-						</tr>
-						</thead>
-						<tbody>
-						<?php
-							$count = 1;
-							while ($row = mysqli_fetch_assoc($result)) {
-						?>
-						<tr>
-						<td><?php echo $count; ?></td>
-						<td><?php echo $row['first_name']; ?></td>
-						<td><?php echo $row['last_name']; ?></td>
-						<td><?php echo $row['email']; ?></td>
-						<td><?php echo $row['date_of_birth']; ?></td>
-						<td><?php echo $row['address']; ?></td>
-						<td><?php echo $row['mobile_number']; ?></td>
-						<td><?php echo $row['join_date']; ?></td>
-						<td><?php echo $row['court_name']; ?></td>
-						<td><?php echo $row['nic_number']; ?></td>
-						
-						<?php
-							$count++;
-							}
-						?>
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
-
-
-<!-- --- END : CAN BE REMOVED --- -->
-		
 		<?php
 			}
 			// <!-- ADD SECTION -->
@@ -295,8 +228,8 @@ if(isset($_POST["btn_update"])){
 				<div class="col-md-8 col-lg-6">
 					<form action="#" method="POST" id="staffForm">
 						<div class="row mb-3">
-							<label hidden for="staff_id" class="form-label">Staff ID</label>
-							<input hidden type="text" class="form-control" id="txt_staff_id" name="txt_staff_id" value="<?php echo htmlspecialchars($next_staff_id); ?>" readonly>
+							<label for="staff_id" class="form-label">Staff ID</label>
+							<input type="text" class="form-control" id="txt_staff_id" name="txt_staff_id" value="<?php echo htmlspecialchars($next_staff_id); ?>" readonly>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
@@ -381,8 +314,8 @@ if(isset($_POST["btn_update"])){
 				<div class="col-md-8 col-lg-6">
 					<form action="#" method="POST" id="staffForm">
 						<div class="row mb-3">
-							<label hidden for="staff_id" class="form-label">Staff ID</label>
-							<input hidden type="text" class="form-control" id="txt_staff_id" name="txt_staff_id" value="<?php echo htmlspecialchars($_POST['staff_id']); ?>" readonly>
+							<label for="staff_id" class="form-label">Staff ID</label>
+							<input type="text" class="form-control" id="txt_staff_id" name="txt_staff_id" value="<?php echo htmlspecialchars($_POST['staff_id']); ?>" readonly>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
@@ -474,6 +407,5 @@ if(isset($_POST["btn_update"])){
 			    document.getElementById('staffForm').reset();
 			});
 		</script>
-
 	</body>
 </html>

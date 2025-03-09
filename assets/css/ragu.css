@@ -1,3 +1,21 @@
+/* Login and related part */
+
+.divider:after,
+.divider:before {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #eee;
+}
+.h-custom {
+    height: calc(100% - 73px);
+}
+@media (max-width: 450px) {
+    .h-custom {
+        height: 100%;
+    }
+}
+
 /* Custom styles for a more attractive look */
 .attractive-table {
     border-collapse: separate; /* Prevents double borders */
@@ -47,4 +65,30 @@
     .attractive-table tbody td {
         padding: 0.5rem; /* Reduce padding on smaller screens */
     }
+}
+
+body.dark-mode {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+.dark-mode pre, .dark-mode code {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    border: 1px solid #333;
+}
+
+pre, code {
+    background-color: #f0f0f0;
+    padding: 10px;
+    border-radius: 5px;
+    overflow-x: auto;
+    border: 1px solid #ddd;
+}
+
+.toggle-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
 }
