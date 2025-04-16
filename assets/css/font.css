@@ -1,0 +1,335 @@
+/* Roboto */
+
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 100;
+    src: local('Roboto Thin'), local('Roboto-Thin'), url('http://localhost/ucms/assets/font/roboto-thin.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Roboto';
+    font-style: italic;
+    font-weight: 100;
+    src: local('Roboto Thin Italic'), local('Roboto-ThinItalic'), url('http://localhost/ucms/assets/font/roboto-thinitalic.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 300;
+    src: local('Roboto Light'), local('Roboto-Light'), url('http://localhost/ucms/assets/font/roboto-light.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Roboto';
+    font-style: italic;
+    font-weight: 300;
+    src: local('Roboto Light Italic'), local('Roboto-LightItalic'), url('http://localhost/ucms/assets/font/roboto-lightitalic.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Roboto Regular'), local('Roboto-Regular'), url('http://localhost/ucms/assets/font/roboto-regular.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Roboto';
+    font-style: italic;
+    font-weight: 400;
+    src: local('Roboto Italic'), local('Roboto-Italic'), url('http://localhost/ucms/assets/font/roboto-italic.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 500;
+    src: local('Roboto Medium'), local('Roboto-Medium'), url('http://localhost/ucms/assets/font/roboto-medium.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Roboto';
+    font-style: italic;
+    font-weight: 500;
+    src: local('Roboto Medium Italic'), local('Roboto-MediumItalic'), url('http://localhost/ucms/assets/font/roboto-mediumitalic.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 700;
+    src: local('Roboto Bold'), local('Roboto-Bold'), url('http://localhost/ucms/assets/font/roboto-bold.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Roboto';
+    font-style: italic;
+    font-weight: 700;
+    src: local('Roboto Bold Italic'), local('Roboto-BoldItalic'), url('http://localhost/ucms/assets/font/roboto-bolditalic.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 900;
+    src: local('Roboto Black'), local('Roboto-Black'), url('http://localhost/ucms/assets/font/roboto-black.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Roboto';
+    font-style: italic;
+    font-weight: 900;
+    src: local('Roboto Black Italic'), local('Roboto-BlackItalic'), url('http://localhost/ucms/assets/font/roboto-blackitalic.ttf') format('truetype');
+  }
+  
+  /* Poppins */
+  
+  @font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 100;
+    src: local('Poppins Thin'), local('Poppins-Thin'), url('http://localhost/ucms/assets/font/poppins-thin.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Poppins';
+    font-style: italic;
+    font-weight: 100;
+    src: local('Poppins Thin Italic'), local('Poppins-ThinItalic'), url('http://localhost/ucms/assets/font/poppins-thinitalic.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 200;
+    src: local('Poppins ExtraLight'), local('Poppins-ExtraLight'), url('http://localhost/ucms/assets/font/poppins-extralight.ttf') format('truetype');
+  }
+  
+  @font-face {
+      font-family: 'Poppins';
+      font-style: italic;
+      font-weight: 200;
+      src: local('Poppins ExtraLight Italic'), local('Poppins-ExtraLightItalic'), url('http://localhost/ucms/assets/font/poppins-extralightitalic.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 300;
+    src: local('Poppins Light'), local('Poppins-Light'), url('http://localhost/ucms/assets/font/poppins-light.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Poppins';
+    font-style: italic;
+    font-weight: 300;
+    src: local('Poppins Light Italic'), local('Poppins-LightItalic'), url('http://localhost/ucms/assets/font/poppins-lightitalic.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Poppins Regular'), local('Poppins-Regular'), url('http://localhost/ucms/assets/font/poppins-regular.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Poppins';
+    font-style: italic;
+    font-weight: 400;
+    src: local('Poppins Italic'), local('Poppins-Italic'), url('http://localhost/ucms/assets/font/poppins-italic.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 500;
+    src: local('Poppins Medium'), local('Poppins-Medium'), url('http://localhost/ucms/assets/font/poppins-medium.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Poppins';
+    font-style: italic;
+    font-weight: 500;
+    src: local('Poppins Medium Italic'), local('Poppins-MediumItalic'), url('http://localhost/ucms/assets/font/poppins-mediumitalic.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 600;
+    src: local('Poppins SemiBold'), local('Poppins-SemiBold'), url('http://localhost/ucms/assets/font/poppins-semibold.ttf') format('truetype');
+  }
+  
+  @font-face {
+      font-family: 'Poppins';
+      font-style: italic;
+      font-weight: 600;
+      src: local('Poppins SemiBold Italic'), local('Poppins-SemiBoldItalic'), url('http://localhost/ucms/assets/font/poppins-semibolditalic.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 700;
+    src: local('Poppins Bold'), local('Poppins-Bold'), url('http://localhost/ucms/assets/font/poppins-bold.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Poppins';
+    font-style: italic;
+    font-weight: 700;
+    src: local('Poppins Bold Italic'), local('Poppins-BoldItalic'), url('http://localhost/ucms/assets/font/poppins-bolditalic.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 800;
+    src: local('Poppins ExtraBold'), local('Poppins-ExtraBold'), url('http://localhost/ucms/assets/font/poppins-extrabold.ttf') format('truetype');
+  }
+  
+  @font-face {
+      font-family: 'Poppins';
+      font-style: italic;
+      font-weight: 800;
+      src: local('Poppins ExtraBold Italic'), local('Poppins-ExtraBoldItalic'), url('http://localhost/ucms/assets/font/poppins-extrabolditalic.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 900;
+    src: local('Poppins Black'), local('Poppins-Black'), url('http://localhost/ucms/assets/font/poppins-black.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Poppins';
+    font-style: italic;
+    font-weight: 900;
+    src: local('Poppins Black Italic'), local('Poppins-BlackItalic'), url('http://localhost/ucms/assets/font/poppins-blackitalic.ttf') format('truetype');
+  }
+  /* Raleway */
+  
+  @font-face {
+    font-family: 'Raleway';
+    font-style: normal;
+    font-weight: 100;
+    src: local('Raleway Thin'), local('Raleway-Thin'), url('http://localhost/ucms/assets/font/raleway-thin.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Raleway';
+    font-style: italic;
+    font-weight: 100;
+    src: local('Raleway Thin Italic'), local('Raleway-ThinItalic'), url('http://localhost/ucms/assets/font/raleway-thinitalic.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Raleway';
+    font-style: normal;
+    font-weight: 200;
+    src: local('Raleway ExtraLight'), local('Raleway-ExtraLight'), url('http://localhost/ucms/assets/font/raleway-extralight.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Raleway';
+    font-style: italic;
+    font-weight: 200;
+    src: local('Raleway ExtraLight Italic'), local('Raleway-ExtraLightItalic'), url('http://localhost/ucms/assets/font/raleway-extralightitalic.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: 'Raleway';
+    font-style: normal;
+    font-weight: 300;
+    src: local('Raleway Light'), local('Raleway-Light'), url('http://localhost/ucms/assets/font/raleway-light.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Raleway';
+    font-style: italic;
+    font-weight: 300;
+    src: local('Raleway Light Italic'), local('Raleway-LightItalic'), url('http://localhost/ucms/assets/font/raleway-lightitalic.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Raleway';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Raleway Regular'), local('Raleway-Regular'), url('http://localhost/ucms/assets/font/raleway-regular.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Raleway';
+    font-style: italic;
+    font-weight: 400;
+    src: local('Raleway Italic'), local('Raleway-Italic'), url('http://localhost/ucms/assets/font/raleway-italic.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Raleway';
+    font-style: normal;
+    font-weight: 500;
+    src: local('Raleway Medium'), local('Raleway-Medium'), url('http://localhost/ucms/assets/font/raleway-medium.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Raleway';
+    font-style: italic;
+    font-weight: 500;
+    src: local('Raleway Medium Italic'), local('Raleway-MediumItalic'), url('http://localhost/ucms/assets/font/raleway-mediumitalic.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Raleway';
+    font-style: normal;
+    font-weight: 600;
+    src: local('Raleway SemiBold'), local('Raleway-SemiBold'), url('http://localhost/ucms/assets/font/raleway-semibold.ttf') format('truetype');
+  }
+  
+  @font-face {
+      font-family: 'Raleway';
+      font-style: italic;
+      font-weight: 600;
+      src: local('Raleway SemiBold Italic'), local('Raleway-SemiBoldItalic'), url('http://localhost/ucms/assets/font/raleway-semibolditalic.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Raleway';
+    font-style: normal;
+    font-weight: 700;
+    src: local('Raleway Bold'), local('Raleway-Bold'), url('http://localhost/ucms/assets/font/raleway-bold.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Raleway';
+    font-style: italic;
+    font-weight: 700;
+    src: local('Raleway Bold Italic'), local('Raleway-BoldItalic'), url('http://localhost/ucms/assets/font/raleway-bolditalic.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Raleway';
+    font-style: normal;
+    font-weight: 800;
+    src: local('Raleway ExtraBold'), local('Raleway-ExtraBold'), url('http://localhost/ucms/assets/font/raleway-extrabold.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Raleway';
+    font-style: italic;
+    font-weight: 800;
+    src: local('Raleway ExtraBold Italic'), local('Raleway-ExtraBoldItalic'), url('http://localhost/ucms/assets/font/raleway-extrabolditalic.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Raleway';
+    font-style: normal;
+    font-weight: 900;
+    src: local('Raleway Black'), local('Raleway-Black'), url('http://localhost/ucms/assets/font/raleway-black.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Raleway';
+    font-style: italic;
+    font-weight: 900;
+    src: local('Raleway Black Italic'), local('Raleway-BlackItalic'), url('http://localhost/ucms/assets/font/raleway-blackitalic.ttf') format('truetype');
+  }

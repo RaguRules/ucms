@@ -1,0 +1,117 @@
+// Add data to Specific (Lawyer/ Police) database table.
+
+
+<?php
+include_once('db.php');
+
+$type = $_GET['type'] ?? '';
+
+if ($type === 'lawyer') {
+	$role = "LAWYER";
+	$role_id = "R06";
+
+
+
+} elseif ($type === 'police') {
+	$role = "POLICE";
+	$role_id = "R07";
+
+
+
+} else {
+	$role = "null";
+	$role_id = "null";
+	echo "<script> location.href='index.php'; </script>";
+	exit;
+}
+
+
+function generateNextLawyerID($conn) {
+	// 1. Find the highest existing staff_id
+	$sql = "SELECT MAX(lawyer_id) AS max_id FROM lawyer";
+	$result = mysqli_query($conn, $sql);
+
+	if ($result && mysqli_num_rows($result) > 0) {
+		$row = mysqli_fetch_assoc($result);
+		$max_id = $row['max_id'];
+
+		if ($max_id === null) {
+			// No staff IDs exist yet, start with S0001
+			return "L0001";
+		} else {
+			// Extract the numeric part, increment, and format
+			$numeric_part = (int)substr($max_id, 1); // Remove "S", convert to integer
+			$next_numeric_part = $numeric_part + 1;
+			// Pad with leading zeros to 4 digits, then prepend "S"
+			return "L" . str_pad($next_numeric_part, 4, "0", STR_PAD_LEFT);
+		}
+	} else {
+		// Handle errors (e.g., table doesn't exist)
+		return "L0001"; // Or throw an exception, log an error, etc.
+	}
+}
+
+
+$next_lawyer_id = generateNextLawyerID($conn);
+
+if(isset($_POST['btn_add'])){
+		$txt_lawyer_id = mysqli_real_escape_string($conn, $_POST["txt_lawyer_id"]);
+		$txt_first_name = mysqli_real_escape_string($conn, $_POST["txt_first_name"]);
+		$txt_last_name = mysqli_real_escape_string($conn, $_POST["txt_last_name"]);
+		$int_mobile = mysqli_real_escape_string($conn, $_POST["int_mobile"]);
+		$txt_email = mysqli_real_escape_string($conn, $_POST["txt_email"]);
+		$txt_address = mysqli_real_escape_string($conn, $_POST["txt_address"]);
+		$txt_nic_number = mysqli_real_escape_string($conn, $_POST["txt_nic_number"]);
+		$date_date_of_birth = mysqli_real_escape_string($conn, $_POST["date_date_of_birth"]);
+		$txt_address = mysqli_real_escape_string($conn, $_POST["txt_address"]);
+		$select_court_name = "ALL";
+		$date_joined_date = mysqli_real_escape_string($conn, $_POST["date_joined_date"]);
+		$txt_password = mysqli_real_escape_string($conn, $_POST["txt_password"]);
+		$txt_confirm_password = mysqli_real_escape_string($conn, $_POST["txt_confirm_password"]);
+		$txt_role_id = "R06";
+		$status = "Pending";
+		$txt_enrolment_number = mysqli_real_escape_string($conn, $_POST["txt_enrolment_number"]);
+
+
+		$sqlInsert = "INSERT INTO lawyer (lawyer_id, first_name, last_name, mobile, email, address, nic_number, enrolment_number, joined_date, date_of_birth, is_active, role_id) VALUES (
+			'$txt_lawyer_id',
+			'$txt_first_name', 
+			'$txt_last_name', 
+			'$int_mobile', 
+			'$txt_email',
+			'$txt_address', 
+			'$txt_nic_number', 
+			'$txt_enrolment_number',
+			'$date_joined_date', 
+			'$date_date_of_birth', 	
+			'$status',
+			'$txt_role_id'
+		)";
+		
+		$resultInsert = mysqli_query($conn, $sqlInsert) or die("Error in sqlInsert: " . mysqli_error($conn));
+		if ($resultInsert) {
+			echo '<script>alert("Successfully added a lawyer.");</script>';
+		} else {
+			echo '<script>alert("Error: " . mysqli_error($conn) . ".");</script>';
+		}
+		
+		
+		
+		------ in html
+		
+		
+				<form action="register.php?type=<?php echo $type; ?>" method="POST" id="registrationForm" enctype="multipart/form-data">
+
+						<?php
+							if ($type == 'lawyer') {
+								$id = 'txt_lawyer_id';
+								$next_id = $next_lawyer_id;
+							}if ($type == 'police'){
+								$id = 'txt_police_id';
+								$next_id = $next_police_id;
+							}
+						?>
+							<div class="row mb-3">
+								<label hidden for="staff_id" class="form-label">Staff ID</label>
+								<input hidden type="text" class="form-control" id="<?php echo "$id"; ?>" name="<?php echo "$id"; ?>" value="<?php echo htmlspecialchars($next_id); ?>" readonly>
+							</div>

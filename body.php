@@ -15,7 +15,6 @@
 
         <div class="welcome position-relative" data-aos="fade-down" data-aos-delay="100">
           <h2>WELCOME</h2>
-          <p>#TO_BE_UPDATED</p>
         </div><!-- End Welcome -->
 
         <div class="content row gy-4">

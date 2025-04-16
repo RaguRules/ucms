@@ -59,7 +59,56 @@
 				</ul>
 				<i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
 			</nav>
-		<a class="cta-btn d-none d-sm-block" href="#appointment">#TO BE USED</a>
+		<!-- <a class="cta-btn d-none d-sm-block" href="#appointment">#TO BE USED</a> -->
+		<a class="cta-btn d-none d-sm-block" href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Register</a>
 		</div>
 	</div>
 </header>
+
+<!-- <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#registerModal">
+    Register
+  </button> -->
+
+  <!-- Modal -->
+
+<div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="registerModalLabel">Choose Registration Type</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-4">
+          <div class="col-md-6">
+            <div class="register-option" onclick="window.location.href='register.php?type=lawyer';">
+              <i class="fas fa-gavel"></i>
+              <h5>Register as Lawyer</h5>
+			  <p class="mt-3 text-muted small">
+          If you are working with Kilinochchi Courts and have not registered with us yet, you can enroll here. After verification, your profile will be activated and you will be notified accordingly.
+        </p>
+		<a href="register.php?type=lawyer" class="btn btn-outline-primary mt-3">
+          Proceed as Lawyer
+        </a>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="register-option" onclick="window.location.href='register.php?type=police';">
+              <i class="fas fa-user-shield"></i>
+              <h5>Register as Police</h5>
+			  <p class="mt-3 text-muted small">
+          Police personnel working under Kilinochchi Court jurisdiction can register here. Once we verify your information, you will be granted access and notified through your provided contact details.
+        </p>
+		<a href="register.php?type=police" class="btn btn-outline-primary mt-3">
+		Proceed as Police
+        </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div> -->
+    </div>
+  </div>
+</div>

@@ -1,0 +1,14 @@
+$user = "94769669804";
+            $password = "3100";
+            $text = urlencode("College of ICT, Your verification code is ".$verify_code);
+            $to = "94".$row_mobile["mobile"];
+             
+            $baseurl ="http://www.textit.biz/sendmsg";
+            $url = "$baseurl/?id=$user&pw=$password&to=$to&text=$text";
+            $ret = file($url);
+             
+            $res= explode(":",$ret[0]);
+             
+            if (trim($res[0])=="OK")
+            {
+		}
