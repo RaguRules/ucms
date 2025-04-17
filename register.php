@@ -187,27 +187,30 @@
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<label for="first_name" class="form-label">First Name (Given Name)</label>
-								<input type="text" class="form-control" id="txt_first_name" name="txt_first_name">
+								<input type="text" class="form-control" id="txt_first_name" name="txt_first_name" onkeypress="return isTextKey(event)" required>
 							</div>
 							<div class="col-md-6">
 								<label for="last_name" class="form-label">Last Name (Surname/Family Name)</label>
-								<input type="text" class="form-control" id="txt_last_name" name="txt_last_name">
+								<input type="text" class="form-control" id="txt_last_name" name="txt_last_name" onkeypress="return isTextKey(event)" required>
 							</div>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<label for="mobile_number" class="form-label">Mobile Number</label>
-								<input type="number" class="form-control" id="int_mobile" name="int_mobile">
+								<input type="text" name="int_mobile" id="int_mobile" class="form-control check-duplicate" data-check="mobile" data-feedback="mobileFeedback" onkeypress="return isNumberKey(event)" onblur="validateMobileNumber('int_mobile')" required>
+								<small id="mobileFeedback" class="text-danger"></small>
 							</div>
 							<div class="col-md-6">
 								<label for="nic_number" class="form-label">NIC Number</label>
-								<input type="text" class="form-control" id="txt_nic_number" name="txt_nic_number">
+								<input type="text" name="txt_nic_number" id="txt_nic_number" class="form-control check-duplicate" data-check="nic" data-feedback="nicFeedback" onblur="validateNIC('txt_nic_number')" required>
+								<small id="nicFeedback" class="text-danger"></small>
 							</div>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<label for="email" class="form-label">Email/ Username</label>
-								<input type="email" class="form-control" id="txt_email" name="txt_email">
+								<input type="email" name="txt_email" id="txt_email" class="form-control check-duplicate" data-check="email" data-feedback="emailFeedback" onblur="validateEmail('txt_email')" required>
+								<small id="emailFeedback" class="text-danger"></small>
 							</div>
 							<div class="col-md-6">
 								<label for="court_name" class="form-label">Station</label>
@@ -388,126 +391,245 @@
 			</div>
 		</div>
 		<script>
-			// 1. JS Password Checker
-				document.addEventListener('DOMContentLoaded', function() {
-				document.getElementById('registrationForm').addEventListener('submit', function(event) {
-				const password = document.getElementById('txt_password').value;
-				const confirmPassword = document.getElementById('txt_confirm_password').value;
-			
-				if (password !== confirmPassword) {
-					// Create a new Bootstrap Modal instance
-					const myModal = new bootstrap.Modal(document.getElementById('passwordMismatchModal'));
-					myModal.show();
-			
-					event.preventDefault();
-				}
-					});
-				});																									
+			// 1. JS clear the form button
+			document.getElementById('btn_clear').addEventListener('click', function() {
+			    document.getElementById('staffForm').reset();
+			});
 		</script>
 		<script>
 			//2. JS Set joined date to today
 			const joinedDateField = document.getElementById('date_joined_date');
-			   const today = new Date();
-			   const formattedDate = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD
-			   joinedDateField.value = formattedDate;
+				const today = new Date();
+				const formattedDate = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+				joinedDateField.value = formattedDate;
 		</script>
+
 		<script>
-			//3. JS NIC to Date of Birth Calculation
+			// 3. Set date of birth from NIC
 			const nicInput = document.getElementById('txt_nic_number');
 			const dobInput = document.getElementById('date_date_of_birth');
-			
-			nicInput.addEventListener('input', function() {
-			   const nic = nicInput.value.trim();
-			   let year = '';
-			   let dayOfYear = '';
-			
-			   if (nic.length === 10 && nic.match(/^[0-9]{9}[VvXx]$/)) {
-			       // Old NIC format
-			       year = '19' + nic.substring(0, 2);
-			       dayOfYear = parseInt(nic.substring(2, 5));
-			   } else if (nic.length === 12 && nic.match(/^[0-9]{12}$/)) {
-			       // New NIC format
-			       year = nic.substring(0, 4);
-			       dayOfYear = parseInt(nic.substring(4, 7));
-			   } else {
-			       dobInput.value = ''; // Clear if invalid NIC
-			       flatpickr(dobInput).clear(); // Clear Flatpickr instance
-			       return;
-			   }
-			
-			   // Check if female (over 500)
-			   if (dayOfYear > 500) {
-			       dayOfYear -= 500;
-			   }
-			
-			   // **Corrected Date Calculation**
-			   let date = new Date(year, 0, dayOfYear-1); // Start from January 1st and adjust correctly
-			
-			   // Format date as yyyy-mm-dd for Flatpickr
-			   let yyyy = date.getFullYear();
-			   let mm = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
-			   let dd = String(date.getDate()).padStart(2, '0');
-			   let dob = `${yyyy}-${mm}-${dd}`;
-			
-			   dobInput.value = dob;
-			   flatpickr(dobInput).setDate(dob, true); // Use setDate and pass true for 'triggerChange'
-			});
-			
-			// Initialize Flatpickr (outside the event listener, but after DOM is loaded)
-			document.addEventListener('DOMContentLoaded', function() {
-			   flatpickr("#dob", {
-			       dateFormat: "Y-m-d",
-			   });
-			});
-			
-		</script>
-		<script>
-			// 4. JS Password visibility toggle
-			    const togglePasswordButton = document.getElementById('togglePassword');
-			    const passwordInput = document.getElementById('txt_password');
-			    const passwordIcon = document.getElementById('password-icon');
-			
-			    togglePasswordButton.addEventListener('click', function () {
-			        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-			        passwordInput.setAttribute('type', type);
-			
-			        // Toggle eye icon
-			        if (type === 'password') {
-			            passwordIcon.classList.remove('bi-eye');
-			            passwordIcon.classList.add('bi-eye-slash');
-			        } else {
-			            passwordIcon.classList.remove('bi-eye-slash');
-			            passwordIcon.classList.add('bi-eye');
-			        }
-			    });
-		</script>
-		<script>
-			//5. JS Clear the form
-			document.getElementById('btn_clear').addEventListener('click', function() {
-			    document.getElementById('registrationForm').reset();
+
+			nicInput.addEventListener('input', function () {
+				const nic = nicInput.value.trim();
+				let year = '';
+				let dayOfYear = '';
+
+				if (nic.length === 10 && /^[0-9]{9}[VvXx]$/.test(nic)) {
+					year = '19' + nic.substring(0, 2);
+					dayOfYear = parseInt(nic.substring(2, 5));
+				} else if (nic.length === 12 && /^[0-9]{12}$/.test(nic)) {
+					year = nic.substring(0, 4);
+					dayOfYear = parseInt(nic.substring(4, 7));
+				} else {
+					dobInput.value = '';
+					return;
+				}
+
+				if (dayOfYear > 500) {
+					dayOfYear -= 500;
+				}
+
+				const date = new Date(year, 0, dayOfYear - 1);
+				const yyyy = date.getFullYear();
+				const mm = String(date.getMonth() + 1).padStart(2, '0');
+				const dd = String(date.getDate()).padStart(2, '0');
+
+				dobInput.value = `${yyyy}-${mm}-${dd}`; // Format required for input[type="date"]
 			});
 		</script>
+
+<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 		<script>
-			//6. JS MODAL TRIGGER
-			  	document.addEventListener('DOMContentLoaded', function() {
-			      const acceptTermsCheckbox = document.getElementById('acceptTerms');
-			      const termsModal = new bootstrap.Modal(document.getElementById('termsModal'));
-			
-			      acceptTermsCheckbox.addEventListener('change', function() {
-			          if (this.checked) {
-			              termsModal.show();
-			          }
-			      });
-			
-			       document.getElementById('registrationForm').addEventListener('submit', function(event) {
-			              const acceptTermsCheckbox = document.getElementById('acceptTerms');
-			               if (!acceptTermsCheckbox.checked) {
-			                  alert('You must accept the Terms and Conditions to proceed.');
-			                   event.preventDefault(); // Prevent form submission
-			              }
-			          });
-			  });
-			  
+			//4. JS to confirm msg to multipurpose model
+			const actionModal = new bootstrap.Modal(document.getElementById('actionModal'));
+			const modalTitle = document.getElementById('actionModalLabel');
+			const modalBody = document.getElementById('actionModalBody');
+			const modalConfirmBtn = document.getElementById('actionModalConfirmBtn');
+
+			// 4.1 For delete confirmation
+			function showDeleteModal(callback) {
+				const modalElement = document.getElementById('actionModal');
+				const modal = new bootstrap.Modal(modalElement);
+				const modalTitle = document.getElementById('actionModalLabel');
+				const modalBody = document.getElementById('actionModalBody');
+				const confirmBtn = document.getElementById('actionModalConfirmBtn');
+
+				modalTitle.textContent = "Confirm Deletion";
+				modalBody.textContent = "Are you sure you want to delete?";
+				confirmBtn.textContent = "Delete";
+				confirmBtn.className = "btn btn-danger btn-sm";
+
+				// Clean up previous onclick if any
+				confirmBtn.onclick = () => {
+					callback();
+					modal.hide();
+				};
+
+				modal.show();
+			}
+
+			// 4.2 For duplicate check error
+			function showDuplicateModal(message) {
+				const modalElement = document.getElementById('actionModal');
+				const modal = new bootstrap.Modal(modalElement);
+
+				const modalTitle = document.getElementById('actionModalLabel');
+				const modalBody = document.getElementById('actionModalBody');
+				const modalConfirmBtn = document.getElementById('actionModalConfirmBtn');
+
+				modalTitle.textContent = "Duplicate Detected";
+				modalBody.textContent = message || "This value is already used.";
+				modalConfirmBtn.textContent = "OK";
+				modalConfirmBtn.className = "btn btn-primary btn-sm";
+
+				// Close modal on click
+				modalConfirmBtn.onclick = () => modal.hide();
+
+				modal.show();
+			}
 		</script>
+
+<script>
+	// 5.1 Duplicate check on blur
+	document.querySelectorAll('.check-duplicate').forEach(input => {
+		input.addEventListener('blur', function () {
+			const value = input.value.trim();
+			const checkKey = input.dataset.check;
+			const feedback = document.getElementById(input.dataset.feedback);
+
+			if (!value) return;
+
+			fetch('check_duplicate_AJAX.php', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+				body: `check=${encodeURIComponent(checkKey)}&value=${encodeURIComponent(value)}`
+			})
+			.then(res => res.json())
+			.then(data => {
+				if (data.exists) {
+					feedback.textContent = data.message || "This value is already taken.";
+					input.classList.add("is-invalid");
+					// feedback.textContent = "This name is already taken. Choose another";
+					// input.classList.add("is-invalid");
+				} else {
+					feedback.textContent = "";
+					input.classList.remove("is-invalid");
+				}
+			});
+		});
+	});
+
+	// 5.2 Block form submission if any field is invalid
+	document.querySelector('form').addEventListener('submit', function (e) {
+		const invalidInputs = document.querySelectorAll('.check-duplicate.is-invalid');
+		if (invalidInputs.length > 0) {
+			e.preventDefault();
+			showDuplicateModal("Please fix the duplicate field(s) before submitting.");
+		}
+	});
+
+</script>
+
+
+<script>
+	// Allow only numbers (e.g., for mobile/landline)
+	function isNumberKey(evt) {
+		const charCode = evt.which ? evt.which : evt.keyCode;
+		return (charCode === 46 || (charCode >= 48 && charCode <= 57));
+	}
+</script>
+
+<script>
+	// Allow only text (letters, space, delete, dot)
+	function isTextKey(evt) {
+		const charCode = evt.which ? evt.which : evt.keyCode;
+		return (
+			(charCode >= 65 && charCode <= 90) || // uppercase
+			(charCode >= 97 && charCode <= 122) || // lowercase
+			charCode === 8 || charCode === 127 || charCode === 32 || charCode === 46 // delete, backspace, space, dot
+		);
+	}
+</script>
+
+<script>
+	// / Validate mobile number (starts with 07 and has 10 digits)
+	function validateMobileNumber(id) {
+		const input = document.getElementById(id);
+		const value = input.value.trim();
+
+		if (value === "") return;
+
+		if (!/^\d{10}$/.test(value)) {
+			alert("Enter 10 digit Mobile Number");
+			input.value = "";
+			input.focus();
+			return false;
+		}
+
+		if (!value.startsWith("07")) {
+			alert("Enter Mobile Number starting with 07xxxxxxxx");
+			input.value = "";
+			input.focus();
+			return false;
+		}
+
+		return true;
+	}
+</script>
+
+<script>
+// Validate NIC and extract DOB/Gender (you can add your calculatedob logic here)
+	function validateNIC(id) {
+		const input = document.getElementById(id);
+		const nic = input.value.trim();
+
+		if (nic.length === 0) return;
+
+		// 10-character NIC: 9 digits + V/v/X/x
+		if (nic.length === 10) {
+			if (!/^[0-9]{9}[vVxX]$/.test(nic)) {
+				alert("NIC must be 9 digits followed by V/v/X/x");
+				input.value = "";
+				input.focus();
+				return false;
+			}
+		}
+		// 12-character NIC: all digits
+		else if (nic.length === 12) {
+			if (!/^[0-9]{12}$/.test(nic)) {
+				alert("NIC must be exactly 12 digits");
+				input.value = "";
+				input.focus();
+				return false;
+			}
+		}
+		else {
+			alert("NIC must be either 10 or 12 characters");
+			input.value = "";
+			input.focus();
+			return false;
+		}
+
+		return true;
+	}
+</script>
+
+
+<script>
+	// Validate Email
+	function validateEmail(id, page_name) {
+		const email = document.getElementById(id).value.trim();
+		const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+
+		if (email === "") return;
+
+		if (!regex.test(email)) {
+			alert("Invalid Email Address");
+			document.getElementById(id).value = "";
+			document.getElementById(id).focus();
+			return false;
+		}
+	}
+</script>
 	</body>
 </html>

@@ -1,4 +1,5 @@
 <?php
+
 	// --- Function to Generate the Next Staff ID ---
 	function generateNextStaffID($conn) {
 		// 1. Find the highest existing staff_id
@@ -25,6 +26,7 @@
 		}
 	}
 	
+
 	// --- Helper Function to Get Staff Data ---
 	function getStaffDataFromDatabase($staff_id, $conn) {
 		$staff_id = mysqli_real_escape_string($conn, $staff_id);
@@ -37,6 +39,28 @@
 			return null;
 		}
 	}
+
+	// Check Duplicate
+	function check_duplicate($conn, $table, $column, $value, $redirect_url = '', $alert_message = '') {
+		// Escape the value to prevent SQL injection
+		$value_safe = mysqli_real_escape_string($conn, $value);
+	
+		// Build the SQL query
+		$sql = "SELECT $column FROM $table WHERE $column = '$value_safe' LIMIT 1;";
+		$result = mysqli_query($conn, $sql);
+	
+		if ($result && mysqli_num_rows($result) >= 1) {
+			if (!empty($alert_message)) {
+				echo "<script>alert(" . json_encode($alert_message) . ");</script>";
+			}
+	
+			if (!empty($redirect_url)) {
+				echo "<script>location.href='$redirect_url';</script>";
+			}
+			exit;
+		}
+	}
+	
 	
 	
 	function getCourtName($court_id) {
@@ -52,6 +76,7 @@
 		}
 	}
 	
+
 	function getRoleName($role_id) {
 		switch ($role_id) {
 			case 'R01':
@@ -73,6 +98,7 @@
 		}
 	}
 	
+
 	if (isset($_POST["btn_add"])) {
 		$txt_staff_id = mysqli_real_escape_string($conn, $_POST["txt_staff_id"]);
 	    $txt_first_name = mysqli_real_escape_string($conn, $_POST["txt_first_name"]);
@@ -88,7 +114,7 @@
 		$status = "active";
 
 	
-		require_once 'security.php';
+		// require_once 'security.php';
 	
 		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			$upload_result = secure_image_upload('img_profile_photo');
@@ -103,17 +129,38 @@
 		}
 	
 	
+
+
+
+
+
+
+		// check_duplicate($conn, 'courtsmanagement.staff', 'email', $txt_email, $redirect_url = 'index.php?pg=staff.php&option=add', $alert_message = 'This email is already in use. Try different email OK !');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		// Check whether this email is already in use or not
-		$sqlEmail = "SELECT email FROM courtsmanagement.staff WHERE email='$txt_email';";
-		$result = mysqli_query($conn, $sqlEmail);
+		// $sqlEmail = "SELECT email FROM courtsmanagement.staff WHERE email='$txt_email';";
+		// $result = mysqli_query($conn, $sqlEmail);
 	
-		if ($result && mysqli_num_rows($result) >= 1) {
+		// if ($result && mysqli_num_rows($result) >= 1) {
 	
-			echo '<script>alert("This email is already in use. Try different email");</script>';
-			echo "<script> location.href='index.php?pg=staff.php&option=add'; </script>";
-			exit;
-			exit;
-		} 
+		// 	echo '<script>alert("This email is already in use. Try different email");</script>';
+		// 	echo "<script> location.href='index.php?pg=staff.php&option=add'; </script>";
+		// 	exit;
+		// } 
 	
 		// Writing new staff data into the staff table
 	    $sqlInsert = "INSERT INTO staff (staff_id, first_name, last_name, mobile, nic_number, date_of_birth, email, address, court_id, joined_date, role_id, image_path) VALUES (
@@ -163,16 +210,14 @@
 		$date_date_of_birth= mysqli_real_escape_string($conn, $_POST["date_date_of_birth"]);
 		$txt_email= mysqli_real_escape_string($conn, $_POST["txt_email"]);
 		$txt_address= mysqli_real_escape_string($conn, $_POST["txt_address"]);
-		$select_court_name= mysqli_real_escape_string($conn, $_POST["select_court_name"]);
-		$date_joined_date= mysqli_real_escape_string($conn, $_POST["date_joined_date"]);
-		$txt_role_id= mysqli_real_escape_string($conn, $_POST["txt_role_id"]);
+	    $select_court_name= mysqli_real_escape_string($conn, $_POST["select_court_name"]);
+		$select_role_name = mysqli_real_escape_string($conn, $_POST["select_role_name"]);
+		
 	
 		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-			$upload_result = secure_image_upload('$txt_image_path'); 
-			echo "<script>alert(1);</script>";
+			$upload_result = secure_image_upload('img_profile_photo'); 
 		
 			if (!$upload_result['success']) {
-				echo "<script>alert(2);</script>";
 				die("Image upload failed: " . $upload_result['error']);
 			}
 		
@@ -181,7 +226,7 @@
 	
 		}
 	
-		$sqlUpdate="UPDATE staff SET first_name = '$txt_first_name', last_name='$txt_last_name', mobile='$int_mobile', nic_number='$txt_nic_number', date_of_birth='$date_date_of_birth', email='$txt_email', address='$txt_address', court_name='$select_court_name', joined_date='$date_joined_date', role_id='$txt_role_id', image_path='$txt_image_path' WHERE staff_id='$txt_staff_id'";
+		$sqlUpdate="UPDATE staff SET first_name = '$txt_first_name', last_name='$txt_last_name', mobile='$int_mobile', nic_number='$txt_nic_number', date_of_birth='$date_date_of_birth', email='$txt_email', address='$txt_address', court_id='$select_court_name', role_id='$select_role_name', image_path='$txt_image_path' WHERE staff_id='$txt_staff_id'";
 						
 		$resultUpdate=mysqli_query($conn,$sqlUpdate)or die("Error in sql_update".mysqli_error($con));
 		if ($resultUpdate) {
@@ -215,8 +260,7 @@
 						
 	$resultUpdate=mysqli_query($conn,$sqlUpdate)or die("Error in sql_update".mysqli_error($con));
 	if ($resultUpdate) {
-		echo '<script>alert("Successfully set Delete attribute to staff member login table.");</script>';
-		echo "<script> location.href='index.php?pg=staff.php&option=view'; </script>";
+		// echo '<script>alert("Successfully set Delete attribute to staff member login table.");</script>';
 	} else {
 		echo '<script>alert("Error deleting staff member: ' . mysqli_error($conn) . '");</script>';
 	}
@@ -227,6 +271,7 @@
 	
 	if ($resultDelete) {
 		echo '<script>alert("Successfully Deleted staff member."); </script>';
+		echo "<script> location.href='index.php?pg=staff.php&option=view'; </script>";
 		} else {
 		echo '<script>alert("Error deleting staff member: ' . mysqli_error($conn) . '");</script>';
 	}
@@ -250,78 +295,79 @@
 			
 				if ($result && mysqli_num_rows($result) >= 0) {
 			?>
-		<div class="container-fluid bg-primary text-white text-center py-3">
-			<h1>STAFF LIST</h1>
-		</div>
-		<div class="container mt-4 text-center">
-			<!-- <h2>Staff List</h2> -->
-			<div class="table-responsivive">
-				<div class="container mt-4 text-left">
-					<a href="index.php?pg=staff.php&option=add" class="btn btn-success btn-sm me-1"><i class="fas fa-plus"></i> Add Staff</a>
-				</div>
-				<div class="container mt-5">
-					<div class="row justify-content-center">
-						<div class="col-lg-10">
-							<table class="table table-responsive table-striped attractive-table">
-								<thead>
-									<tr>
-										<th scope="col">No</th>
-										<th scope="col">Full Name</th>
-										<th scope="col">NIC</th>
-										<th scope="col">Mobile</th>
-										<th scope="col">Court Name</th>
-										<th scope="col">Actions</th>
-									</tr>
-								</thead>
-								<tbody>
-									<?php
-										$count = 1;
-										while ($row = mysqli_fetch_assoc($result)) {
-										
-										?>
-									<tr>
-										<td scope="row">
-											<?php echo("$count"); ?> 
-											<p hidden class="text-muted mb-0"><?php echo $row['staff_id']; ?></p>
-										</td>
-										<td>
-											<div class="d-flex align-items-center">
-												<div class="ms-3">
-													<p class="fw-bold mb-1"><?php echo $row['first_name']." ".$row['last_name']; ?></p>
-													<p class="text-muted mb-0"><?php echo $row['email']; ?></p>
-												</div>
-											</div>
-										</td>
-										<td><?php echo $row['nic_number']; ?></td>
-										<td><?php echo $row['mobile']; ?></td>
-										<td><?php echo getCourtName($row['court_id']); ?></td>
-										<td>
-											<form class="d-inline" method="POST" action="http://localhost/ucms/index.php?pg=staff.php&option=edit">
-												<input type="hidden" name="staff_id" value="<?php echo htmlspecialchars($row['staff_id']); ?>">
-												<button class="btn btn-primary btn-sm" type="submit" id="btn_edit" name="btn_edit"><i class="fas fa-edit"></i> Edit</button>
-											</form>
-											<button class="btn btn-info btn-sm">
-											<i class="fas fa-eye"></i> <a href="http://localhost/ucms/index.php?pg=staff.php&option=full_view&id=<?php echo htmlspecialchars($row['staff_id']); ?>"> Full View </a>
-											</button>				
-											<a>
-												<form class="d-inline" method="POST" action="#">
-													<input type="hidden" name="staff_id" value="<?php echo htmlspecialchars($row['staff_id']); ?>">
-													<button class="btn btn-danger btn-sm" type="submit" id="btn_delete" name="btn_delete"><i class="fas fa-trash-alt" data-bs-target="#deleteConfirmModal"></i> Delete</button>
-												</form>
-										</td>
-									</tr>
-									<?php
-										$count++;
-										}
-										?>
-								</tbody>
-							</table>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<!-- --- START : CAN BE REMOVED --- -->
+		<div class="container mt-4">
+		<!-- For bigger list  <div class="container-fluid mt-4"> -->
+  <div class="d-flex justify-content-start mb-3">
+    <a href="index.php?pg=staff.php&option=add" class="btn btn-success btn-sm me-1">
+      <i class="fas fa-plus"></i> Add Staff
+    </a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-striped attractive-table w-100">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Full Name</th>
+          <th>NIC</th>
+          <th>Mobile</th>
+          <th>Court Name</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php $count = 1; while ($row = mysqli_fetch_assoc($result)) { ?>
+        <tr>
+          <td><?php echo $count; ?></td>
+          <td>
+            <strong><?php echo $row['first_name']." ".$row['last_name']; ?></strong><br>
+            <small class="text-muted"><?php echo $row['email']; ?></small>
+          </td>
+          <td><?php echo $row['nic_number']; ?></td>
+          <td><?php echo $row['mobile']; ?></td>
+          <td><?php echo getCourtName($row['court_id']); ?></td>
+          <td>
+            <div class="d-flex flex-wrap gap-1">
+              <form method="POST" action="index.php?pg=staff.php&option=edit" class="d-inline">
+                <input type="hidden" name="staff_id" value="<?php echo htmlspecialchars($row['staff_id']); ?>">
+                <button class="btn btn-primary btn-sm" type="submit" name="btn_edit">
+                  <i class="fas fa-edit"></i> Edit
+                </button>
+              </form>
+
+              <!-- <a href="index.php?pg=staff.php&option=full_view&id=<?php echo htmlspecialchars($row['staff_id']); ?>" class="btn btn-info btn-sm text-white">
+                <i class="fas fa-eye"></i> Full View
+              </a> -->
+
+			<form method="GET" action="index.php" class="d-inline">
+				<input type="hidden" name="pg" value="staff.php">
+				<input type="hidden" name="option" value="full_view">
+				<input type="hidden" name="id" value="<?php echo urlencode(htmlspecialchars($row['staff_id'])); ?>">
+
+				<button type="submit" class="btn btn-info btn-sm text-white">
+					<i class="fas fa-eye"></i> Full View
+				</button>
+			</form>
+
+
+			<form method="POST" action="#" class="d-inline delete-form">
+	<input type="hidden" name="staff_id" value="<?php echo htmlspecialchars($row['staff_id']); ?>">
+	<input type="hidden" name="btn_delete" value="1">
+
+	<button type="button" class="btn btn-danger btn-sm" onclick="showDeleteModal(() => this.closest('form').submit())">
+		<i class="fas fa-trash-alt"></i> Delete
+	</button>
+</form>
+
+              </form>
+            </div>
+          </td>
+        </tr>
+        <?php $count++; } ?>
+      </tbody>
+    </table>
+  </div>
+</div>
+
 		<?php
 			}
 			// <!-- FULL VIEW SECTION -->
@@ -331,9 +377,6 @@
 					// $row = getStaffDataFromDatabase($staff, $conn);
 					$row = getStaffDataFromDatabase(htmlspecialchars($staff), $conn);
 				?>
-		<!-- Bootstrap 5 Required CSS -->
-		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-		<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 		<div class="container py-5">
 		<div class="card shadow-lg rounded-4 border-0">
 		<div class="card-header bg-dark text-white rounded-top-4 d-flex align-items-center justify-content-between">
@@ -354,7 +397,6 @@
 
 		<div class="card-footer text-end bg-light rounded-bottom-4">
 		<div class="d-flex justify-content-between">
-	<!-- Go previous button -->
 	<?php
 			// Remove the 'S' and convert to integer
 			$number = (int) filter_var($row['staff_id'], FILTER_SANITIZE_NUMBER_INT);
@@ -407,8 +449,6 @@
 			</div>
 
 
-
-
 		<div class="table-responsive">
 		<table class="table table-hover table-bordered align-middle">
 		<tbody>
@@ -458,7 +498,7 @@
 		<?php if ($row['is_active']) { ?>
 		<span class="badge bg-success">Active</span>
 		<?php } else { ?>
-		<span class="badge bg-danger">Inactive</span>
+		<span class="badge bg-danger">Deleted</span>
 		<?php } ?>
 		</td>
 		</tr>
@@ -484,13 +524,16 @@
       </button>
     </form>
 
-    <!-- Delete Button within Full View-->
-	<form method="POST" action="#" class="d-inline">
-		<input type="hidden" name="staff_id" value="<?php echo htmlspecialchars($row['staff_id']); ?>">
-		<button type="submit" class="btn btn-danger align-middle" name="btn_delete" id="btn_delete">
-		<i class="fas fa-trash-alt me-1"></i> Delete
-		</button>
-	</form>
+    <!-- Delete Button within Full View, This will be submitted by JS, so another Input is created in the button_delete name, so it will received by backend.-->
+	<!-- JS submits form, so actual button isn't sent. Add hidden 'btn_delete' input so PHP can detect it. -->
+	<form method="POST" action="#" class="d-inline delete-form">
+	<input type="hidden" name="staff_id" value="<?php echo htmlspecialchars($row['staff_id']); ?>">
+	<input type="hidden" name="btn_delete" value="1">
+
+	<button type="button" class="btn btn-danger" onclick="showDeleteModal(() => this.closest('form').submit())">
+		<i class="fas fa-trash-alt"></i> Delete
+	</button>
+</form>
 
   </div>
 </div>
@@ -527,17 +570,22 @@
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<label for="mobile" class="form-label">Mobile Number</label>
-								<input type="number" min="0" class="form-control" id="int_mobile" name="int_mobile" onblur="phonenumber('int_mobile')" required>
+								<input type="int" name="int_mobile" id="int_mobile" class="form-control check-duplicate" data-check="mobile" data-feedback="mobileFeedback" onkeypress="return isNumberKey(event)" onblur="validateMobileNumber('int_mobile')" required>
+								<small id="mobileFeedback" class="text-danger"></small>
 							</div>
 							<div class="col-md-6">
 								<label for="nic_number" class="form-label">NIC Number</label>
-								<input type="text" class="form-control" id="txt_nic_number" name="txt_nic_number" onblur="nicnumber('txt_nic_number')" required>
+								<!-- <input type="text" class="form-control" id="txt_nic_number" name="txt_nic_number" onblur="nicnumber('txt_nic_number')" required> -->
+								<input type="text" name="txt_nic_number" id="txt_nic_number" class="form-control check-duplicate" data-check="nic" data-feedback="nicFeedback" onblur="validateNIC('txt_nic_number')" required>
+								<small id="nicFeedback" class="text-danger"></small>
 							</div>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<label for="email" class="form-label">Email</label>
-								<input type="email" class="form-control" id="txt_email" name="txt_email" onblur="emailvalidation('txt_email')" required>
+								<input type="email" name="txt_email" id="txt_email" class="form-control check-duplicate" data-check="email" data-feedback="emailFeedback" onblur="validateEmail('txt_email')" required>
+								<small id="emailFeedback" class="text-danger"></small>
+
 							</div>
 							<div class="col-md-6">
 								<label for="address" class="form-label">Address</label>
@@ -547,7 +595,7 @@
 						<div class="row mb-3">
 							<div class="col-md-6">
 							<label for="court_id" class="form-label">Officer Classification</label>
-								<select class="form-select" id="select_court_name" name="select_court_name" required>
+								<select class="form-select" id="select_station" name="select_station" required>
 									<option selected name="Court_staff" value="Court_staff">Judicial Staff</option>
 								</select>
 							</div>
@@ -563,7 +611,7 @@
 							</div>
 							<div class="col-md-6">
 								<label for="joined_date" class="form-label">Joined Date</label>
-								<input type="date" class="form-control" id="date_joined_date" max="<?php echo date('d-m-Y'); ?>" name="date_joined_date" value="<?php echo date('d-m-Y'); ?>" required>
+								<input type="date" class="form-control" id="date_joined_date" max="<?php echo date('Y-m-d'); ?>" name="date_joined_date" value="<?php echo date('Y-m-d'); ?>" required>
 							</div>
 						</div>
 						<div class="row mb-3">
@@ -600,7 +648,7 @@
 		// <!-- EDIT SECTION -->
 		}elseif(isset($_GET['option']) && $_GET['option'] == "edit" && isset($_POST['staff_id'])) {
 			$data = getStaffDataFromDatabase(htmlspecialchars($_POST['staff_id']), $conn);
-			// print_r($data);
+
 			$txt_first_name = $data['first_name'];
 			$txt_last_name = $data['last_name'];
 			$int_mobile = $data['mobile'];
@@ -609,8 +657,7 @@
 			$txt_email = $data['email'];
 			$txt_address = $data['address'];
 			$select_court_name = $data['court_id'];
-			$date_joined_date = $data['joined_date'];
-			$txt_role_id = $data['role_id'];
+			$select_role_name = $data['role_id'];
 			$txt_image_path = $data['image_path'];
 		
 		?>
@@ -620,7 +667,7 @@
 		<div class="container mt-4">
 			<div class="row justify-content-center">
 				<div class="col-md-8 col-lg-6">
-					<form action="#" method="POST" id="staffForm">
+					<form action="#" method="POST" id="staffForm" enctype="multipart/form-data">
 						<div class="row mb-3">
 							<label hidden for="staff_id" class="form-label">Staff ID</label>
 							<input hidden type="text" class="form-control" id="txt_staff_id" name="txt_staff_id" value="<?php echo htmlspecialchars($_POST['staff_id']); ?>" readonly required>
@@ -628,27 +675,30 @@
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<label for="first_name" class="form-label">First Name</label>
-								<input type="text" class="form-control" id="txt_first_name" name="txt_first_name" value="<?php echo $txt_first_name ?>" required>
+								<input type="text" class="form-control" id="txt_first_name" name="txt_first_name" value="<?php echo $txt_first_name ?>" onkeypress="return isTextKey(event)" required>
 							</div>
 							<div class="col-md-6">
 								<label for="last_name" class="form-label">Last Name</label>
-								<input type="text" class="form-control" id="txt_last_name" name="txt_last_name"  value="<?php echo $txt_last_name ?>" required>
+								<input type="text" class="form-control" id="txt_last_name" name="txt_last_name"  value="<?php echo $txt_last_name ?>" onkeypress="return isTextKey(event)" required>
 							</div>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<label for="mobile" class="form-label">Mobile Number</label>
-								<input type="text" class="form-control" id="int_mobile" name="int_mobile"  value="<?php echo $int_mobile ?>" required>
+								<input type="int" name="int_mobile" id="int_mobile" class="form-control check-duplicate" data-check="mobile" data-feedback="mobileFeedback" onkeypress="return isNumberKey(event)" onblur="validateMobileNumber('int_mobile')" required>
+								<small id="mobileFeedback" class="text-danger"></small>
 							</div>
 							<div class="col-md-6">
 								<label for="nic_number" class="form-label">NIC Number</label>
-								<input type="text" class="form-control" id="txt_nic_number" name="txt_nic_number"  value="<?php echo $txt_nic_number ?>" required>
+								<input type="text" class="form-control check-duplicate" data-check="nic" data-feedback="nicFeedback" id="txt_nic_number" name="txt_nic_number"  value="<?php echo $txt_nic_number ?>" onblur="validateNIC('txt_nic_number')" required>
+								<small id="nicFeedback" class="text-danger"></small>
 							</div>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
-								<label for="email" class="form-label">Email</label>
-								<input type="email" class="form-control" id="txt_email" name="txt_email" value="<?php echo $txt_email ?>" required>
+								<label for="email" class="form-label">Email</label><!-- <input type="email" class="form-control" id="txt_email" name="txt_email" value="<?php echo $txt_email ?>" required> -->
+								<input type="email" name="txt_email" id="txt_email" class="form-control check-duplicate" data-check="email" data-feedback="emailFeedback" value="<?php echo $txt_email ?>" onblur="validateEmail('txt_email')" required>
+								<small id="emailFeedback" class="text-danger"></small>
 							</div>
 							<div class="col-md-6">
 								<label for="address" class="form-label">Address</label>
@@ -661,23 +711,32 @@
 								<input type="date" class="form-control" id="date_date_of_birth" name="date_date_of_birth" value="<?php echo $date_date_of_birth ?>" required>
 							</div>
 							<div class="col-md-6">
-								<label for="joined_date" class="form-label">Join Date</label>
-								<input type="date" class="form-control" id="date_joined_date" name="date_joined_date"  value="<?php echo $date_joined_date ?>" required>
+							<label for="court_name" class="form-label">Court Name</label>
+							<select class="form-select" id="select_court_name" name="select_court_name" required>
+									<option name="" selected hidden value="<?php echo $select_court_name ?>" ><?php echo getCourtName($select_court_name) ?></option>
+									<option name="Magistrate's Court" value="C01">Magistrate's Court</option>
+									<option name="District Court" value="C02">District Court</option>
+									<option name="High Court" value="C03">High Court</option>
+								</select>
 							</div>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
-								<label for="court_name" class="form-label">Court Name</label>
-								<select class="form-select" id="select_court_name" name="select_court_name" required>
-									<option value="" disabled selected hidden>Select Court</option>
-									<option value="Magistrate's Court">Magistrate's Court</option>
-									<option value="District Court">District Court</option>
-									<option value="High Court">High Court</option>
+								<label for="court_name" class="form-label">Role Name</label>
+								<select class="form-select" id="select_role_name" name="select_role_name" required>
+									<option name="" selected hidden value="<?php echo $select_role_name ?>"><?php echo getRoleName($select_role_name) ?></option>
+									<option name="Administrator" value="R01">Administrator</option>
+									<option name="Hon. Judge" value="R02">Hon. Judge</option>
+									<option name="The Registrar" value="R03">The Registrar</option>
+									<option name="Interpreter" value="R04">Interpreter</option>
+									<option name="Other Staff" value="R05">Other Staff</option>
+									<option name="Lawyer" disabled value="R06">Lawyer</option>
+									<option name="Police" disabled value="R07">Police</option>
 								</select>
 							</div>
 							<div class="col-md-6">
 								<label for="profile_photo" class="form-label">Upload Profile Photo</label>
-								<input type="file" class="form-control" id="$txt_image_path" name="$txt_image_path" accept="image/*" required>
+								<input type="file" class="form-control" id="img_profile_photo" name="img_profile_photo" accept="image/*" required>
 							</div>
 						</div>
 						<div class="mb-3">
@@ -716,7 +775,26 @@
 				exit; 
 			}
 			?>
-		<!-- Delete Confirmation Modal -->
+		<!-- Delete Confirmation Modal 1-->
+		<!-- <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered modal-sm">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Deletion</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						Are you sure you want to delete?
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+						<button type="button" class="btn btn-danger btn-sm" id="confirmDeleteBtn">Delete</button>
+					</div>
+				</div>
+			</div>
+		</div> -->
+
+		<!-- Delete Confirmation Modal 2
 		<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
 			<div class="modal-dialog modal-dialog-centered modal-sm">
 				<div class="modal-content">
@@ -725,7 +803,7 @@
 						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 					</div>
 					<div class="modal-body">
-						Are you sure you want to delete this item?
+						Are you sure you want to delete?
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
@@ -733,7 +811,28 @@
 					</div>
 				</div>
 			</div>
+		</div> -->
+
+		<!-- Reusable Modal for both PHP/ JS-->
+<div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-sm">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="actionModalLabel">Modal Title</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body" id="actionModalBody">
+				Modal message goes here.
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-primary btn-sm" id="actionModalConfirmBtn">OK</button>
+			</div>
 		</div>
+	</div>
+</div>
+
+
 		<script>
 			// 1. JS clear the form button
 			document.getElementById('btn_clear').addEventListener('click', function() {
@@ -747,65 +846,236 @@
 				const formattedDate = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD
 				joinedDateField.value = formattedDate;
 		</script>
+
 		<script>
-			//3. JS NIC to Date of Birth Calculation
+			// 3. Set date of birth from NIC
 			const nicInput = document.getElementById('txt_nic_number');
 			const dobInput = document.getElementById('date_date_of_birth');
-			
-			nicInput.addEventListener('input', function() {
+
+			nicInput.addEventListener('input', function () {
 				const nic = nicInput.value.trim();
 				let year = '';
 				let dayOfYear = '';
-			
-				if (nic.length === 10 && nic.match(/^[0-9]{9}[VvXx]$/)) {
-					// Old NIC format
+
+				if (nic.length === 10 && /^[0-9]{9}[VvXx]$/.test(nic)) {
 					year = '19' + nic.substring(0, 2);
 					dayOfYear = parseInt(nic.substring(2, 5));
-				} else if (nic.length === 12 && nic.match(/^[0-9]{12}$/)) {
-					// New NIC format
+				} else if (nic.length === 12 && /^[0-9]{12}$/.test(nic)) {
 					year = nic.substring(0, 4);
 					dayOfYear = parseInt(nic.substring(4, 7));
 				} else {
-					dobInput.value = ''; // Clear if invalid NIC
-					flatpickr(dobInput).clear(); // Clear Flatpickr instance
+					dobInput.value = '';
 					return;
 				}
-			
-				// Check if female (over 500)
+
 				if (dayOfYear > 500) {
 					dayOfYear -= 500;
 				}
-			
-				// **Corrected Date Calculation**
-				let date = new Date(year, 0, dayOfYear-1); // Start from January 1st and adjust correctly
-			
-				// Format date as yyyy-mm-dd for Flatpickr
-				let yyyy = date.getFullYear();
-				let mm = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
-				let dd = String(date.getDate()).padStart(2, '0');
-				let dob = `${yyyy}-${mm}-${dd}`;
-			
-				dobInput.value = dob;
-				flatpickr(dobInput).setDate(dob, true); // Use setDate and pass true for 'triggerChange'
+
+				const date = new Date(year, 0, dayOfYear - 1);
+				const yyyy = date.getFullYear();
+				const mm = String(date.getMonth() + 1).padStart(2, '0');
+				const dd = String(date.getDate()).padStart(2, '0');
+
+				dobInput.value = `${yyyy}-${mm}-${dd}`; // Format required for input[type="date"]
 			});
-			
-			// Initialize Flatpickr (outside the event listener, but after DOM is loaded)
-			document.addEventListener('DOMContentLoaded', function() {
-				flatpickr("#dob", {
-					dateFormat: "Y-m-d",
-				});
-			});
-			
-			
-			//4. JS to confirm before delete
-			
-			
-				
-			
-			
-			
-			
-			
 		</script>
+
+		<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+		<script>
+			//4. JS to confirm msg to multipurpose model
+			const actionModal = new bootstrap.Modal(document.getElementById('actionModal'));
+			const modalTitle = document.getElementById('actionModalLabel');
+			const modalBody = document.getElementById('actionModalBody');
+			const modalConfirmBtn = document.getElementById('actionModalConfirmBtn');
+
+			// 4.1 For delete confirmation
+			function showDeleteModal(callback) {
+				const modalElement = document.getElementById('actionModal');
+				const modal = new bootstrap.Modal(modalElement);
+				const modalTitle = document.getElementById('actionModalLabel');
+				const modalBody = document.getElementById('actionModalBody');
+				const confirmBtn = document.getElementById('actionModalConfirmBtn');
+
+				modalTitle.textContent = "Confirm Deletion";
+				modalBody.textContent = "Are you sure you want to delete?";
+				confirmBtn.textContent = "Delete";
+				confirmBtn.className = "btn btn-danger btn-sm";
+
+				// Clean up previous onclick if any
+				confirmBtn.onclick = () => {
+					callback();
+					modal.hide();
+				};
+
+				modal.show();
+			}
+
+			// 4.2 For duplicate check error
+			function showDuplicateModal(message) {
+				const modalElement = document.getElementById('actionModal');
+				const modal = new bootstrap.Modal(modalElement);
+
+				const modalTitle = document.getElementById('actionModalLabel');
+				const modalBody = document.getElementById('actionModalBody');
+				const modalConfirmBtn = document.getElementById('actionModalConfirmBtn');
+
+				modalTitle.textContent = "Duplicate Detected";
+				modalBody.textContent = message || "This value is already used.";
+				modalConfirmBtn.textContent = "OK";
+				modalConfirmBtn.className = "btn btn-primary btn-sm";
+
+				// Close modal on click
+				modalConfirmBtn.onclick = () => modal.hide();
+
+				modal.show();
+			}
+		</script>
+
+<script>
+	// 5.1 Duplicate check on blur
+	document.querySelectorAll('.check-duplicate').forEach(input => {
+		input.addEventListener('blur', function () {
+			const value = input.value.trim();
+			const checkKey = input.dataset.check;
+			const feedback = document.getElementById(input.dataset.feedback);
+
+			if (!value) return;
+
+			fetch('check_duplicate_AJAX.php', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+				body: `check=${encodeURIComponent(checkKey)}&value=${encodeURIComponent(value)}`
+			})
+			.then(res => res.json())
+			.then(data => {
+				if (data.exists) {
+					// feedback.textContent = "This name is already taken. Choose another";
+					// input.classList.add("is-invalid");
+					feedback.textContent = data.message || "This value is already taken.";
+					input.classList.add("is-invalid");
+				} else {
+					feedback.textContent = "";
+					input.classList.remove("is-invalid");
+				}
+			});
+		});
+	});
+
+	// 5.2 Block form submission if any field is invalid
+	document.querySelector('form').addEventListener('submit', function (e) {
+		const invalidInputs = document.querySelectorAll('.check-duplicate.is-invalid');
+		if (invalidInputs.length > 0) {
+			e.preventDefault();
+			showDuplicateModal("Please fix the duplicate field(s) before submitting.");
+		}
+	});
+
+</script>
+
+
+<script>
+	// Allow only numbers (e.g., for mobile/landline)
+	function isNumberKey(evt) {
+		const charCode = evt.which ? evt.which : evt.keyCode;
+		return (charCode === 46 || (charCode >= 48 && charCode <= 57));
+	}
+</script>
+
+<script>
+	// Allow only text (letters, space, delete, dot)
+	function isTextKey(evt) {
+		const charCode = evt.which ? evt.which : evt.keyCode;
+		return (
+			(charCode >= 65 && charCode <= 90) || // uppercase
+			(charCode >= 97 && charCode <= 122) || // lowercase
+			charCode === 8 || charCode === 127 || charCode === 32 || charCode === 46 // delete, backspace, space, dot
+		);
+	}
+</script>
+
+<script>
+	// / Validate mobile number (starts with 07 and has 10 digits)
+	function validateMobileNumber(id) {
+		const input = document.getElementById(id);
+		const value = input.value.trim();
+
+		if (value === "") return;
+
+		if (!/^\d{10}$/.test(value)) {
+			alert("Enter 10 digit Mobile Number");
+			input.value = "";
+			input.focus();
+			return false;
+		}
+
+		if (!value.startsWith("07")) {
+			alert("Enter Mobile Number starting with 07xxxxxxxx");
+			input.value = "";
+			input.focus();
+			return false;
+		}
+
+		return true;
+	}
+</script>
+
+<script>
+// Validate NIC and extract DOB/Gender (you can add your calculatedob logic here)
+	function validateNIC(id) {
+		const input = document.getElementById(id);
+		const nic = input.value.trim();
+
+		if (nic.length === 0) return;
+
+		// 10-character NIC: 9 digits + V/v/X/x
+		if (nic.length === 10) {
+			if (!/^[0-9]{9}[vVxX]$/.test(nic)) {
+				alert("NIC must be 9 digits followed by V/v/X/x");
+				input.value = "";
+				input.focus();
+				return false;
+			}
+		}
+		// 12-character NIC: all digits
+		else if (nic.length === 12) {
+			if (!/^[0-9]{12}$/.test(nic)) {
+				alert("NIC must be exactly 12 digits");
+				input.value = "";
+				input.focus();
+				return false;
+			}
+		}
+		else {
+			alert("NIC must be either 10 or 12 characters");
+			input.value = "";
+			input.focus();
+			return false;
+		}
+
+		return true;
+	}
+
+</script>
+
+
+<script>
+	// Validate Email
+	function validateEmail(id, page_name) {
+		const email = document.getElementById(id).value.trim();
+		const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+
+		if (email === "") return;
+
+		if (!regex.test(email)) {
+			alert("Invalid Email Address");
+			document.getElementById(id).value = "";
+			document.getElementById(id).focus();
+			return false;
+		}
+	}
+</script>
+
+	
 	</body>
 </html>

@@ -1,7 +1,7 @@
 <?php
 	include_once('menu.php');
 	include_once('db.php');
-	// require_once ('security.php');
+	require_once ('security.php');
 
 ?>
 
@@ -201,7 +201,7 @@ function emailvalidation(email_text_box_name)
 		<script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
 		<script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
 		<script src="assets/vendor/jquery3.7/jquery.min.js"></script>
-		<script src="assets/js/flatpickr.js"></script>
+		<!-- <script src="assets/js/flatpickr.js"></script> -->
 		<!-- <script src="assets/js/main.js"></script> -->
 	</body>
 

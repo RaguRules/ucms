@@ -1,4 +1,7 @@
-
+/* AJAX Issue Solver */
+input.is-invalid {
+    background-image: none !important;
+  }
 
 /* Custom styles for a more attractive look */
 .attractive-table {
