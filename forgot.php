@@ -1,21 +1,105 @@
 <?php
 
-if(isset($_SESSION["ForgotUser"])){
-    $forgotUser = $_SESSION["ForgotUser"];
-    $readOnly = "readOnly";
+if (!isset($_SESSION)){
+    session_start();
+}
+
+include_once('db.php');
+include_once('jsfunctions.php');
+
+if(isset($_SESSION["FORGOT_USERNAME"])){
+    $username = $_SESSION["FORGOT_USERNAME"];
+    $readonlystatus = "readOnly";
 
 }else{
-    $forgotUser = "";
-    $readOnly = "";
+    $username = "";
+    $readonlystatus = "";
+    
+}
 
+if(isset($_POST["btn_forgot"])){
+    $username = $_POST["txt_email"];
+    $mobile = $_POST["int_mobile"];
+
+    $query = "SELECT * FROM login WHERE username = '$username' AND status = 'active'";
+    $result = mysqli_query($conn, $query);
+    
+    if(mysqli_num_rows($result) > 0){
+        $db_mobile ='';
+        $row = mysqli_fetch_assoc($result);
+        $db_role = $row['role_id'];
+        switch($db_role){
+            case "R01":
+            case "R02":
+            case "R03":
+            case "R04":
+            case "R05":
+                $query = "SELECT * FROM staff WHERE email = '$username'";
+                // $result = mysqli_query($conn, $query);
+                // $row = mysqli_fetch_assosc($result);
+                // $db_mobile = $row['mobile'];
+                break;
+            case "R06":
+                $query = "SELECT * FROM lawyer WHERE email = '$username'";
+                // $result = mysqli_query($conn, $query);
+                // $row = mysqli_fetch_assoc($result);
+                // $db_mobile = $row['mobile'];
+                break;
+            case "R07":
+                $query = "SELECT * FROM police WHERE email = '$username'";
+                // $result = mysqli_query($conn, $query);
+                // $row = mysqli_fetch_assoc($result); 
+                // $db_mobile = $row['mobile'];
+                break;
+            default:
+                echo '<script> alert("Something went wrong. Conatact Admin Officer"); </script>';
+                break;
+        }
+
+        $result = mysqli_query($conn, $query);
+        $row = mysqli_fetch_assoc($result); 
+        $db_mobile = $row['mobile'];
+        
+        if($mobile == $db_mobile){
+            $otp = rand(10000, 99999); // Generate a random 5-digit OTP
+            $sqlUpdate = "UPDATE login SET otp = '$otp' WHERE username = '$username'";
+            mysqli_query($conn, $sqlUpdate);
+            echo "<script> alert('OTP has been Generated'); </script>";
+
+            // Send OTP to the user's mobile number
+            $user = "94769669804";
+            $password = "3100";
+            $text = urlencode("If you've requested to reset your password, your verification code is $otp. - Kilinochchi Courts");
+            $to = "94".$db_mobile;
+            $baseurl ="http://www.textit.biz/sendmsg";
+            $url = "$baseurl/?id=$user&pw=$password&to=$to&text=$text";
+            $ret = file($url);   
+            $res= explode(":",$ret[0]);
+
+            if (trim($res[0])=="OK"){
+                if(isset($_SESSION["FORGOT_USERNAME"])){
+                    unset($_SESSION["FORGOT_USERNAME"]);
+                }
+                $_SESSION["VERIFICATIONCODE_USERNAME"] = $username;
+                // echo "<script> alert('Message Sent - ID : " . $res[1] . "'); </script>";
+                echo "<script>window.location.href='verify-otp.php';</script>";
+            }
+            else{
+                // echo "<script> alert('Sent Failed - Error : " . $res[1] . "'); </script>";
+                echo '<script> alert("Error sending OTP to registered mobile number."); </script>';
+   
+            }
+        } else {
+            echo '<script> alert("Invalid mobile number that you have given for username"); </script>';
+        }
+
+    } else {
+        echo '<script> alert("Either invalid username or Account has not been activated yet."); </script>';
+    }
 }
 
 
-
-
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,35 +126,31 @@ if(isset($_SESSION["ForgotUser"])){
                 <img src="assets/img/auth/signup-image.jpg" class="img-fluid login-image" alt="Login">
             </div>
 
-            <!-- Right Login Form -->
+            <!-- Right Fotgot Form -->
             <div class="col-md-6">
                 <div class="login-container">
                     <div class="d-flex justify-content-between">
                         <h3 class="mb-4">Forgot your password?</h3>
-                        <!-- Theme Toggle -->
-                        <button id="theme-toggle" class="btn btn-sm btn-outline-secondary">
-                            <i class="fas fa-moon"></i> <!-- Default Moon Icon -->
-                        </button>
                     </div>
 
-                    <!-- Login Form -->
-                    <form action="send-otp.php" method="POST" id="forgotPwdForm">
+                    <!-- Forgot Form -->
+                    <form action="#" method="POST" id="forgotPwdForm">
                         <div class="mb-3">
-                            <label>Enter your Registered Email to reset password</label>
-                            <input type="email" <?php echo "$readOnly"; ?> class="form-control" placeholder="Enter your email">
+                            <label>Enter your Username</label>
+                            <input type="email" value="<?php echo $username;?>" <?php echo $readonlystatus;?> name="txt_email" id="txt_email" class="form-control" placeholder="Enter your email" onblur="validateEmail('txt_email')" required>
                         </div>
 
                         <div class="mb-3">
-                            <label>Enter your Registered Email to reset password</label>
-                            <input value="<?php echo $forgotUser; ?>" type="email" <?php echo "$readOnly"; ?> class="form-control" placeholder="Enter your email">
+                            <label>Enter your Registered Mobile</label>
+                            <input type="text" name="int_mobile" id="int_mobile" class="form-control" placeholder="Enter your mobile"  onkeypress="return isNumberKey(event)" onblur="validateMobileNumber('int_mobile')" required>
                         </div>
 
-                        <button type="submit" class="btn btn-custom mt-3">Reset Password</button>
+                        <button name="btn_forgot" id="btn_forgot" type="submit" class="btn btn-custom mt-3">Reset Password</button>
                     </form>
 
                     <!-- Register Link -->
                     <div class="text-center mt-3 small-text">
-                        Don't have an account? <a href="register.php" class="text-info">Register here</a>
+                        Go back to Login? <a href="login.php" class="text-info">Back to Login</a>
                     </div>
 
                     <!-- Footer -->
@@ -87,87 +167,6 @@ if(isset($_SESSION["ForgotUser"])){
     <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="assets/vendor/jquery3.7/jquery.min.js"></script>
     
-
-    <!-- Scripts -->
-    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/vendor/jquery3.7/jquery.min.js"></script>
-    <script>
-
-        // Function to set a cookie
-        function setCookie(name, value, days) {
-            let expires = "";
-            if (days) {
-                let date = new Date();
-                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-                expires = "; expires=" + date.toUTCString();
-            }
-            document.cookie = name + "=" + value + "; path=/" + expires;
-        }
-
-        // Function to get a cookie
-        function getCookie(name) {
-            let nameEQ = name + "=";
-            let cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                let c = cookies[i].trim();
-                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-            }
-            return null;
-        }
-
-        // Apply theme on page load based on cookie
-        function applySavedTheme() {
-            const theme = getCookie("theme");
-            const body = document.body;
-            const themeIcon = document.getElementById("theme-icon");
-
-            if (theme === "dark") {
-                body.classList.add("dark-mode");
-                themeIcon.classList.replace("fa-moon", "fa-sun"); // Change to Sun Icon
-            } else {
-                body.classList.add("light-mode");
-                themeIcon.classList.replace("fa-sun", "fa-moon"); // Change to Moon Icon
-            }
-        }
-
-        // Toggle Theme Function
-        document.getElementById("theme-toggle").addEventListener("click", () => {
-            const body = document.body;
-            const themeIcon = document.getElementById("theme-icon");
-
-            if (body.classList.contains("dark-mode")) {
-                body.classList.replace("dark-mode", "light-mode");
-                themeIcon.classList.replace("fa-sun", "fa-moon"); // Change to Moon Icon
-                setCookie("theme", "light", 30); // Save in cookie for 30 days
-            } else {
-                body.classList.replace("light-mode", "dark-mode");
-                themeIcon.classList.replace("fa-moon", "fa-sun"); // Change to Sun Icon
-                setCookie("theme", "dark", 30); // Save in cookie for 30 days
-            }
-        });
-
-        // Apply theme on page load
-        applySavedTheme();
-    </script>
-    
-    
-    
-    <!-- <script>
-        // Theme Toggle Script
-        const themeToggle = document.getElementById('theme-toggle');
-        const body = document.body;
-
-        themeToggle.addEventListener('click', () => {
-            body.classList.toggle('dark-mode');
-            body.classList.toggle('light-mode');
-
-            if (body.classList.contains('dark-mode')) {
-                themeToggle.innerHTML = '<i class="fas fa-sun"></i>'; // Change to Sun Icon
-            } else {
-                themeToggle.innerHTML = '<i class="fas fa-moon"></i>'; // Change to Moon Icon
-            }
-        });
-    </script> -->
 
 </body>
 </html>

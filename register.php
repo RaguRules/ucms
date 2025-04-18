@@ -170,7 +170,7 @@
 					</div>
 				</div>
 				<div class="col-md-8 col-lg-8">
-					<form action="register.php?type=<?php echo $type; ?>" method="POST" id="registrationForm" enctype="multipart/form-data">
+					<form name="other_depts" action="register.php?type=<?php echo $type; ?>" method="POST" id="registrationForm" enctype="multipart/form-data">
 						<div class="row mb-3">
 							<label hidden for="reg_id" class="form-label">Registration ID</label>
 							<input hidden type="text" class="form-control" id="txt_reg_id" name="txt_reg_id" value="<?php echo htmlspecialchars($next_reg_id); ?>" readonly>
@@ -296,34 +296,36 @@
 							</div>
 						</div>
 						<div>
-							<div class="mb-3 form-check">
-								<input type="checkbox" class="form-check-input" id="acceptTerms" name="accept_terms" required>
-								<label class="form-check-label" for="acceptTerms">I accept the <a href="terms.html" target="_blank">Terms and Conditions</a></label>
-							</div>
-							<button type="submit" class="btn btn-primary" id="btn_add" name="btn_add">Submit</button>
-							<button type="button" class="btn btn-secondary" id="btn_clear" name="btn_clear">Clear Inputs</button>
+						<div class="mb-3 form-check">
+							<input type="checkbox" class="form-check-input" id="acceptTerms" name="accept_terms" required>
+							<label class="form-check-label" for="acceptTerms"> I accept the <a href="terms.html" target="_blank">Terms, & Conditions</a></label>
+						</div>
+						<button type="submit" class="btn btn-primary" id="btn_add" name="btn_add">Submit</button>
+						<button type="button" class="btn btn-secondary" id="btn_clear" name="btn_clear">Clear Inputs</button>
 					</form>
 					</div>
 				</div>
 			</div>
 		</div>
-		<!-- MODEL : PASSWORD MISMATCH -->
-		<div class="modal fade" id="passwordMismatchModal" tabindex="-1" aria-labelledby="passwordMismatchModalLabel" aria-hidden="true">
-			<div class="modal-dialog">
-				<div class="modal-content">
-					<div class="modal-header">
-						<h5 class="modal-title" id="passwordMismatchModalLabel">Password Mismatch</h5>
-						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-					</div>
-					<div class="modal-body">
-						The passwords you entered do not match. Please try again.
-					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-					</div>
+
+		<!-- MODEL : PASSWORD ISSUE -->
+	<div class="modal fade" id="passwordMismatchModal" tabindex="-1" aria-labelledby="passwordMismatchModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="passwordMismatchModalLabel">Password Error</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body" id="passwordModalBody">
+					<!-- This content will be updated by JS -->
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 				</div>
 			</div>
 		</div>
+	</div>
+
 		<!-- MODEL : Terms $ Condition -->
 		<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
 			<div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -390,12 +392,31 @@
 				</div>
 			</div>
 		</div>
+
 		<script>
-			// 1. JS clear the form button
-			document.getElementById('btn_clear').addEventListener('click', function() {
-			    document.getElementById('staffForm').reset();
+		//  1. JS clear the form button
+			document.addEventListener("DOMContentLoaded", function () {
+				// Clear Inputs Button
+				const clearButton = document.getElementById("btn_clear");
+
+				// Add event listener to clear the form inputs
+				clearButton.addEventListener("click", function () {
+					// Select all input fields and clear them
+					const inputs = document.querySelectorAll("input[type='text'], input[type='password'], input[type='email'], input[type='number'], textarea");
+					inputs.forEach(input => {
+						input.value = ""; // Clear the value of each input
+						input.classList.remove("is-invalid", "is-valid"); // Remove validation classes if any
+					});
+
+					//clear checkboxes or radio buttons
+					const checkboxes = document.querySelectorAll("input[type='checkbox'], input[type='radio']");
+					checkboxes.forEach(checkbox => {
+						checkbox.checked = false; // Uncheck all checkboxes and radio buttons
+					});
+				});
 			});
 		</script>
+
 		<script>
 			//2. JS Set joined date to today
 			const joinedDateField = document.getElementById('date_joined_date');
@@ -438,35 +459,14 @@
 			});
 		</script>
 
-<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+		<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+		
 		<script>
 			//4. JS to confirm msg to multipurpose model
 			const actionModal = new bootstrap.Modal(document.getElementById('actionModal'));
 			const modalTitle = document.getElementById('actionModalLabel');
 			const modalBody = document.getElementById('actionModalBody');
 			const modalConfirmBtn = document.getElementById('actionModalConfirmBtn');
-
-			// 4.1 For delete confirmation
-			function showDeleteModal(callback) {
-				const modalElement = document.getElementById('actionModal');
-				const modal = new bootstrap.Modal(modalElement);
-				const modalTitle = document.getElementById('actionModalLabel');
-				const modalBody = document.getElementById('actionModalBody');
-				const confirmBtn = document.getElementById('actionModalConfirmBtn');
-
-				modalTitle.textContent = "Confirm Deletion";
-				modalBody.textContent = "Are you sure you want to delete?";
-				confirmBtn.textContent = "Delete";
-				confirmBtn.className = "btn btn-danger btn-sm";
-
-				// Clean up previous onclick if any
-				confirmBtn.onclick = () => {
-					callback();
-					modal.hide();
-				};
-
-				modal.show();
-			}
 
 			// 4.2 For duplicate check error
 			function showDuplicateModal(message) {
@@ -524,7 +524,7 @@
 		const invalidInputs = document.querySelectorAll('.check-duplicate.is-invalid');
 		if (invalidInputs.length > 0) {
 			e.preventDefault();
-			showDuplicateModal("Please fix the duplicate field(s) before submitting.");
+			showDuplicateModal("Please fix the issues before submitting.");
 		}
 	});
 
@@ -532,7 +532,7 @@
 
 
 <script>
-	// Allow only numbers (e.g., for mobile/landline)
+	// 6. Allow only numbers (e.g., for mobile/landline)
 	function isNumberKey(evt) {
 		const charCode = evt.which ? evt.which : evt.keyCode;
 		return (charCode === 46 || (charCode >= 48 && charCode <= 57));
@@ -540,7 +540,7 @@
 </script>
 
 <script>
-	// Allow only text (letters, space, delete, dot)
+	// 7. Allow only text (letters, space, delete, dot)
 	function isTextKey(evt) {
 		const charCode = evt.which ? evt.which : evt.keyCode;
 		return (
@@ -552,7 +552,7 @@
 </script>
 
 <script>
-	// / Validate mobile number (starts with 07 and has 10 digits)
+	//  8. Validate mobile number (starts with 07 and has 10 digits)
 	function validateMobileNumber(id) {
 		const input = document.getElementById(id);
 		const value = input.value.trim();
@@ -578,7 +578,7 @@
 </script>
 
 <script>
-// Validate NIC and extract DOB/Gender (you can add your calculatedob logic here)
+// 9. Validate NIC and extract DOB
 	function validateNIC(id) {
 		const input = document.getElementById(id);
 		const nic = input.value.trim();
@@ -616,7 +616,7 @@
 
 
 <script>
-	// Validate Email
+	// 10. Validate Email
 	function validateEmail(id, page_name) {
 		const email = document.getElementById(id).value.trim();
 		const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
@@ -631,5 +631,138 @@
 		}
 	}
 </script>
+
+<script>
+	// 11. Password visibility, Strength, Mismatch model show, and show inline.
+	document.addEventListener("DOMContentLoaded", function () {
+		const passwordInput = document.getElementById("txt_password");
+		const confirmInput = document.getElementById("txt_confirm_password");
+		const toggleButton = document.getElementById("togglePassword");
+		const passwordIcon = document.getElementById("password-icon");
+		const form = document.querySelector("form");
+
+		const modal = new bootstrap.Modal(document.getElementById('passwordMismatchModal'));
+		const modalBody = document.getElementById("passwordModalBody");
+		const modalTitle = document.getElementById("passwordMismatchModalLabel");
+
+		// Add strength display element
+		const strengthDisplay = document.createElement("div");
+		strengthDisplay.id = "password-strength";
+		strengthDisplay.className = "mt-1 fw-semibold";
+		passwordInput.closest('.input-group').after(strengthDisplay);
+
+		// Toggle visibility
+		toggleButton.addEventListener("click", function () {
+			const type = passwordInput.type === "password" ? "text" : "password";
+			passwordInput.type = type;
+			confirmInput.type = type;
+			passwordIcon.classList.toggle("bi-eye");
+			passwordIcon.classList.toggle("bi-eye-slash");
+		});
+
+		// Password strength meter
+		passwordInput.addEventListener("input", () => {
+			const password = passwordInput.value;
+			const strength = getPasswordStrength(password);
+			updateStrengthDisplay(strength);
+
+			// Visual feedback
+			if (strength === "Strong") {
+				passwordInput.classList.remove("is-invalid");
+				passwordInput.classList.add("is-valid");
+			} else {
+				passwordInput.classList.remove("is-valid");
+				passwordInput.classList.add("is-invalid");
+			}
+		});
+
+		// Match check
+		confirmInput.addEventListener("input", () => {
+			if (confirmInput.value !== passwordInput.value) {
+				confirmInput.classList.add("is-invalid");
+			} else {
+				confirmInput.classList.remove("is-invalid");
+				confirmInput.classList.add("is-valid");
+			}
+		});
+
+		//  Block form submit if invalid
+		form.addEventListener("submit", function (e) {
+			const password = passwordInput.value;
+			const confirm = confirmInput.value;
+			const strength = getPasswordStrength(password);
+
+			if (password !== confirm) {
+				e.preventDefault();
+				confirmInput.classList.add("is-invalid");
+				modalTitle.textContent = "Password Mismatch";
+				modalBody.textContent = "The passwords you entered do not match. Please try again.";
+				modal.show();
+				return;
+			}
+
+			if (strength !== "Strong") {
+				e.preventDefault();
+				passwordInput.focus();
+				modalTitle.textContent = "Weak Password";
+				modalBody.textContent = "Password must be Strong: 8+ characters, with uppercase, lowercase, number, and symbol.";
+				modal.show();
+				return;
+			}
+		});
+
+		// Strength checker
+		function getPasswordStrength(password) {
+			let score = 0;
+			if (password.length >= 8) score++;
+			if (/[A-Z]/.test(password)) score++;
+			if (/[a-z]/.test(password)) score++;
+			if (/\d/.test(password)) score++;
+			if (/[\W_]/.test(password)) score++;
+
+			if (score <= 2) return "Weak";
+			if (score === 3 || score === 4) return "Medium";
+			if (score === 5) return "Strong";
+		}
+
+		function updateStrengthDisplay(strength) {
+			const colors = {
+				Weak: "red",
+				Medium: "orange",
+				Strong: "green"
+			};
+			strengthDisplay.textContent = `Password Strength: ${strength}`;
+			strengthDisplay.style.color = colors[strength] || "black";
+		}
+	});
+</script>
+
+<script>
+	// 12. Show T&C
+document.addEventListener("DOMContentLoaded", function () {
+	const acceptTermsCheckbox = document.getElementById("acceptTerms");
+	const termsModal = new bootstrap.Modal(document.getElementById("termsModal"));
+	let isModalConfirmed = false;
+
+	// Trigger modal when checkbox is clicked
+	acceptTermsCheckbox.addEventListener("click", function (e) {
+		if (!isModalConfirmed) {
+			e.preventDefault(); // Prevent checkbox from being checked
+			termsModal.show();
+		}
+	});
+
+	// "I do agree" button inside modal
+	const agreeButton = document.querySelector("#termsModal .btn-secondary");
+	agreeButton.addEventListener("click", function () {
+		isModalConfirmed = true;
+		acceptTermsCheckbox.checked = true;
+		termsModal.hide();
+	});
+});
+</script>
+
+
+
 	</body>
 </html>

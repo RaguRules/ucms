@@ -15,7 +15,7 @@
                 <img src="assets/img/sri-lanka-emblem.png" alt="Sri Lankan Emblem" class="emblem-logo">
                 <h1 class="sitename">Courts Complex Kilinochchi</h1>
             </a>
-			<nav id="navmenu" class="navmenu">
+			<nav id="navmenu" class="navmenu navmenu me-4">
 				<ul>
 					<!-- <li><a href="index.php" class="active">Home</a></li> -->
 					<li class="dropdown">
@@ -44,14 +44,13 @@
 						<ul>
 							<li><a href="index.php?pg=courts.php">Courts</a></li>
 							<li><a href="index.php?pg=lawyers.php">Lawyers</a></li>
-							<li><a href="http://localhost/ucms/index.php?pg=staff.php&option=view">Staff</a></li>
+							<li><a href="index.php?pg=staff.php&option=view">Staff</a></li>
 							<li><a href="index.php?pg=roles.php">Roles</a></li>
 						</ul>
 					</li>
 					<li class="dropdown">
 						<a href="#"><span>User/System</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
 						<ul>
-							<li><a href="index.php?pg=login.php">Login</a></li>
 							<li><a href="index.php?pg=about.php">About</a></li>
 							<li><a href="index.php?pg=contact.php">Contact</a></li>
 						</ul>
@@ -60,8 +59,14 @@
 				<i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
 			</nav>
 		<!-- <a class="cta-btn d-none d-sm-block" href="#appointment">#TO BE USED</a> -->
-		<a class="cta-btn d-none d-sm-block" href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Register</a>
+		<!-- <a class="cta-btn d-none d-sm-block" href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Register</a>
+		<a class="cta-btn d-none d-sm-block" href="login.php">Login</a> -->
+		<div class="d-flex gap-3">
+			<a href="login.php" class="btn btn-outline-primary px-4 shadow-sm rounded-pill d-none d-sm-block">Login</a>
+			<a href="#" class="btn btn-primary px-4 shadow-sm rounded-pill d-none d-sm-block" data-bs-toggle="modal" data-bs-target="#registerModal">Register</a>
 		</div>
+		</div>
+
 	</div>
 </header>
 

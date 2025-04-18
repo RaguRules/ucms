@@ -4,115 +4,96 @@ if (!isset($_SESSION)){
 }
 
 include_once('db.php');
+include_once('jsfunctions.php');
+
+$username = '';
+if(isset($_SESSION["FORGOTPASSWORDCHANGED"])){
+    $username = $_SESSION["FORGOTPASSWORDCHANGED"] ;
+}
 
 
 if (isset($_POST["btn_login"])) {
 
-    $txt_username = mysqli_real_escape_string($conn, $_POST["txt_username"]);
-    $txt_password = mysqli_real_escape_string($conn, $_POST["txt_password"]);
+    $username = mysqli_real_escape_string($conn, $_POST["txt_email"]);
+    $password = mysqli_real_escape_string($conn, $_POST["txt_password"]);
 		
-    // $hashedPassword = password_hash($txt_password, PASSWORD_DEFAULT);
-    $hashedPassword = 'abc';
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-    $sqlUser = "SELECT * FROM login WHERE username = '$txt_username'";
+    $sqlUser = "SELECT * FROM login WHERE username = '$username'";
     $resultUser = mysqli_query($conn, $sqlUser);
+    
     if (mysqli_num_rows($resultUser) > 0){
         $rowUser = mysqli_fetch_assoc($resultUser);
         
-        $extractedUsername = $rowUser['username'];
         $extractedPassword = $rowUser['password'];
 
-        if($hashedPassword == $extractedPassword){
+        if (password_verify($password, $extractedPassword)) {
 
-            echo "$hashedPassword";
-            echo "$extractedPassword";
+            if($rowUser['attempt'] < 3) {
+  
+                $status = $rowUser['status'];
 
-            $attempt = 0 ;
-            $sqlAttemptReset="UPDATE login SET attempt = '$attempt' WHERE username='$extractedUsername'";
-            $sqlAttemptReset=mysqli_query($conn,$sqlAttemptReset)or die("Error in sql_update".mysqli_error($con));
-                
-            $status = $rowUser['status'];
-            // if($status == "Active"){
-            //     $_SESSION["USERNAME"] = $rowUser['username'];
-            //     $_SESSION["USERTYPE"] = $rowUser['usertype'];
-            //     echo "<script> location.href='index.php?pg=staff.php&option=view'; </script>";
-			// exit;
+                switch ($status) {
+                    case "active":
+                        $_SESSION["LOGIN_USERNAME"] = $rowUser['username'];
+                        $_SESSION["LOGIN_USERTYPE"] = $rowUser['role_id'];
 
-            // }elseif{
+                        $attempt = 0 ;
+                        $sqlAttemptReset="UPDATE login SET attempt = '$attempt' WHERE username='$username'";
+                        $sqlAttemptReset=mysqli_query($conn,$sqlAttemptReset)or die("Error in sql_update".mysqli_error($conn));
 
+                        // echo "<script> alert('Good to go')</script>";
+                        
+                        echo "<script>window.location.href='index.php';</script>";
+                        break;
 
-            switch ($status) {
-                case "Active":
-                    $_SESSION["USERNAME"] = $rowUser['username'];
-                    $_SESSION["USERTYPE"] = $rowUser['usertype'];
-                    echo "<script> alert('Good to go')</script>";
-                    echo "<script> location.href='index.php?pg=staff.php&option=view'; </script>";
-                    break;
+                    case "pending":
+                        echo '<script> alert("Your membership is pending for approval. Check later"); </script>';
+                        break;
 
-                case "Pending":
-                    echo '<script> alert("Your membership is pending for approval. Check later"); </script>';
-                    break;
+                    case "Blocked":
+                        echo '<script> alert("Your account is Blocked. Contact Administrator"); </script>';
+                        break;
 
-                case "Blocked":
-                    echo '<script> alert("Your account is Blocked. Contact Administrator"); </script>';
-                    break;
+                    case "deleted":
+                        echo '<script> alert("Your account is deleted. Contact Administrator"); </script>';
+                        break;
 
-                case "Deleted":
-                    echo '<script> alert("Your account is deleted"); </script>';
-                    break;
-
-                default:
-                    echo '<script> alert("Something went wrong. Conatact Admin Officer"); </script>';
+                    default:
+                        echo '<script> alert("Something went wrong. Conatact Admin Officer"); </script>';
+                        break;
                 }
 
-
-
-
-
-
-
-
-            // }else{
-
-            // }
-
-
-
-
-
-
-
-
-
-
-
+            }else{
+                echo "<script> alert('Your account is blocked due to multiple incorrect password attempts. Please reset your password to regain access.')</script>";
+                $_SESSION["FORGOT_USERNAME"] = $username;
+                echo "<script> location.href='forgot.php'; </script>";
+            }
 
         }elseif($rowUser['attempt'] < 3){
                 $attempt = $rowUser['attempt'];
                 $attempt = $attempt + 1 ;
-                $sqlUpdate="UPDATE login SET attempt = '$attempt' WHERE username='$extractedUsername'";
+                $sqlUpdate="UPDATE login SET attempt = '$attempt' WHERE username='$username'";
 	
-                $attemptUpdate=mysqli_query($conn,$sqlUpdate)or die("Error in sql_update".mysqli_error($con));
-                echo "<script> alert('Incorrect Credentials 3, Please check your Username/ Password')</script>";
+                $attemptUpdate=mysqli_query($conn,$sqlUpdate)or die("Error in sql_update".mysqli_error($conn));
+                echo "<script> alert('Incorrect Credentials, Please check your Username/ Password')</script>";
 
         }else{
-            $_SESSION["ForgotUser"] = $extractedUsername;
+            $_SESSION["FORGOT_USERNAME"] = $username;
             echo "<script> alert('You have exceeded maximum attemps, Kindly reset your password')</script>";
+            $_SESSION["FORGOT_USERNAME"] = $username;
+            echo "<script> location.href='forgot.php'; </script>";
+            
         }   
 
 
     }else{
-        echo "<script> alert('Incorrect Credentials 2, Please check your Username/ Password')</script>";
+        echo "<script> alert('Your account doesn\\'t  exist. Create new account with our system in order to use.')</script>";
+        // echo "<script>showCustomAlert('Your account doesn\\'t exist. Please register.');</script>";
+
+        
     }
-
 }
-
-
-
-
-
-
-
 ?>
 
 
@@ -131,9 +112,7 @@ if (isset($_POST["btn_login"])) {
     <link href="assets/css/auth.css" rel="stylesheet">
 </head>
 
-<body class="light-mode"> <!-- Default is Light Mode -->
-
-
+<body> 
     <div class="container">
         <div class="row align-items-center justify-content-center vh-100">
             
@@ -147,21 +126,17 @@ if (isset($_POST["btn_login"])) {
                 <div class="login-container">
                     <div class="d-flex justify-content-between">
                         <h3>Login to Your Account</h3>
-                        <!-- Theme Toggle -->
-                        <button id="theme-toggle" class="btn btn-sm btn-outline-secondary">
-                            <i class="fas fa-moon"></i> <!-- Default Moon Icon -->
-                        </button>
                     </div>
 
                     <!-- Login Form -->
                     <form action="#" method="POST" id="loginForm">
                         <div class="mb-3">
-                            <label>Email address</label>
-                            <input type="email" class="form-control" placeholder="Enter your email" id="txt_username" name="txt_username">
+                            <label>Enter your Username</label>
+                            <input type="email" value="<?php echo $username;?>" name="txt_email" id="txt_email" class="form-control" placeholder="Enter your email" onblur="validateEmail('txt_email')" required>
                         </div>
                         <div class="mb-3">
                             <label>Password</label>
-                            <input type="password" class="form-control" placeholder="Enter your password" id="txt_password" name="txt_password">
+                            <input type="password" name="txt_password" id="txt_password" class="form-control" placeholder="Enter your password" required>
                         </div>
 
                         <div class="d-flex justify-content-between">
@@ -191,87 +166,38 @@ if (isset($_POST["btn_login"])) {
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/vendor/jquery3.7/jquery.min.js"></script>
+
+<!-- Bootstrap Modal for Custom Alert -->
+<!-- <div class="modal fade" id="customAlertModal" tabindex="-1" aria-labelledby="customAlertLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="customAlertLabel">Notice</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="customAlertBody">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+function showCustomAlert(message, title = 'Notice') {
+    document.getElementById('customAlertLabel').innerText = title;
+    document.getElementById('customAlertBody').innerHTML = message;
     
-    <script>
+    var myModal = new bootstrap.Modal(document.getElementById('customAlertModal'));
+    myModal.show();
+}
+</script> -->
 
-        // Function to set a cookie
-        function setCookie(name, value, days) {
-            let expires = "";
-            if (days) {
-                let date = new Date();
-                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-                expires = "; expires=" + date.toUTCString();
-            }
-            document.cookie = name + "=" + value + "; path=/" + expires;
-        }
-
-        // Function to get a cookie
-        function getCookie(name) {
-            let nameEQ = name + "=";
-            let cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                let c = cookies[i].trim();
-                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-            }
-            return null;
-        }
-
-        // Apply theme on page load based on cookie
-        function applySavedTheme() {
-            const theme = getCookie("theme");
-            const body = document.body;
-            const themeIcon = document.getElementById("theme-icon");
-
-            if (theme === "dark") {
-                body.classList.add("dark-mode");
-                themeIcon.classList.replace("fa-moon", "fa-sun"); // Change to Sun Icon
-            } else {
-                body.classList.add("light-mode");
-                themeIcon.classList.replace("fa-sun", "fa-moon"); // Change to Moon Icon
-            }
-        }
-
-        // Toggle Theme Function
-        document.getElementById("theme-toggle").addEventListener("click", () => {
-            const body = document.body;
-            const themeIcon = document.getElementById("theme-icon");
-
-            if (body.classList.contains("dark-mode")) {
-                body.classList.replace("dark-mode", "light-mode");
-                themeIcon.classList.replace("fa-sun", "fa-moon"); // Change to Moon Icon
-                setCookie("theme", "light", 30); // Save in cookie for 30 days
-            } else {
-                body.classList.replace("light-mode", "dark-mode");
-                themeIcon.classList.replace("fa-moon", "fa-sun"); // Change to Sun Icon
-                setCookie("theme", "dark", 30); // Save in cookie for 30 days
-            }
-        });
-
-        // Apply theme on page load
-        applySavedTheme();
-    </script>
-    
-    
-    
-    <!-- <script>
-        // Theme Toggle Script
-        const themeToggle = document.getElementById('theme-toggle');
-        const body = document.body;
-
-        themeToggle.addEventListener('click', () => {
-            body.classList.toggle('dark-mode');
-            body.classList.toggle('light-mode');
-
-            if (body.classList.contains('dark-mode')) {
-                themeToggle.innerHTML = '<i class="fas fa-sun"></i>'; // Change to Sun Icon
-            } else {
-                themeToggle.innerHTML = '<i class="fas fa-moon"></i>'; // Change to Moon Icon
-            }
-        });
-    </script> -->
+<!-- Scripts -->
+<script src="assets/vendor/jquery3.7/jquery.min.js"></script>
+<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

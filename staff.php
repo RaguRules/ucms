@@ -1061,7 +1061,7 @@
 
 <script>
 	// Validate Email
-	function validateEmail(id, page_name) {
+	function validateEmail(id) {
 		const email = document.getElementById(id).value.trim();
 		const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
