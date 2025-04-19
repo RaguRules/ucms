@@ -118,7 +118,11 @@ if(isset($_SESSION["LOGIN_USERTYPE"])){
 	    $select_court_name = mysqli_real_escape_string($conn, $_POST["select_court_name"]);
 	    $date_joined_date = mysqli_real_escape_string($conn, $_POST["date_joined_date"]);
 	    $select_role_name = mysqli_real_escape_string($conn, $_POST["select_role_name"]);
+		$select_gender = mysqli_real_escape_string($conn, $_POST["select_gender"]);
+		$select_appointment = mysqli_real_escape_string($conn, $_POST["select_appointment"]);
 		$status = "active";
+
+		echo "$select_appointment";
 
 	
 		// require_once 'security.php';
@@ -136,41 +140,8 @@ if(isset($_SESSION["LOGIN_USERTYPE"])){
 		}
 	
 	
-
-
-
-
-
-
-		// check_duplicate($conn, 'courtsmanagement.staff', 'email', $txt_email, $redirect_url = 'index.php?pg=staff.php&option=add', $alert_message = 'This email is already in use. Try different email OK !');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		// Check whether this email is already in use or not
-		// $sqlEmail = "SELECT email FROM courtsmanagement.staff WHERE email='$txt_email';";
-		// $result = mysqli_query($conn, $sqlEmail);
-	
-		// if ($result && mysqli_num_rows($result) >= 1) {
-	
-		// 	echo '<script>alert("This email is already in use. Try different email");</script>';
-		// 	echo "<script> location.href='index.php?pg=staff.php&option=add'; </script>";
-		// 	exit;
-		// } 
-	
 		// Writing new staff data into the staff table
-	    $sqlInsert = "INSERT INTO staff (staff_id, first_name, last_name, mobile, nic_number, date_of_birth, email, address, court_id, joined_date, role_id, image_path) VALUES (
+	    $sqlInsert = "INSERT INTO staff (staff_id, first_name, last_name, mobile, nic_number, date_of_birth, email, address, court_id, joined_date, role_id, image_path, gender, appointment) VALUES (
 	        '$txt_staff_id',
 			'$txt_first_name', 
 	        '$txt_last_name', 
@@ -182,7 +153,9 @@ if(isset($_SESSION["LOGIN_USERTYPE"])){
 	        '$select_court_name', 
 	        '$date_joined_date', 
 	        '$select_role_name',
-			'$txt_image_path'
+			'$txt_image_path',
+			'$select_gender',
+			'$select_appointment'
 	    )";
 	
 	    $resultInsert = mysqli_query($conn, $sqlInsert) or die("Error in sqlInsert: " . mysqli_error($conn));
@@ -218,7 +191,9 @@ if(isset($_SESSION["LOGIN_USERTYPE"])){
 		$txt_email= mysqli_real_escape_string($conn, $_POST["txt_email"]);
 		$txt_address= mysqli_real_escape_string($conn, $_POST["txt_address"]);
 	    $select_court_name= mysqli_real_escape_string($conn, $_POST["select_court_name"]);
+		$select_gender = mysqli_real_escape_string($conn, $_POST["select_gender"]);
 		$select_role_name = mysqli_real_escape_string($conn, $_POST["select_role_name"]);
+		$select_appointment = mysqli_real_escape_string($conn, $_POST["select_appointment"]);
 		
 	
 		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -233,7 +208,7 @@ if(isset($_SESSION["LOGIN_USERTYPE"])){
 	
 		}
 	
-		$sqlUpdate="UPDATE staff SET first_name = '$txt_first_name', last_name='$txt_last_name', mobile='$int_mobile', nic_number='$txt_nic_number', date_of_birth='$date_date_of_birth', email='$txt_email', address='$txt_address', court_id='$select_court_name', role_id='$select_role_name', image_path='$txt_image_path' WHERE staff_id='$txt_staff_id'";
+		$sqlUpdate="UPDATE staff SET first_name = '$txt_first_name', last_name='$txt_last_name', mobile='$int_mobile', nic_number='$txt_nic_number', date_of_birth='$date_date_of_birth', email='$txt_email', address='$txt_address', court_id='$select_court_name', role_id='$select_role_name', image_path='$txt_image_path', gender='$select_gender', appointment='$select_appointment' WHERE staff_id='$txt_staff_id'";
 						
 		$resultUpdate=mysqli_query($conn,$sqlUpdate)or die("Error in sql_update".mysqli_error($con));
 		if ($resultUpdate) {
@@ -488,6 +463,14 @@ if(isset($_SESSION["LOGIN_USERTYPE"])){
 		<td><?php echo htmlspecialchars($row['email']); ?></td>
 		</tr>
 		<tr>
+		<tr>
+		<th scope="row">Gender</th>
+		<td><?php echo htmlspecialchars($row['gender']); ?></td>
+		</tr>
+		<tr>
+		<th scope="row">Staff Type</th>
+		<td><?php echo htmlspecialchars($row['appointment']); ?></td>
+		</tr>
 		<th scope="row">Address</th>
 		<td><?php echo htmlspecialchars($row['address']); ?></td>
 		</tr>
@@ -602,8 +585,11 @@ if(isset($_SESSION["LOGIN_USERTYPE"])){
 						<div class="row mb-3">
 							<div class="col-md-6">
 							<label for="court_id" class="form-label">Officer Classification</label>
-								<select class="form-select" id="select_station" name="select_station" required>
-									<option selected name="Court_staff" value="Court_staff">Judicial Staff</option>
+								<select class="form-select" id="select_appointment" name="select_appointment" required>
+									<option value="" disabled selected hidden>Select type of appointment</option>
+									<option value="Judicial Staff (JSC)">Judicial Staff (JSC)</option>
+									<option value="Ministry Staff">Ministry Staff</option>
+									<option value="O.E.S/ Peon/ Security">O.E.S/ Peon/ Security</option>
 								</select>
 							</div>
 							<div class="col-md-6">
@@ -617,8 +603,13 @@ if(isset($_SESSION["LOGIN_USERTYPE"])){
 								<input type="date" class="form-control" id="date_date_of_birth" name="date_date_of_birth" required>
 							</div>
 							<div class="col-md-6">
-								<label for="joined_date" class="form-label">Joined Date</label>
-								<input type="date" class="form-control" id="date_joined_date" max="<?php echo date('Y-m-d'); ?>" name="date_joined_date" value="<?php echo date('Y-m-d'); ?>" required>
+							<label for="court_id" class="form-label">Gender</label>
+								<select class="form-select" id="select_gender" name="select_gender" required>
+									<option value="" disabled selected hidden>Select Gender</option>
+									<option value="Male">Male</option>
+									<option value="Female">Female</option>
+									<option value="Other">Other</option>
+								</select>
 							</div>
 						</div>
 						<div class="row mb-3">
@@ -645,6 +636,10 @@ if(isset($_SESSION["LOGIN_USERTYPE"])){
 								</select>
 							</div>
 						</div>
+						<div>
+							<label hidden for="joined_date" class="form-label">Joined Date</label>
+							<input hidden type="date" class="form-control" id="date_joined_date" max="<?php echo date('Y-m-d'); ?>" name="date_joined_date" value="<?php echo date('Y-m-d'); ?>" required>
+						</div>
 						<button type="submit" class="btn btn-primary" id="btn_add" name="btn_add">Submit</button>
 						<button type="button" class="btn btn-secondary" id="btn_clear" name="btn_clear">Clear Inputs</button>
 					</form>
@@ -666,7 +661,9 @@ if(isset($_SESSION["LOGIN_USERTYPE"])){
 			$select_court_name = $data['court_id'];
 			$select_role_name = $data['role_id'];
 			$txt_image_path = $data['image_path'];
-		
+			$select_gender = $data['gender'];
+			$select_appointment = $data['appointment'];
+
 		?>
 		<div class="container-fluid bg-primary text-white text-center py-3">
 			<h1>EDIT STAFF</h1>
@@ -692,20 +689,20 @@ if(isset($_SESSION["LOGIN_USERTYPE"])){
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<label for="mobile" class="form-label">Mobile Number</label>
-								<input type="int" name="int_mobile" id="int_mobile" class="form-control check-duplicate" data-check="mobile" data-feedback="mobileFeedback" onkeypress="return isNumberKey(event)" onblur="validateMobileNumber('int_mobile')" required>
-								<small id="mobileFeedback" class="text-danger"></small>
+								<input type="int" name="int_mobile" id="int_mobile" class="form-control check-duplicate" value="<?php echo $int_mobile ?>" onkeypress="return isNumberKey(event)" onblur="validateMobileNumber('int_mobile')" required>
+								
 							</div>
 							<div class="col-md-6">
 								<label for="nic_number" class="form-label">NIC Number</label>
-								<input type="text" class="form-control check-duplicate" data-check="nic" data-feedback="nicFeedback" id="txt_nic_number" name="txt_nic_number"  value="<?php echo $txt_nic_number ?>" onblur="validateNIC('txt_nic_number')" required>
-								<small id="nicFeedback" class="text-danger"></small>
+								<input type="text" class="form-control check-duplicate" id="txt_nic_number" name="txt_nic_number" value="<?php echo $txt_nic_number ?>" onblur="validateNIC('txt_nic_number')" required>
+								
 							</div>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<label for="email" class="form-label">Email</label><!-- <input type="email" class="form-control" id="txt_email" name="txt_email" value="<?php echo $txt_email ?>" required> -->
-								<input type="email" name="txt_email" id="txt_email" class="form-control check-duplicate" data-check="email" data-feedback="emailFeedback" value="<?php echo $txt_email ?>" onblur="validateEmail('txt_email')" required>
-								<small id="emailFeedback" class="text-danger"></small>
+								<input type="email" name="txt_email" id="txt_email" class="form-control check-duplicate" value="<?php echo $txt_email ?>" onblur="validateEmail('txt_email')" required>
+								
 							</div>
 							<div class="col-md-6">
 								<label for="address" class="form-label">Address</label>
@@ -745,6 +742,29 @@ if(isset($_SESSION["LOGIN_USERTYPE"])){
 								<label for="profile_photo" class="form-label">Upload Profile Photo</label>
 								<input type="file" class="form-control" id="img_profile_photo" name="img_profile_photo" accept="image/*" required>
 							</div>
+						</div>
+						<div class="row mb-3">
+
+						<div class="col-md-6">
+						<label for="court_id" class="form-label">Gender</label>
+							<select class="form-select" id="select_gender" name="select_gender" value="<?php echo $select_gender ?>" required>
+								<option value="" disabled hidden>Select Gender</option>
+								<option value="Male">Male</option>
+								<option value="Female">Female</option>
+								<option value="Other">Other</option>
+							</select>
+						</div>
+
+						<div class="col-md-6">
+							<label for="court_id" class="form-label">Officer Classification</label>
+								<select class="form-select" id="select_appointment" name="select_appointment" value="<?php echo $select_appointment ?>" required>
+									<option value="" disabled hidden>Select type of appointment</option>
+									<option value="Judicial Staff (JSC)">Judicial Staff (JSC)</option>
+									<option value="Ministry Staff">Ministry Staff</option>
+									<option value="O.E.S/ Peon/ Security">O.E.S/ Peon/ Security</option>
+								</select>
+							</div>
+
 						</div>
 						<div class="mb-3">
 							<label hidden for="role_id" class="form-label">Role ID</label>
@@ -855,38 +875,49 @@ if(isset($_SESSION["LOGIN_USERTYPE"])){
 		</script>
 
 		<script>
-			// 3. Set date of birth from NIC
-			const nicInput = document.getElementById('txt_nic_number');
-			const dobInput = document.getElementById('date_date_of_birth');
+			document.addEventListener("DOMContentLoaded", function () {
+				const nicInput = document.getElementById('txt_nic_number');
+				const dobInput = document.getElementById('date_date_of_birth');
+				const genderInput = document.getElementById('select_gender');
 
-			nicInput.addEventListener('input', function () {
-				const nic = nicInput.value.trim();
-				let year = '';
-				let dayOfYear = '';
+				if (nicInput && dobInput && genderInput) {
+					nicInput.addEventListener('input', function () {
+						const nic = nicInput.value.trim();
+						let year = '';
+						let dayOfYear = '';
+						let gender = '';
 
-				if (nic.length === 10 && /^[0-9]{9}[VvXx]$/.test(nic)) {
-					year = '19' + nic.substring(0, 2);
-					dayOfYear = parseInt(nic.substring(2, 5));
-				} else if (nic.length === 12 && /^[0-9]{12}$/.test(nic)) {
-					year = nic.substring(0, 4);
-					dayOfYear = parseInt(nic.substring(4, 7));
-				} else {
-					dobInput.value = '';
-					return;
+						if (nic.length === 10 && /^[0-9]{9}[VvXx]$/.test(nic)) {
+							year = '19' + nic.substring(0, 2);
+							dayOfYear = parseInt(nic.substring(2, 5));
+						} else if (nic.length === 12 && /^[0-9]{12}$/.test(nic)) {
+							year = nic.substring(0, 4);
+							dayOfYear = parseInt(nic.substring(4, 7));
+						} else {
+							dobInput.value = '';
+							genderInput.value = '';
+							return;
+						}
+
+						if (dayOfYear > 500) {
+							gender = 'Female';
+							dayOfYear -= 500;
+						} else {
+							gender = 'Male';
+						}
+
+						const date = new Date(year, 0, dayOfYear - 1);
+						const yyyy = date.getFullYear();
+						const mm = String(date.getMonth() + 1).padStart(2, '0');
+						const dd = String(date.getDate()).padStart(2, '0');
+
+						dobInput.value = `${yyyy}-${mm}-${dd}`;
+						genderInput.value = gender;
+					});
 				}
-
-				if (dayOfYear > 500) {
-					dayOfYear -= 500;
-				}
-
-				const date = new Date(year, 0, dayOfYear - 1);
-				const yyyy = date.getFullYear();
-				const mm = String(date.getMonth() + 1).padStart(2, '0');
-				const dd = String(date.getDate()).padStart(2, '0');
-
-				dobInput.value = `${yyyy}-${mm}-${dd}`; // Format required for input[type="date"]
 			});
 		</script>
+
 
 		<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 		<script>

@@ -1,10 +1,16 @@
 <?php
-	include "db.php"; // your DB connection
-	// ini_set('display_errors', 1);
-	// ini_set('display_startup_errors', 1);
-	// error_reporting(E_ALL);
-	
-	
+if (!isset($_SESSION)){
+    session_start();
+}
+
+if(isset($_SESSION["LOGIN_USERTYPE"])){
+    $system_usertype = $_SESSION["LOGIN_USERTYPE"];
+	$system_username = $_SESSION["LOGIN_USERNAME"];
+}else{
+	$system_usertype = "GUEST";
+}
+include_once('db.php');
+
 	
 	function generateNextLawyerID($conn) {
 		// 1. Find the highest existing staff_id
@@ -82,7 +88,7 @@
 	            
 	            $next_lawyer_id = generateNextLawyerID($conn);
 	
-	            $insert = mysqli_query($conn, "INSERT INTO lawyer (lawyer_id, first_name, last_name, mobile, email, address, nic_number, date_of_birth, enrolment_number, joined_date, role_id, station, image_path) VALUES (
+	            $insert = mysqli_query($conn, "INSERT INTO lawyer (lawyer_id, first_name, last_name, mobile, email, address, nic_number, date_of_birth, enrolment_number, joined_date, role_id, station, image_path, gender) VALUES (
 	            '$next_lawyer_id',
 	            '{$data['first_name']}',
 	            '{$data['last_name']}',
@@ -95,7 +101,8 @@
 	            NOW(),
 	            '{$data['role_id']}',
 	            '{$data['station']}',
-	            '{$data['image_path']}'
+	            '{$data['image_path']}',
+				'{$data['gender']}'
 	        )");
 	        } 
 	
@@ -103,7 +110,7 @@
 	
 	            $next_police_id = generateNextPoliceID($conn);
 	            
-	            $insert = mysqli_query($conn, "INSERT INTO police (police_id, first_name, last_name, mobile, email, address, nic_number, date_of_birth, badge_number, joined_date, role_id, station, image_path) VALUES (
+	            $insert = mysqli_query($conn, "INSERT INTO police (police_id, first_name, last_name, mobile, email, address, nic_number, date_of_birth, badge_number, joined_date, role_id, station, image_path, gender) VALUES (
 	            '$next_police_id',
 	            '{$data['first_name']}',
 	            '{$data['last_name']}',
@@ -116,7 +123,8 @@
 	            NOW(),
 	            '{$data['role_id']}',
 	            '{$data['station']}',
-	            '{$data['image_path']}'
+	            '{$data['image_path']}',
+				'{$data['gender']}'
 	        )");
 	        }
 	

@@ -1,10 +1,16 @@
 <?php
+if (!isset($_SESSION)){
+    session_start();
+}
+
 if(isset($_SESSION["LOGIN_USERTYPE"])){
     $system_usertype = $_SESSION["LOGIN_USERTYPE"];
 	$system_username = $_SESSION["LOGIN_USERNAME"];
 }else{
 	$system_usertype = "GUEST";
 }
+
+include_once('db.php');
 ?>
 
 
@@ -13,11 +19,20 @@ if(isset($_SESSION["LOGIN_USERTYPE"])){
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Staff Page</title>
+		<title>Approval</title>
+		<!-- <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+		<link href="assets/css/font.css" rel="stylesheet" >
+		<link href="assets/css/main.css" rel="stylesheet">
+		<link href="assets/css/ragu.css" rel="stylesheet"> -->
+		<link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+		<link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+		<script src="assets/vendor/jquery3.7/jquery.min.js"></script>
+		<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+		
 	</head>
 	<body class="light-mode">
 		<?php		
-			$sql_read = "SELECT reg_id, first_name, last_name, nic_number, mobile, email, role_id, station, image_path, badge_number, enrolment_number FROM registration";
+			$sql_read = "SELECT reg_id, first_name, last_name, nic_number, mobile, email, role_id, station, image_path, badge_number, enrolment_number, gender FROM registration";
 			$result = mysqli_query($conn, $sql_read);
 			
 			if ($result && mysqli_num_rows($result) >= 0) {

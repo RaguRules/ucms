@@ -1,7 +1,4 @@
 <?php
-if (!isset($_SESSION)){
-    session_start();
-}
 	include_once('db.php');
 	
 	$type = $_GET['type'] ?? '';
@@ -79,7 +76,6 @@ if (!isset($_SESSION)){
 		$date_joined_date = mysqli_real_escape_string($conn, $_POST["date_joined_date"]);
 		$date_date_of_birth = mysqli_real_escape_string($conn, $_POST["date_date_of_birth"]);
 		$status = "Pending";
-		$select_gender = mysqli_real_escape_string($conn, $_POST["select_gender"]);
 		$txt_password = mysqli_real_escape_string($conn, $_POST["txt_password"]);
 		$hashedPassword = password_hash($txt_password, PASSWORD_DEFAULT);
 		
@@ -99,7 +95,7 @@ if (!isset($_SESSION)){
 		}
 		
 		
-		$sqlInsert = "INSERT INTO registration (reg_id, first_name, last_name, mobile, email, address, nic_number, enrolment_number, badge_number, station, joined_date, date_of_birth, status, role_id, password, image_path, gender) VALUES (
+		$sqlInsert = "INSERT INTO registration (reg_id, first_name, last_name, mobile, email, address, nic_number, enrolment_number, badge_number, station, joined_date, date_of_birth, status, role_id, password, image_path) VALUES (
 			'$txt_reg_id',
 			'$txt_first_name', 
 			'$txt_last_name', 
@@ -115,8 +111,7 @@ if (!isset($_SESSION)){
 			'$status',
 			'$txt_role_id',
 			'$hashedPassword',
-			'$txt_image_path',
-			'$select_gender'
+			'$txt_image_path'
 		)";
 		
 		$resultInsert = mysqli_query($conn, $sqlInsert) or die("Error in sqlInsert: " . mysqli_error($conn));
@@ -158,8 +153,8 @@ if (!isset($_SESSION)){
 		<link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
 		<link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
 		<link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
-		<!-- <link href="assets/vendor/flatpickr/css/flatpickr.min.css" rel="stylesheet">
-		<script src="assets/vendor/flatpickr/js/flatpickr.js"></script> -->
+		<link href="assets/vendor/flatpickr/css/flatpickr.min.css" rel="stylesheet">
+		<script src="assets/vendor/flatpickr/js/flatpickr.js"></script>
 		<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 		<script src="assets/vendor/jquery3.7/jquery.min.js"></script>
 	</head>
@@ -286,13 +281,8 @@ if (!isset($_SESSION)){
 								<?php } ?>
 							</div>
 							<div class="col-md-6">
-							<label for="court_id" class="form-label">Gender</label>
-								<select class="form-select" id="select_gender" name="select_gender" required>
-									<option value="" disabled selected hidden>Select Gender</option>
-									<option value="Male">Male</option>
-									<option value="Female">Female</option>
-									<option value="Other">Other</option>
-								</select>	
+								<label for="profile_photo" class="form-label">Upload Profile Photo</label>
+								<input type="file" class="form-control" id="img_profile_photo" name="img_profile_photo" accept="image/*" required>
 							</div>
 						</div>
 						<div class="row mb-3">
@@ -301,12 +291,8 @@ if (!isset($_SESSION)){
 								<input type="date" class="form-control" id="date_date_of_birth" name="date_date_of_birth">					
 							</div>
 							<div class="col-md-6">
-								<label for="profile_photo" class="form-label">Upload Profile Photo</label>
-								<input type="file" class="form-control" id="img_profile_photo" name="img_profile_photo" accept="image/*" required>
-							</div>
-							<div>
-								<label hidden for="join_date" class="form-label">Join Date</label>
-								<input hidden type="date" class="form-control" id="date_joined_date" name="date_joined_date">
+								<label for="join_date" class="form-label">Join Date</label>
+								<input type="date" class="form-control" id="date_joined_date" name="date_joined_date">
 							</div>
 						</div>
 						<div>
@@ -407,9 +393,6 @@ if (!isset($_SESSION)){
 			</div>
 		</div>
 
-		
-		<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
 		<script>
 		//  1. JS clear the form button
 			document.addEventListener("DOMContentLoaded", function () {
@@ -443,16 +426,14 @@ if (!isset($_SESSION)){
 		</script>
 
 		<script>
-			// 3. Set date of birth, gender from NIC
+			// 3. Set date of birth from NIC
 			const nicInput = document.getElementById('txt_nic_number');
 			const dobInput = document.getElementById('date_date_of_birth');
-			const genderInput = document.getElementById('select_gender');
 
 			nicInput.addEventListener('input', function () {
 				const nic = nicInput.value.trim();
 				let year = '';
 				let dayOfYear = '';
-				let gender = '';
 
 				if (nic.length === 10 && /^[0-9]{9}[VvXx]$/.test(nic)) {
 					year = '19' + nic.substring(0, 2);
@@ -462,15 +443,11 @@ if (!isset($_SESSION)){
 					dayOfYear = parseInt(nic.substring(4, 7));
 				} else {
 					dobInput.value = '';
-					genderInput.value = '';
 					return;
 				}
 
 				if (dayOfYear > 500) {
-					gender = 'Female';
 					dayOfYear -= 500;
-				} else {
-					gender = 'Male';
 				}
 
 				const date = new Date(year, 0, dayOfYear - 1);
@@ -478,10 +455,11 @@ if (!isset($_SESSION)){
 				const mm = String(date.getMonth() + 1).padStart(2, '0');
 				const dd = String(date.getDate()).padStart(2, '0');
 
-				dobInput.value = `${yyyy}-${mm}-${dd}`;
-				genderInput.value = gender;
+				dobInput.value = `${yyyy}-${mm}-${dd}`; // Format required for input[type="date"]
 			});
 		</script>
+
+		<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 		
 		<script>
 			//4. JS to confirm msg to multipurpose model
