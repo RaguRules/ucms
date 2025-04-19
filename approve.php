@@ -1,3 +1,13 @@
+<?php
+if(isset($_SESSION["LOGIN_USERTYPE"])){
+    $system_usertype = $_SESSION["LOGIN_USERTYPE"];
+	$system_username = $_SESSION["LOGIN_USERNAME"];
+}else{
+	$system_usertype = "GUEST";
+}
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 	<head>

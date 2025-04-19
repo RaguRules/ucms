@@ -1,0 +1,117 @@
+<?php
+// Login CSS styles for the admin dashboard
+?>
+
+/* Login Page Specific Styles */
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #f5f7fa;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Light/Dark Mode */
+body.light-mode {
+    --bg-color: #f5f7fa;
+    --card-bg: #ffffff;
+    --text-color: #212529;
+    --border-color: #dee2e6;
+    --input-bg: #ffffff;
+    --input-border: #ced4da;
+}
+
+body.dark-mode {
+    --bg-color: #121212;
+    --card-bg: #1e1e1e;
+    --text-color: #f8f9fa;
+    --border-color: #343a40;
+    --input-bg: #2c2c2c;
+    --input-border: #495057;
+}
+
+body.light-mode {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+body.dark-mode {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.login-container {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transition: background-color 0.3s;
+}
+
+.login-image {
+    border-radius: 8px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    height: 100%;
+    object-fit: cover;
+}
+
+.form-control {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-color);
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+}
+
+.form-control:focus {
+    background-color: var(--input-bg);
+    color: var(--text-color);
+}
+
+.form-check-input {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+}
+
+.small-text {
+    font-size: 0.875rem;
+}
+
+.footer {
+    margin-top: 20px;
+    color: var(--secondary-color);
+    font-size: 0.875rem;
+}
+
+/* Theme Toggle Button */
+#theme-toggle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s;
+}
+
+body.light-mode #theme-toggle {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+body.dark-mode #theme-toggle {
+    background-color: #343a40;
+    color: #f8f9fa;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .vh-100 {
+        height: auto !important;
+        min-height: 100vh;
+    }
+    
+    .login-container {
+        margin: 20px;
+    }
+}

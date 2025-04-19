@@ -9,6 +9,7 @@ include_once('jsfunctions.php');
 $username = '';
 if(isset($_SESSION["FORGOTPASSWORDCHANGED"])){
     $username = $_SESSION["FORGOTPASSWORDCHANGED"] ;
+    unset($_SESSION["FORGOTPASSWORDCHANGED"]);
 }
 
 
@@ -41,8 +42,6 @@ if (isset($_POST["btn_login"])) {
                         $attempt = 0 ;
                         $sqlAttemptReset="UPDATE login SET attempt = '$attempt' WHERE username='$username'";
                         $sqlAttemptReset=mysqli_query($conn,$sqlAttemptReset)or die("Error in sql_update".mysqli_error($conn));
-
-                        // echo "<script> alert('Good to go')</script>";
                         
                         echo "<script>window.location.href='index.php';</script>";
                         break;
@@ -83,15 +82,11 @@ if (isset($_POST["btn_login"])) {
             echo "<script> alert('You have exceeded maximum attemps, Kindly reset your password')</script>";
             $_SESSION["FORGOT_USERNAME"] = $username;
             echo "<script> location.href='forgot.php'; </script>";
-            
         }   
 
 
     }else{
         echo "<script> alert('Your account doesn\\'t  exist. Create new account with our system in order to use.')</script>";
-        // echo "<script>showCustomAlert('Your account doesn\\'t exist. Please register.');</script>";
-
-        
     }
 }
 ?>

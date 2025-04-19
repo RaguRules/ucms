@@ -1,8 +1,20 @@
 <?php
-	include_once('menu.php');
-	include_once('db.php');
-	require_once ('security.php');
-	include_once('jsfunctions.php');
+
+if (!isset($_SESSION)){
+    session_start();
+}
+
+if(isset($_SESSION["LOGIN_USERTYPE"])){
+    $system_usertype = $_SESSION["LOGIN_USERTYPE"];
+	$system_username = $_SESSION["LOGIN_USERNAME"];
+}else{
+	$system_usertype = "GUEST";
+}
+
+include_once('menu.php');
+include_once('db.php');
+require_once ('security.php');
+include_once('jsfunctions.php');
 
 ?>
 

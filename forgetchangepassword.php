@@ -27,6 +27,7 @@ if(isset($_SESSION["FORGOTCHANGEPASSWORD"])){
 
             echo '<script>alert("Password changed successfully. You can now log in with your new password.");</script>';
             echo "<script>window.location.href='login.php';</script>";
+
         } else {
             echo '<script>alert("Passwords do not match. Please try again.");</script>';
         }
@@ -116,29 +117,11 @@ if(isset($_SESSION["FORGOTCHANGEPASSWORD"])){
                 }                
             };
         </script>
-        <!-- <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                const form = document.getElementById("forgotPwdForm");
-                const newPassword = document.getElementById("txt_new_password");
-                const confirmPassword = document.getElementById("txt_confirm_password");
-
-                form.addEventListener("submit", function (e) {
-                    if (newPassword.value !== confirmPassword.value) {
-                        e.preventDefault();
-                        alert("Passwords do not match. Please try again.");
-                        confirmPassword.focus();
-                    }
-                });
-            });
-        </script> -->
-
-
     </body>
     </html>
 
 <?php
 }else{
-    echo '<script>alert("Illegal Entry? Get out of here");</script>';
     echo "<script>window.location.href='login.php';</script>";
 }
 ?>

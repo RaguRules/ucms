@@ -1,5 +1,12 @@
 <?php
 
+if(isset($_SESSION["LOGIN_USERTYPE"])){
+    $system_usertype = $_SESSION["LOGIN_USERTYPE"];
+	$system_username = $_SESSION["LOGIN_USERNAME"];
+}else{
+	$system_usertype = "GUEST";
+}
+
 	// --- Function to Generate the Next Staff ID ---
 	function generateNextStaffID($conn) {
 		// 1. Find the highest existing staff_id
