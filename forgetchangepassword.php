@@ -6,8 +6,7 @@ if (!isset($_SESSION)){
 if(isset($_SESSION["FORGOTCHANGEPASSWORD"])){
     $username = $_SESSION["FORGOTCHANGEPASSWORD"];
     $readonlystatus = "readonly";
-    include_once('db.php');
-    include_once('jsfunctions.php');
+        include_once('lib/db.php');
 
     if(isset($_POST['btn_forgot_change_password'])){
         $password = $_POST["txt_new_password"];
@@ -100,6 +99,7 @@ if(isset($_SESSION["FORGOTCHANGEPASSWORD"])){
         <!-- Scripts -->
         <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
         <script src="assets/vendor/jquery3.7/jquery.min.js"></script>
+        <script src="assets/js/jsfunctions.js"></script>
         
         <script>
             function checkpwd () {

@@ -1,6 +1,6 @@
 <?php
 //send verification code
-	$verify_code=rand(1000,9999);
+	$verify_code=rand(100000,999999);
 
 	$user = "94769669804";
 	$password = "3100";

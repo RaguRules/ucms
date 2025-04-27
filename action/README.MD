@@ -1,0 +1,1 @@
+Handlers that respond to AJAX come in this folder.

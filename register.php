@@ -1,142 +1,109 @@
 <?php
-if (!isset($_SESSION)){
-    session_start();
-}
-	include_once('db.php');
-	
-	$type = $_GET['type'] ?? '';
-	
-	if ($type === 'lawyer') {
-		$role = "LAWYER";
-		// $role_id = "R06";
-		// $station = "Private";
-	
-	
-	
-	} elseif ($type === 'police') {
-		$role = "POLICE";
-		// $role_id = "R07";
-		// $station = "Magistrate's Court";
-	
-	
-	
-	} else {
-		$role = "null";
-		$role_id = "null";
-		echo "<script> location.href='index.php'; </script>";
-		exit;
+	if (!isset($_SESSION)){
+	    session_start();
 	}
 	
-	
-	function generateNextRegistrationID($conn) {
-		// 1. Find the highest existing staff_id
-		$sql = "SELECT MAX(reg_id) AS max_id FROM registration";
-		$result = mysqli_query($conn, $sql);
-	
-		if ($result && mysqli_num_rows($result) > 0) {
-			$row = mysqli_fetch_assoc($result);
-			$max_id = $row['max_id'];
-	
-			if ($max_id === null) {
-				// No staff IDs exist yet, start with S0001
-				return "R0001";
-			} else {
-				// Extract the numeric part, increment, and format
-				$numeric_part = (int)substr($max_id, 1); // Remove "S", convert to integer
-				$next_numeric_part = $numeric_part + 1;
-				// Pad with leading zeros to 4 digits, then prepend "S"
-				return "R" . str_pad($next_numeric_part, 4, "0", STR_PAD_LEFT);
-			}
-		} else {
-			// Handle errors (e.g., table doesn't exist)
-			return "R0001"; // Or throw an exception, log an error, etc.
-		}
-	}
-	
-	
-	$next_reg_id = generateNextRegistrationID($conn);
-	
-	if(isset($_POST['btn_add'])){
-	
-		$txt_enrolment_number = '';
-		$int_badge_number = '';
-		$txt_reg_id = mysqli_real_escape_string($conn, $_POST["txt_reg_id"]);
-		$txt_first_name = mysqli_real_escape_string($conn, $_POST["txt_first_name"]);
-		$txt_last_name = mysqli_real_escape_string($conn, $_POST["txt_last_name"]);
-		$int_mobile = mysqli_real_escape_string($conn, $_POST["int_mobile"]);
-		$txt_email = mysqli_real_escape_string($conn, $_POST["txt_email"]);
-		$txt_address = mysqli_real_escape_string($conn, $_POST["txt_address"]);
-		$txt_nic_number = mysqli_real_escape_string($conn, $_POST["txt_nic_number"]);
-		$txt_role_id = mysqli_real_escape_string($conn, $_POST["txt_role_id"]);
+	include_once ('lib/db.php');
+	require_once ('lib/security.php');
+	require_once ('lib/helper.php');
+		
+		$type = $_GET['type'] ?? '';
+		
 		if ($type === 'lawyer') {
-			$txt_enrolment_number = isset($_POST["txt_enrolment_number"]) ? mysqli_real_escape_string($conn, $_POST["txt_enrolment_number"]) : '';
+			$role = "LAWYER";
 	
 		} elseif ($type === 'police') {
-			$int_badge_number = isset($_POST["int_badge_number"]) ? mysqli_real_escape_string($conn, $_POST["int_badge_number"]) : '';
-		}
+			$role = "POLICE";
 		
-		$select_station = mysqli_real_escape_string($conn, $_POST["select_station"]);
-		$date_joined_date = mysqli_real_escape_string($conn, $_POST["date_joined_date"]);
-		$date_date_of_birth = mysqli_real_escape_string($conn, $_POST["date_date_of_birth"]);
-		$status = "Pending";
-		$select_gender = mysqli_real_escape_string($conn, $_POST["select_gender"]);
-		$txt_password = mysqli_real_escape_string($conn, $_POST["txt_password"]);
-		$hashedPassword = password_hash($txt_password, PASSWORD_DEFAULT);
-		
-	
-		require_once 'security.php';
-	
-		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-			$upload_result = secure_image_upload('img_profile_photo');
-		
-			if (!$upload_result['success']) {
-				die("Image upload failed: " . $upload_result['error']);
-			}
-		
-			$txt_image_path = 'uploads/' . $upload_result['filename']; // Save in DB
-			$txt_image_path = mysqli_real_escape_string($conn, $txt_image_path);
-	
-		}
-		
-		
-		$sqlInsert = "INSERT INTO registration (reg_id, first_name, last_name, mobile, email, address, nic_number, enrolment_number, badge_number, station, joined_date, date_of_birth, status, role_id, password, image_path, gender) VALUES (
-			'$txt_reg_id',
-			'$txt_first_name', 
-			'$txt_last_name', 
-			'$int_mobile', 
-			'$txt_email',
-			'$txt_address', 
-			'$txt_nic_number', 
-			'$txt_enrolment_number',
-			'$int_badge_number',
-			'$select_station',
-			'$date_joined_date', 
-			'$date_date_of_birth', 	
-			'$status',
-			'$txt_role_id',
-			'$hashedPassword',
-			'$txt_image_path',
-			'$select_gender'
-		)";
-		
-		$resultInsert = mysqli_query($conn, $sqlInsert) or die("Error in sqlInsert: " . mysqli_error($conn));
-		if ($resultInsert) {
-			// echo '<script>alert("Successfully submitted your registration request. Wait for the Admin Approval");</script>';
 		} else {
-			echo '<script>alert("Error: " . mysqli_error($conn) . ".");</script>';
+			$role = "null";
+			$role_id = "null";
+			echo "<script> location.href='index.php'; </script>";
+			exit;
 		}
-	
-			$sqlInsert = "INSERT INTO `courtsmanagement`.`login` (`username`, `password`, `otp`, `status`, `role_id`) VALUES ('$txt_email', '$hashedPassword', '1329', 'pending', '$txt_role_id');";
+		
+		
+		$next_reg_id = generateNextRegistrationID($conn);
+		
+		if(isset($_POST['btn_add'])){
+		
+			$txt_enrolment_number = '';
+			$int_badge_number = '';
+			$txt_reg_id = mysqli_real_escape_string($conn, $_POST["txt_reg_id"]);
+			$txt_first_name = mysqli_real_escape_string($conn, $_POST["txt_first_name"]);
+			$txt_last_name = mysqli_real_escape_string($conn, $_POST["txt_last_name"]);
+			$int_mobile = mysqli_real_escape_string($conn, $_POST["int_mobile"]);
+			$txt_email = mysqli_real_escape_string($conn, $_POST["txt_email"]);
+			$txt_address = mysqli_real_escape_string($conn, $_POST["txt_address"]);
+			$txt_nic_number = mysqli_real_escape_string($conn, $_POST["txt_nic_number"]);
+			$txt_role_id = mysqli_real_escape_string($conn, $_POST["txt_role_id"]);
+			if ($type === 'lawyer') {
+				$txt_enrolment_number = isset($_POST["txt_enrolment_number"]) ? mysqli_real_escape_string($conn, $_POST["txt_enrolment_number"]) : '';
+		
+			} elseif ($type === 'police') {
+				$int_badge_number = isset($_POST["int_badge_number"]) ? mysqli_real_escape_string($conn, $_POST["int_badge_number"]) : '';
+			}
+			
+			$select_station = mysqli_real_escape_string($conn, $_POST["select_station"]);
+			$date_joined_date = mysqli_real_escape_string($conn, $_POST["date_joined_date"]);
+			$date_date_of_birth = mysqli_real_escape_string($conn, $_POST["date_date_of_birth"]);
+			$status = "Pending";
+			$select_gender = mysqli_real_escape_string($conn, $_POST["select_gender"]);
+			$txt_password = mysqli_real_escape_string($conn, $_POST["txt_password"]);
+			$hashedPassword = password_hash($txt_password, PASSWORD_DEFAULT);
+			
+		
+			if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+				$upload_result = secure_image_upload('img_profile_photo');
+			
+				if (!$upload_result['success']) {
+					die("Image upload failed: " . $upload_result['error']);
+				}
+			
+				$txt_image_path = 'uploads/' . $upload_result['filename']; // Save in DB
+				$txt_image_path = mysqli_real_escape_string($conn, $txt_image_path);
+		
+			}
+			
+			
+			$sqlInsert = "INSERT INTO registration (reg_id, first_name, last_name, mobile, email, address, nic_number, enrolment_number, badge_number, station, joined_date, date_of_birth, status, role_id, password, image_path, gender) VALUES (
+				'$txt_reg_id',
+				'$txt_first_name', 
+				'$txt_last_name', 
+				'$int_mobile', 
+				'$txt_email',
+				'$txt_address', 
+				'$txt_nic_number', 
+				'$txt_enrolment_number',
+				'$int_badge_number',
+				'$select_station',
+				'$date_joined_date', 
+				'$date_date_of_birth', 	
+				'$status',
+				'$txt_role_id',
+				'$hashedPassword',
+				'$txt_image_path',
+				'$select_gender'
+			)";
+			
 			$resultInsert = mysqli_query($conn, $sqlInsert) or die("Error in sqlInsert: " . mysqli_error($conn));
 			if ($resultInsert) {
-				echo '<script>alert("Successfully submitted your registration request. Wait for the Admin Approval");</script>';
-				echo '<script>window.location.href = "index.php";</script>'; // redirect to avoid resubmission
-	    	exit;
+				$sqlInsert = "INSERT INTO `courtsmanagement`.`login` (`username`, `password`, `otp`, `status`, `role_id`) VALUES ('$txt_email', '$hashedPassword', '1329', 'pending', '$txt_role_id');";
+				$resultInsert = mysqli_query($conn, $sqlInsert) or die("Error in sqlInsert: " . mysqli_error($conn));
+				if ($resultInsert) {
+					echo '<script>alert("Successfully submitted your registration request. Wait for the Admin Approval");</script>';
+					echo '<script>window.location.href = "index.php";</script>'; // redirect to avoid resubmission
+		    		exit;
+				} else {
+					$sqlDelete = "DELETE FROM registration WHERE reg_id = '$txt_reg_id'";
+					mysqli_query($conn, $sqlDelete);
+					echo '<script>alert("Error: " . mysqli_error($conn) . ".");</script>';
+				}	
 			} else {
 				echo '<script>alert("Error: " . mysqli_error($conn) . ".");</script>';
 			}
-	}
-	?>
+		}
+		?>
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -158,10 +125,12 @@ if (!isset($_SESSION)){
 		<link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
 		<link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
 		<link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
-		<!-- <link href="assets/vendor/flatpickr/css/flatpickr.min.css" rel="stylesheet">
-		<script src="assets/vendor/flatpickr/js/flatpickr.js"></script> -->
-		<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
 		<script src="assets/vendor/jquery3.7/jquery.min.js"></script>
+		<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+		<script src="assets/js/jsfunctions.js"></script>
+		
+		
 	</head>
 	<body>
 		<div class="container-fluid bg-primary text-white text-center py-3">
@@ -228,10 +197,11 @@ if (!isset($_SESSION)){
 									<option value="Tharmapuram">Tharmapuram</option>
 									<option value="Jeyapuram">Jeyapuram</option>
 									<option value="Akkarayan">Akkarayan</option>
-									<option value="Kilinochchi HQ">...</option>
-									<option value="Palai">...</option>
-									<option value="Poonakari">...</option>
-									<option value="D.C.D..B">D.C.D.B</option>
+									<option value="Maruthankeni">Maruthankeni</option>
+									<option value="Ramanathapuram">Ramanathapuram</option>
+									<option value="Mulankaavil">Mulankaavil</option>
+									<option value="S.C.I.B">S.C.I.B</option>
+									<option value="D.C.D.B">D.C.D.B</option>
 									<option value="C.I.D">C.I.D</option>
 								</select>
 								<?php }elseif ($type === 'lawyer'){ ?>
@@ -286,13 +256,13 @@ if (!isset($_SESSION)){
 								<?php } ?>
 							</div>
 							<div class="col-md-6">
-							<label for="court_id" class="form-label">Gender</label>
+								<label for="court_id" class="form-label">Gender</label>
 								<select class="form-select" id="select_gender" name="select_gender" required>
 									<option value="" disabled selected hidden>Select Gender</option>
 									<option value="Male">Male</option>
 									<option value="Female">Female</option>
 									<option value="Other">Other</option>
-								</select>	
+								</select>
 							</div>
 						</div>
 						<div class="row mb-3">
@@ -310,36 +280,35 @@ if (!isset($_SESSION)){
 							</div>
 						</div>
 						<div>
-						<div class="mb-3 form-check">
-							<input type="checkbox" class="form-check-input" id="acceptTerms" name="accept_terms" required>
-							<label class="form-check-label" for="acceptTerms"> I accept the <a href="terms.html" target="_blank">Terms, & Conditions</a></label>
-						</div>
-						<button type="submit" class="btn btn-primary" id="btn_add" name="btn_add">Submit</button>
-						<button type="button" class="btn btn-secondary" id="btn_clear" name="btn_clear">Clear Inputs</button>
+							<div class="mb-3 form-check">
+								<input type="checkbox" class="form-check-input" id="acceptTerms" name="accept_terms" required>
+								<label class="form-check-label" for="acceptTerms"> I accept the <a href="terms.html" target="_blank">Terms, & Conditions</a></label>
+							</div>
+							<button type="submit" class="btn btn-primary" id="btn_add" name="btn_add">Submit</button>
+							<button type="button" class="btn btn-secondary" id="btn_clear" name="btn_clear">Clear Inputs</button>
 					</form>
 					</div>
 				</div>
 			</div>
 		</div>
-
-		<!-- MODEL : PASSWORD ISSUE -->
-	<div class="modal fade" id="passwordMismatchModal" tabindex="-1" aria-labelledby="passwordMismatchModalLabel" aria-hidden="true">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title" id="passwordMismatchModalLabel">Password Error</h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-				</div>
-				<div class="modal-body" id="passwordModalBody">
-					<!-- This content will be updated by JS -->
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+		<!-- Generic Modal (Reusable for various cases) -->
+		<div class="modal fade" id="genericModal" tabindex="-1" aria-labelledby="genericModalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="genericModalLabel">Modal Title</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body" id="genericModalBody">
+						<!-- This content will be updated by JS -->
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+						<button type="button" class="btn btn-primary" id="modalConfirmBtn" style="display: none;">Confirm</button>
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
-
 		<!-- MODEL : Terms $ Condition -->
 		<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
 			<div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -406,385 +375,23 @@ if (!isset($_SESSION)){
 				</div>
 			</div>
 		</div>
-
-		
-		<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-		<script>
-		//  1. JS clear the form button
-			document.addEventListener("DOMContentLoaded", function () {
-				// Clear Inputs Button
-				const clearButton = document.getElementById("btn_clear");
-
-				// Add event listener to clear the form inputs
-				clearButton.addEventListener("click", function () {
-					// Select all input fields and clear them
-					const inputs = document.querySelectorAll("input[type='text'], input[type='password'], input[type='email'], input[type='number'], textarea");
-					inputs.forEach(input => {
-						input.value = ""; // Clear the value of each input
-						input.classList.remove("is-invalid", "is-valid"); // Remove validation classes if any
-					});
-
-					//clear checkboxes or radio buttons
-					const checkboxes = document.querySelectorAll("input[type='checkbox'], input[type='radio']");
-					checkboxes.forEach(checkbox => {
-						checkbox.checked = false; // Uncheck all checkboxes and radio buttons
-					});
-				});
-			});
-		</script>
-
-		<script>
-			//2. JS Set joined date to today
-			const joinedDateField = document.getElementById('date_joined_date');
-				const today = new Date();
-				const formattedDate = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD
-				joinedDateField.value = formattedDate;
-		</script>
-
-		<script>
-			// 3. Set date of birth, gender from NIC
-			const nicInput = document.getElementById('txt_nic_number');
-			const dobInput = document.getElementById('date_date_of_birth');
-			const genderInput = document.getElementById('select_gender');
-
-			nicInput.addEventListener('input', function () {
-				const nic = nicInput.value.trim();
-				let year = '';
-				let dayOfYear = '';
-				let gender = '';
-
-				if (nic.length === 10 && /^[0-9]{9}[VvXx]$/.test(nic)) {
-					year = '19' + nic.substring(0, 2);
-					dayOfYear = parseInt(nic.substring(2, 5));
-				} else if (nic.length === 12 && /^[0-9]{12}$/.test(nic)) {
-					year = nic.substring(0, 4);
-					dayOfYear = parseInt(nic.substring(4, 7));
-				} else {
-					dobInput.value = '';
-					genderInput.value = '';
-					return;
-				}
-
-				if (dayOfYear > 500) {
-					gender = 'Female';
-					dayOfYear -= 500;
-				} else {
-					gender = 'Male';
-				}
-
-				const date = new Date(year, 0, dayOfYear - 1);
-				const yyyy = date.getFullYear();
-				const mm = String(date.getMonth() + 1).padStart(2, '0');
-				const dd = String(date.getDate()).padStart(2, '0');
-
-				dobInput.value = `${yyyy}-${mm}-${dd}`;
-				genderInput.value = gender;
-			});
-		</script>
-		
-		<script>
-			//4. JS to confirm msg to multipurpose model
-			const actionModal = new bootstrap.Modal(document.getElementById('actionModal'));
-			const modalTitle = document.getElementById('actionModalLabel');
-			const modalBody = document.getElementById('actionModalBody');
-			const modalConfirmBtn = document.getElementById('actionModalConfirmBtn');
-
-			// 4.2 For duplicate check error
-			function showDuplicateModal(message) {
-				const modalElement = document.getElementById('actionModal');
-				const modal = new bootstrap.Modal(modalElement);
-
-				const modalTitle = document.getElementById('actionModalLabel');
-				const modalBody = document.getElementById('actionModalBody');
-				const modalConfirmBtn = document.getElementById('actionModalConfirmBtn');
-
-				modalTitle.textContent = "Duplicate Detected";
-				modalBody.textContent = message || "This value is already used.";
-				modalConfirmBtn.textContent = "OK";
-				modalConfirmBtn.className = "btn btn-primary btn-sm";
-
-				// Close modal on click
-				modalConfirmBtn.onclick = () => modal.hide();
-
-				modal.show();
-			}
-		</script>
-
-<script>
-	// 5.1 Duplicate check on blur
-	document.querySelectorAll('.check-duplicate').forEach(input => {
-		input.addEventListener('blur', function () {
-			const value = input.value.trim();
-			const checkKey = input.dataset.check;
-			const feedback = document.getElementById(input.dataset.feedback);
-
-			if (!value) return;
-
-			fetch('check_duplicate_AJAX.php', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-				body: `check=${encodeURIComponent(checkKey)}&value=${encodeURIComponent(value)}`
-			})
-			.then(res => res.json())
-			.then(data => {
-				if (data.exists) {
-					feedback.textContent = data.message || "This value is already taken.";
-					input.classList.add("is-invalid");
-					// feedback.textContent = "This name is already taken. Choose another";
-					// input.classList.add("is-invalid");
-				} else {
-					feedback.textContent = "";
-					input.classList.remove("is-invalid");
-				}
-			});
-		});
-	});
-
-	// 5.2 Block form submission if any field is invalid
-	document.querySelector('form').addEventListener('submit', function (e) {
-		const invalidInputs = document.querySelectorAll('.check-duplicate.is-invalid');
-		if (invalidInputs.length > 0) {
-			e.preventDefault();
-			showDuplicateModal("Please fix the issues before submitting.");
-		}
-	});
-
-</script>
-
-
-<script>
-	// 6. Allow only numbers (e.g., for mobile/landline)
-	function isNumberKey(evt) {
-		const charCode = evt.which ? evt.which : evt.keyCode;
-		return (charCode === 46 || (charCode >= 48 && charCode <= 57));
-	}
-</script>
-
-<script>
-	// 7. Allow only text (letters, space, delete, dot)
-	function isTextKey(evt) {
-		const charCode = evt.which ? evt.which : evt.keyCode;
-		return (
-			(charCode >= 65 && charCode <= 90) || // uppercase
-			(charCode >= 97 && charCode <= 122) || // lowercase
-			charCode === 8 || charCode === 127 || charCode === 32 || charCode === 46 // delete, backspace, space, dot
-		);
-	}
-</script>
-
-<script>
-	//  8. Validate mobile number (starts with 07 and has 10 digits)
-	function validateMobileNumber(id) {
-		const input = document.getElementById(id);
-		const value = input.value.trim();
-
-		if (value === "") return;
-
-		if (!/^\d{10}$/.test(value)) {
-			alert("Enter 10 digit Mobile Number");
-			input.value = "";
-			input.focus();
-			return false;
-		}
-
-		if (!value.startsWith("07")) {
-			alert("Enter Mobile Number starting with 07xxxxxxxx");
-			input.value = "";
-			input.focus();
-			return false;
-		}
-
-		return true;
-	}
-</script>
-
-<script>
-// 9. Validate NIC and extract DOB
-	function validateNIC(id) {
-		const input = document.getElementById(id);
-		const nic = input.value.trim();
-
-		if (nic.length === 0) return;
-
-		// 10-character NIC: 9 digits + V/v/X/x
-		if (nic.length === 10) {
-			if (!/^[0-9]{9}[vVxX]$/.test(nic)) {
-				alert("NIC must be 9 digits followed by V/v/X/x");
-				input.value = "";
-				input.focus();
-				return false;
-			}
-		}
-		// 12-character NIC: all digits
-		else if (nic.length === 12) {
-			if (!/^[0-9]{12}$/.test(nic)) {
-				alert("NIC must be exactly 12 digits");
-				input.value = "";
-				input.focus();
-				return false;
-			}
-		}
-		else {
-			alert("NIC must be either 10 or 12 characters");
-			input.value = "";
-			input.focus();
-			return false;
-		}
-
-		return true;
-	}
-</script>
-
-
-<script>
-	// 10. Validate Email
-	function validateEmail(id, page_name) {
-		const email = document.getElementById(id).value.trim();
-		const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-
-		if (email === "") return;
-
-		if (!regex.test(email)) {
-			alert("Invalid Email Address");
-			document.getElementById(id).value = "";
-			document.getElementById(id).focus();
-			return false;
-		}
-	}
-</script>
-
-<script>
-	// 11. Password visibility, Strength, Mismatch model show, and show inline.
-	document.addEventListener("DOMContentLoaded", function () {
-		const passwordInput = document.getElementById("txt_password");
-		const confirmInput = document.getElementById("txt_confirm_password");
-		const toggleButton = document.getElementById("togglePassword");
-		const passwordIcon = document.getElementById("password-icon");
-		const form = document.querySelector("form");
-
-		const modal = new bootstrap.Modal(document.getElementById('passwordMismatchModal'));
-		const modalBody = document.getElementById("passwordModalBody");
-		const modalTitle = document.getElementById("passwordMismatchModalLabel");
-
-		// Add strength display element
-		const strengthDisplay = document.createElement("div");
-		strengthDisplay.id = "password-strength";
-		strengthDisplay.className = "mt-1 fw-semibold";
-		passwordInput.closest('.input-group').after(strengthDisplay);
-
-		// Toggle visibility
-		toggleButton.addEventListener("click", function () {
-			const type = passwordInput.type === "password" ? "text" : "password";
-			passwordInput.type = type;
-			confirmInput.type = type;
-			passwordIcon.classList.toggle("bi-eye");
-			passwordIcon.classList.toggle("bi-eye-slash");
-		});
-
-		// Password strength meter
-		passwordInput.addEventListener("input", () => {
-			const password = passwordInput.value;
-			const strength = getPasswordStrength(password);
-			updateStrengthDisplay(strength);
-
-			// Visual feedback
-			if (strength === "Strong") {
-				passwordInput.classList.remove("is-invalid");
-				passwordInput.classList.add("is-valid");
-			} else {
-				passwordInput.classList.remove("is-valid");
-				passwordInput.classList.add("is-invalid");
-			}
-		});
-
-		// Match check
-		confirmInput.addEventListener("input", () => {
-			if (confirmInput.value !== passwordInput.value) {
-				confirmInput.classList.add("is-invalid");
-			} else {
-				confirmInput.classList.remove("is-invalid");
-				confirmInput.classList.add("is-valid");
-			}
-		});
-
-		//  Block form submit if invalid
-		form.addEventListener("submit", function (e) {
-			const password = passwordInput.value;
-			const confirm = confirmInput.value;
-			const strength = getPasswordStrength(password);
-
-			if (password !== confirm) {
-				e.preventDefault();
-				confirmInput.classList.add("is-invalid");
-				modalTitle.textContent = "Password Mismatch";
-				modalBody.textContent = "The passwords you entered do not match. Please try again.";
-				modal.show();
-				return;
-			}
-
-			if (strength !== "Strong") {
-				e.preventDefault();
-				passwordInput.focus();
-				modalTitle.textContent = "Weak Password";
-				modalBody.textContent = "Password must be Strong: 8+ characters, with uppercase, lowercase, number, and symbol.";
-				modal.show();
-				return;
-			}
-		});
-
-		// Strength checker
-		function getPasswordStrength(password) {
-			let score = 0;
-			if (password.length >= 8) score++;
-			if (/[A-Z]/.test(password)) score++;
-			if (/[a-z]/.test(password)) score++;
-			if (/\d/.test(password)) score++;
-			if (/[\W_]/.test(password)) score++;
-
-			if (score <= 2) return "Weak";
-			if (score === 3 || score === 4) return "Medium";
-			if (score === 5) return "Strong";
-		}
-
-		function updateStrengthDisplay(strength) {
-			const colors = {
-				Weak: "red",
-				Medium: "orange",
-				Strong: "green"
-			};
-			strengthDisplay.textContent = `Password Strength: ${strength}`;
-			strengthDisplay.style.color = colors[strength] || "black";
-		}
-	});
-</script>
-
-<script>
-	// 12. Show T&C
-document.addEventListener("DOMContentLoaded", function () {
-	const acceptTermsCheckbox = document.getElementById("acceptTerms");
-	const termsModal = new bootstrap.Modal(document.getElementById("termsModal"));
-	let isModalConfirmed = false;
-
-	// Trigger modal when checkbox is clicked
-	acceptTermsCheckbox.addEventListener("click", function (e) {
-		if (!isModalConfirmed) {
-			e.preventDefault(); // Prevent checkbox from being checked
-			termsModal.show();
-		}
-	});
-
-	// "I do agree" button inside modal
-	const agreeButton = document.querySelector("#termsModal .btn-secondary");
-	agreeButton.addEventListener("click", function () {
-		isModalConfirmed = true;
-		acceptTermsCheckbox.checked = true;
-		termsModal.hide();
-	});
-});
-</script>
-
-
-
+		<!-- Duplicates found Modal -->
+		<div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="actionModalLabel">Modal title</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body" id="actionModalBody">
+						<!-- Message will appear here -->
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+						<button type="button" class="btn btn-primary" id="actionModalConfirmBtn">Confirm</button>
+					</div>
+				</div>
+			</div>
+		</div>
 	</body>
 </html>

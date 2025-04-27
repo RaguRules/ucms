@@ -4,8 +4,8 @@ if (!isset($_SESSION)){
     session_start();
 }
 
-include_once('db.php');
-include_once('jsfunctions.php');
+include_once('lib/db.php');
+include_once('lib/sms_beep.php');
 
 if(isset($_SESSION["FORGOT_USERNAME"])){
     $username = $_SESSION["FORGOT_USERNAME"];
@@ -35,21 +35,12 @@ if(isset($_POST["btn_forgot"])){
             case "R04":
             case "R05":
                 $query = "SELECT * FROM staff WHERE email = '$username'";
-                // $result = mysqli_query($conn, $query);
-                // $row = mysqli_fetch_assosc($result);
-                // $db_mobile = $row['mobile'];
                 break;
             case "R06":
                 $query = "SELECT * FROM lawyer WHERE email = '$username'";
-                // $result = mysqli_query($conn, $query);
-                // $row = mysqli_fetch_assoc($result);
-                // $db_mobile = $row['mobile'];
                 break;
             case "R07":
                 $query = "SELECT * FROM police WHERE email = '$username'";
-                // $result = mysqli_query($conn, $query);
-                // $row = mysqli_fetch_assoc($result); 
-                // $db_mobile = $row['mobile'];
                 break;
             default:
                 echo '<script> alert("Something went wrong. Conatact Admin Officer"); </script>';
@@ -58,39 +49,36 @@ if(isset($_POST["btn_forgot"])){
 
         $result = mysqli_query($conn, $query);
         $row = mysqli_fetch_assoc($result); 
+
         $db_mobile = $row['mobile'];
+
+        if (mysqli_num_rows($result) > 0) {
         
-        if($mobile == $db_mobile){
-            $otp = rand(10000, 99999); // Generate a random 5-digit OTP
-            $sqlUpdate = "UPDATE login SET otp = '$otp' WHERE username = '$username'";
-            mysqli_query($conn, $sqlUpdate);
-            echo "<script> alert('OTP has been Generated'); </script>";
+            if($mobile == $db_mobile){
+                $otp = rand(100000, 999999); // Generate a random 6-digit OTP
+                $sqlUpdate = "UPDATE login SET otp = '$otp' WHERE username = '$username'";
+                mysqli_query($conn, $sqlUpdate);
+                echo "<script> alert('OTP has been Generated'); </script>";
+                $to = "94".$db_mobile;
+                $message = "If you've requested to reset your password, your verification code is $otp. - Kilinochchi Courts";
 
-            // Send OTP to the user's mobile number
-            $user = "94769669804";
-            $password = "3100";
-            $text = urlencode("If you've requested to reset your password, your verification code is $otp. - Kilinochchi Courts");
-            $to = "94".$db_mobile;
-            $baseurl ="http://www.textit.biz/sendmsg";
-            $url = "$baseurl/?id=$user&pw=$password&to=$to&text=$text";
-            $ret = file($url);   
-            $res= explode(":",$ret[0]);
+                $response = sendSms($to, $message);
 
-            if (trim($res[0])=="OK"){
-                if(isset($_SESSION["FORGOT_USERNAME"])){
+                if ($response['status']) {
                     unset($_SESSION["FORGOT_USERNAME"]);
+                    $_SESSION["VERIFICATIONCODE_USERNAME"] = $username;
+                    echo "<script>window.location.href='verify-otp.php';</script>";
+                } else {
+                    echo "<script>alert('{$response['message']}');</script>";
                 }
-                $_SESSION["VERIFICATIONCODE_USERNAME"] = $username;
-                // echo "<script> alert('Message Sent - ID : " . $res[1] . "'); </script>";
-                echo "<script>window.location.href='verify-otp.php';</script>";
+
+            } elseif ($mobile == "") {
+                echo '<script> alert("Please enter your registered mobile number"); </script>';
+            } else {
+                echo '<script> alert("Invalid mobile number that you have given for username"); </script>';
             }
-            else{
-                // echo "<script> alert('Sent Failed - Error : " . $res[1] . "'); </script>";
-                echo '<script> alert("Error sending OTP to registered mobile number."); </script>';
-   
-            }
-        } else {
-            echo '<script> alert("Invalid mobile number that you have given for username"); </script>';
+        }else{
+            echo '<script> alert("No matching record found."); </script>';
         }
 
     } else {
@@ -137,12 +125,12 @@ if(isset($_POST["btn_forgot"])){
                     <form action="#" method="POST" id="forgotPwdForm">
                         <div class="mb-3">
                             <label>Enter your Username</label>
-                            <input type="email" value="<?php echo $username;?>" <?php echo $readonlystatus;?> name="txt_email" id="txt_email" class="form-control" placeholder="Enter your email" onblur="validateEmail('txt_email')" required>
+                            <input type="email" value="<?php echo $username;?>" name="txt_email" id="txt_email" class="form-control" placeholder="Enter your email" onblur="validateEmail('txt_email')" required>
                         </div>
 
                         <div class="mb-3">
                             <label>Enter your Registered Mobile</label>
-                            <input type="text" name="int_mobile" id="int_mobile" class="form-control" placeholder="Enter your mobile"  onkeypress="return isNumberKey(event)" onblur="validateMobileNumber('int_mobile')" required>
+                            <input type="int" name="int_mobile" id="int_mobile" class="form-control" placeholder="Enter your mobile"  onkeypress="return isNumberKey(event)" onblur="validateMobileNumber('int_mobile')" required>
                         </div>
 
                         <button name="btn_forgot" id="btn_forgot" type="submit" class="btn btn-custom mt-3">Reset Password</button>
@@ -166,7 +154,7 @@ if(isset($_POST["btn_forgot"])){
     <!-- Scripts -->
     <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="assets/vendor/jquery3.7/jquery.min.js"></script>
-    
+    <script src="assets/js/jsfunctions.js"></script>    
 
 </body>
 </html>

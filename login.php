@@ -3,8 +3,7 @@ if (!isset($_SESSION)){
     session_start();
 }
 
-include_once('db.php');
-include_once('jsfunctions.php');
+include_once('lib/db.php');
 
 $username = '';
 if(isset($_SESSION["FORGOTPASSWORDCHANGED"])){
@@ -161,38 +160,10 @@ if (isset($_POST["btn_login"])) {
         </div>
     </div>
 
-
-<!-- Bootstrap Modal for Custom Alert -->
-<!-- <div class="modal fade" id="customAlertModal" tabindex="-1" aria-labelledby="customAlertLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="customAlertLabel">Notice</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="customAlertBody">
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<script>
-function showCustomAlert(message, title = 'Notice') {
-    document.getElementById('customAlertLabel').innerText = title;
-    document.getElementById('customAlertBody').innerHTML = message;
-    
-    var myModal = new bootstrap.Modal(document.getElementById('customAlertModal'));
-    myModal.show();
-}
-</script> -->
-
 <!-- Scripts -->
 <script src="assets/vendor/jquery3.7/jquery.min.js"></script>
 <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/jsfunctions.js"></script>
 
 </body>
 </html>

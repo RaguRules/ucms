@@ -4,8 +4,7 @@ if (!isset($_SESSION)){
 }
 
 if(isset($_SESSION["VERIFICATIONCODE_USERNAME"])){
-    include_once('db.php');
-    include_once('jsfunctions.php');
+    include_once('lib/db.php');
 
     if(isset($_POST['btn_verify'])){
         $code = $_POST["int_otp"];
@@ -81,6 +80,7 @@ if(isset($_SESSION["VERIFICATIONCODE_USERNAME"])){
         <!-- <script src="assets/js/jsfunctions.js"></script>   -->
         <script src="assets/vendor/jquery3.7/jquery.min.js"></script>
         <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="assets/js/jsfunctions.js"></script>
 
     </body>
 

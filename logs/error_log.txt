@@ -1,0 +1,7 @@
+[2025-04-27 14:34:02] Gatekeeper error: Duplicate entry '' for key 'police.PRIMARY'
+[2025-04-27 14:35:27] Gatekeeper error: Duplicate entry '' for key 'police.PRIMARY'
+[2025-04-27 14:35:30] Gatekeeper error: Duplicate entry '' for key 'police.PRIMARY'
+[2025-04-27 14:44:49] Gatekeeper error: No registration found for this ID.
+[2025-04-27 14:44:58] Gatekeeper error: No registration found for this ID.
+[2025-04-27 14:45:19] Gatekeeper error: No registration found for this ID.
+[2025-04-27 15:04:38] Gatekeeper error: Column count doesn't match value count at row 1

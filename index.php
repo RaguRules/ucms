@@ -12,9 +12,9 @@ if(isset($_SESSION["LOGIN_USERTYPE"])){
 }
 
 include_once('menu.php');
-include_once('db.php');
-require_once ('security.php');
-include_once('jsfunctions.php');
+include_once('lib/db.php');
+require_once ('lib/security.php');
+require_once ('lib/helper.php');
 
 ?>
 
@@ -54,16 +54,17 @@ include_once('jsfunctions.php');
 			}
 			?>
 
-		<script src="js/jsfunctions.js"></script>
 		<a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+		<script src="assets/vendor/jquery3.7/jquery.min.js"></script>
 		<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 		<script src="assets/vendor/php-email-form/validate.js"></script>
 		<script src="assets/vendor/aos/aos.js"></script>
 		<script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
 		<script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
 		<script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
-		<script src="assets/vendor/jquery3.7/jquery.min.js"></script>
+		<script src="assets/js/jsfunctions.js"></script>
 		<!-- <script src="assets/js/flatpickr.js"></script> -->
 		<!-- <script src="assets/js/main.js"></script> -->
+
 	</body>
 </html>

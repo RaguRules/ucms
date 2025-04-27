@@ -1,0 +1,13 @@
+1. Trim need to be added before process any inputs from users.
+
+2. Proper folder optimization needed like Lib folder, Ajax folder...)
+
+3. Guard, CSRF Protection need to be added - LIB/SECURITY.PHP
+
+4. Enhance Responsive Design by TailWind CSS
+
+5. Query need to be changed from mysqli_real_escape_string() to prepared statements.
+
+6. Put all JavaScripts in a seperate files, and include it on index.php instead define each in every pages
+
+7. Think of OOPs in PHP (e.g. security.php)

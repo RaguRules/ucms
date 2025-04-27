@@ -12,8 +12,7 @@ if(isset($_SESSION["LOGIN_USERTYPE"])){
 
 if($system_usertype != "GUEST"){
 // if(!($system_usertype == "GUEST")){
-    include_once('db.php');
-    include_once('jsfunctions.php');
+    include_once('lib/db.php');
 
     if(isset($_POST['btn_changepassword'])){
         $username = $_POST["txt_email"];
@@ -125,6 +124,7 @@ if($system_usertype != "GUEST"){
         <!-- Scripts -->
         <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
         <script src="assets/vendor/jquery3.7/jquery.min.js"></script>
+        <script src="assets/js/jsfunctions.js"></script>
         <script>
             function checkpwd () {
                 const form = document.getElementById("changepasswordForm");

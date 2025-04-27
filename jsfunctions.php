@@ -99,7 +99,7 @@
 	
 			if (!value) return;
 	
-			fetch('check_duplicate_AJAX.php', {
+			fetch('action/copycat_detector.ajax.php', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 				body: `check=${encodeURIComponent(checkKey)}&value=${encodeURIComponent(value)}`
