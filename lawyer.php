@@ -1,14 +1,48 @@
 <?php
 
+// require 'db.php';
+
 if(isset($_SESSION["LOGIN_USERTYPE"])){
     $system_usertype = $_SESSION["LOGIN_USERTYPE"];
 	$system_username = $_SESSION["LOGIN_USERNAME"];
 }else{
 	$system_usertype = "GUEST";
 }
+
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
+
+$lawyer_id = null;
+
+if ($system_usertype === "R06" && $system_username) {
+    // Get lawyer_id by email
+    $stmt = $conn->prepare("SELECT lawyer_id FROM lawyer WHERE email = ?");
+    $stmt->bind_param("s", $system_username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($row = $result->fetch_assoc()) {
+        $lawyer_id = $row['lawyer_id'];
+    } else {
+        // If email not found in DB, logout or redirect
+		// #TODO : logout.php not available
+        // echo "<script>location.href='logout.php';</script>";
+        // exit;
+    }
+} else {
+    // Not a valid session
+    // echo "<script>location.href='login.php';</script>";
+    // exit;
+}
+
+
+// Get all cases related to this lawyer
+$query = "SELECT * FROM cases WHERE plaintiff_lawyer = ? OR defendant_lawyer = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("ss", $lawyer_id, $lawyer_id);
+$stmt->execute();
+$cases = $stmt->get_result();
 	
 
 if (isset($_POST["btn_add"])) {
@@ -86,7 +120,7 @@ if (isset($_POST["btn_add"])) {
 
     try {
         // Insert into staff table
-        $stmtStaff = $conn->prepare("INSERT INTO staff (staff_id, first_name, last_name, mobile, nic_number, date_of_birth, email, address, court_id, joined_date, role_id, image_path, gender, appointment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmtStaff = $conn->prepare("INSERT INTO staff (lawyer_id, first_name, last_name, mobile, nic_number, date_of_birth, email, address, court_id, joined_date, role_id, image_path, gender, appointment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         
 		$stmtStaff->bind_param(
             "ssssssssssssss",
@@ -119,7 +153,7 @@ if (isset($_POST["btn_add"])) {
         mysqli_commit($conn);
 
         echo '<script>alert("Successfully added staff member.");</script>';
-        echo "<script>location.href='index.php?pg=staff.php&option=view';</script>";
+        echo "<script>location.href='index.php?pg=lawyer.php&option=view';</script>";
         exit;
 
     } catch (Exception $e) {
@@ -151,8 +185,6 @@ if (isset($_POST["btn_update"])) {
     $select_gender = sanitize_input($_POST["select_gender"]);
     $select_role_name = sanitize_input($_POST["select_role_name"]);
     $select_appointment = sanitize_input($_POST["select_appointment"]);
-
-	$updateLoginStatus = null;
 
 	// CSRF Protection
 	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
@@ -194,64 +226,6 @@ if (isset($_POST["btn_update"])) {
 	check_duplicate($conn, "mobile", $int_mobile, "", "Mobile number already exists!", $txt_staff_id);
 	check_duplicate($conn, "email", $txt_email, "", "Email already exists!", $txt_staff_id);
 
-
-	
-
-    // Start Transaction
-    $conn->begin_transaction();
-
-    try {
-        $stmtUpdate = $conn->prepare("UPDATE staff SET first_name=?, last_name=?, mobile=?, nic_number=?, date_of_birth=?, email=?, address=?, court_id=?, role_id=?, gender=?, appointment=? WHERE staff_id=?");
-        
-		$stmtUpdate->bind_param(
-            "ssssssssssss",
-            $txt_first_name,
-			$txt_last_name,
-			$int_mobile,
-			$txt_nic_number,
-            $date_date_of_birth,
-			$txt_email,
-			$txt_address,
-			$select_court_name,
-            $select_role_name,
-			$select_gender,
-			$select_appointment,
-			$txt_staff_id
-        );
-        $stmtUpdate->execute();
-
-		// 2. Update login table
-		$updateLogin = $conn->prepare("UPDATE login SET role_id = ? WHERE username = ?");
-		$updateLogin->bind_param("ss", $select_role_name, $txt_email);
-		$updateLogin->execute();
-
-		if ($updateLogin->affected_rows === 0) {
-			throw new Exception("No login record updated. Username not found?");
-		}
-
-		$conn->commit();
-
-		echo '<script>alert("Final: Successfully updated staff member.");</script>';
-        exit;
-    } catch (Exception $e) {
-        $conn->rollback();
-
-        logError($e->getMessage());
-        echo '<script>alert("An error occurred while updating. Please try again.");</script>';
-    }
-}
-
-
-if (isset($_POST["btn_dpchange"])) {
-
-	// $txt_image_path = null;
-	$txt_staff_id = sanitize_input($_POST["txt_staff_id"]);
-    
-	// CSRF Protection
-	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-		die("Invalid CSRF token.");
-    }
-
 	// Upload image only if a new one was selected
     $new_image_uploaded = ($_FILES['img_profile_photo']['error'] !== 4); // Error 4 = no file uploaded
 
@@ -261,35 +235,44 @@ if (isset($_POST["btn_dpchange"])) {
             die("Image upload failed: " . $upload_result['error']);
         }
         $txt_image_path = 'uploads/' . $upload_result['filename'];
-		echo "<script>alert('right way man: $txt_image_path');</script>";
     } else {
         // No new image, fetch old image path from database
-        $stmtOld = $conn->prepare("SELECT image_path FROM staff WHERE staff_id = ?");
+        $stmtOld = $conn->prepare("SELECT image_path FROM staff WHERE lawyer_id = ?");
         $stmtOld->bind_param("s", $txt_staff_id);
         $stmtOld->execute();
         $resultOld = $stmtOld->get_result();
         $rowOld = $resultOld->fetch_assoc();
         $txt_image_path = $rowOld['image_path']; // Use old image path
-		echo "<script>alert('going to wrong block');</script>";
-    } 
+    }
 
     // Start Transaction
     mysqli_begin_transaction($conn);
 
     try {
-        $stmtUpdate = $conn->prepare("UPDATE staff SET image_path=? WHERE staff_id=?");
+        $stmtUpdate = $conn->prepare("UPDATE staff SET first_name=?, last_name=?, mobile=?, nic_number=?, date_of_birth=?, email=?, address=?, court_id=?, role_id=?, image_path=?, gender=?, appointment=? WHERE lawyer_id=?");
         
 		$stmtUpdate->bind_param(
-            "ss",
+            "sssssssssssss",
+            $txt_first_name,
+			$txt_last_name,
+			$int_mobile,
+			$txt_nic_number,
+            $date_date_of_birth,
+			$txt_email,
+			$txt_address,
+			$select_court_name,
+            $select_role_name,
 			$txt_image_path,
+			$select_gender,
+			$select_appointment,
 			$txt_staff_id
         );
         $stmtUpdate->execute();
 
         mysqli_commit($conn);
 
-        echo '<script>alert("Successfully changed profile picture.");</script>';
-        echo "<script>location.href='index.php?pg=staff.php&option=view';</script>";
+        echo '<script>alert("Successfully updated staff member.");</script>';
+        echo "<script>location.href='index.php?pg=lawyer.php&option=view';</script>";
         exit;
     } catch (Exception $e) {
         mysqli_rollback($conn);
@@ -304,16 +287,15 @@ if (isset($_POST["btn_dpchange"])) {
     }
 }
 
-
 if (isset($_POST["btn_delete"])) {
-    $txt_staff_id = sanitize_input($_POST['staff_id']);
+    $txt_staff_id = sanitize_input($_POST['lawyer_id']);
 
     // Start Transaction
     mysqli_begin_transaction($conn);
 
     try {
         // Get email first
-        $stmtSelect = $conn->prepare("SELECT email FROM staff WHERE staff_id=?");
+        $stmtSelect = $conn->prepare("SELECT email FROM staff WHERE lawyer_id=?");
         $stmtSelect->bind_param("s", $txt_staff_id);
         $stmtSelect->execute();
         $result = $stmtSelect->get_result();
@@ -338,7 +320,7 @@ if (isset($_POST["btn_delete"])) {
         $stmtStaffDelete = $conn->prepare("
             UPDATE staff 
             SET is_active='0' 
-            WHERE staff_id=?
+            WHERE lawyer_id=?
         ");
         $stmtStaffDelete->bind_param("s", $txt_staff_id);
         $stmtStaffDelete->execute();
@@ -346,7 +328,7 @@ if (isset($_POST["btn_delete"])) {
         mysqli_commit($conn);
 
         echo '<script>alert("Successfully deleted staff member.");</script>';
-        echo "<script>location.href='index.php?pg=staff.php&option=view';</script>";
+        echo "<script>location.href='index.php?pg=lawyer.php&option=view';</script>";
         exit;
     } catch (Exception $e) {
         mysqli_rollback($conn);
@@ -356,14 +338,14 @@ if (isset($_POST["btn_delete"])) {
 }
 
 if (isset($_POST["btn_reactivate"])) {
-    $txt_staff_id = sanitize_input($_POST['staff_id']);
+    $txt_staff_id = sanitize_input($_POST['lawyer_id']);
 
     // Start Transaction
     mysqli_begin_transaction($conn);
 
     try {
         // Get email first
-        $stmtSelect = $conn->prepare("SELECT email FROM staff WHERE staff_id=?");
+        $stmtSelect = $conn->prepare("SELECT email FROM staff WHERE lawyer_id=?");
         $stmtSelect->bind_param("s", $txt_staff_id);
         $stmtSelect->execute();
         $result = $stmtSelect->get_result();
@@ -388,7 +370,7 @@ if (isset($_POST["btn_reactivate"])) {
         $stmtStaffReactivate = $conn->prepare("
             UPDATE staff 
             SET is_active='1' 
-            WHERE staff_id=?
+            WHERE lawyer_id=?
         ");
         $stmtStaffReactivate->bind_param("s", $txt_staff_id);
         $stmtStaffReactivate->execute();
@@ -396,7 +378,7 @@ if (isset($_POST["btn_reactivate"])) {
         mysqli_commit($conn);
 
         echo '<script>alert("Successfully reactivated staff member.");</script>';
-        echo "<script>location.href='index.php?pg=staff.php&option=view';</script>";
+        echo "<script>location.href='index.php?pg=lawyer.php&option=view';</script>";
         exit;
     } catch (Exception $e) {
         mysqli_rollback($conn);
@@ -421,9 +403,9 @@ if (isset($_POST["btn_reactivate"])) {
 		<?php
 			if(isset($_GET['option']) && $_GET['option'] == "view") {
 			
-				// $sql_read = "SELECT staff_id, first_name, last_name, nic_number, mobile, court_id, staff_id, email FROM staff WHERE is_active = 1";
+				// $sql_read = "SELECT lawyer_id, first_name, last_name, nic_number, mobile, court_id, lawyer_id, email FROM staff WHERE is_active = 1";
 				
-				$sql_read = "SELECT staff_id, first_name, last_name, nic_number, mobile, court_id, staff_id, email, is_active FROM staff";
+				$sql_read = "SELECT lawyer_id, first_name, last_name, nic_number, mobile, email, enrolment_number, is_active FROM lawyer";
 				$result = mysqli_query($conn, $sql_read);
 			
 				if ($result && mysqli_num_rows($result) > 0) {
@@ -431,8 +413,8 @@ if (isset($_POST["btn_reactivate"])) {
 		<div class="container mt-4">
 			<!-- For bigger list  <div class="container-fluid mt-4"> -->
 			<div class="d-flex justify-content-start mb-3">
-				<a href="index.php?pg=staff.php&option=add" class="btn btn-success btn-sm me-1">
-				<i class="fas fa-plus"></i> Add Staff
+				<a href="index.php?pg=lawyer.php&option=add" class="btn btn-success btn-sm me-1">
+				<i class="fas fa-plus"></i> Add Lawyer
 				</a>
 			</div>
 			<div class="table-responsive">
@@ -443,7 +425,7 @@ if (isset($_POST["btn_reactivate"])) {
 							<th>Full Name</th>
 							<th>NIC</th>
 							<th>Mobile</th>
-							<th>Court Name</th>
+							<th>Supreme Court Reg.No</th>
 							<th>Actions</th>
 						</tr>
 					</thead>
@@ -462,19 +444,19 @@ if (isset($_POST["btn_reactivate"])) {
 							</td>
 							<td><?php echo $row['nic_number']; ?></td>
 							<td><?php echo $row['mobile']; ?></td>
-							<td><?php echo getCourtName($row['court_id']); ?></td>
+							<td><?php echo $row['enrolment_number']; ?></td>
 							<td>
 								<div class="d-flex flex-wrap gap-1">
-									<form method="POST" action="index.php?pg=staff.php&option=edit" class="d-inline">
-										<input type="hidden" name="staff_id" value="<?php echo sanitize_input($row['staff_id']); ?>">
+									<form method="POST" action="index.php?pg=lawyer.php&option=edit" class="d-inline">
+										<input type="hidden" name="lawyer_id" value="<?php echo sanitize_input($row['lawyer_id']); ?>">
 										<button class="btn btn-primary btn-sm" type="submit" name="btn_edit">
 										<i class="fas fa-edit"></i> Edit
 										</button>
 									</form>
 									<form method="GET" action="index.php" class="d-inline">
-										<input type="hidden" name="pg" value="staff.php">
+										<input type="hidden" name="pg" value="lawyer.php">
 										<input type="hidden" name="option" value="full_view">
-										<input type="hidden" name="id" value="<?php echo urlencode(sanitize_input($row['staff_id'])); ?>">
+										<input type="hidden" name="id" value="<?php echo urlencode(sanitize_input($row['lawyer_id'])); ?>">
 										<button type="submit" class="btn btn-info btn-sm text-white">
 										<i class="fas fa-eye"></i> Full View
 										</button>
@@ -483,7 +465,7 @@ if (isset($_POST["btn_reactivate"])) {
 									<?php if ($row['is_active']) { ?>
 										<!-- Delete Button for Active User -->
 										<form method="POST" action="#" class="d-inline delete-form">
-											<input type="hidden" name="staff_id" value="<?php echo sanitize_input($row['staff_id']); ?>">
+											<input type="hidden" name="lawyer_id" value="<?php echo sanitize_input($row['lawyer_id']); ?>">
 											<input type="hidden" name="btn_delete" value="1">
 											<button type="button" class="btn btn-danger btn-sm" onclick="deleteConfirmModal(() => this.closest('form').submit())">
 												<i class="fas fa-trash-alt"></i> Delete
@@ -492,7 +474,7 @@ if (isset($_POST["btn_reactivate"])) {
 									<?php } else { ?>
 										<!-- Reactive Button for Deleted/Inactive User -->
 										<form method="POST" action="#" class="d-inline reactive-form">
-											<input type="hidden" name="staff_id" value="<?php echo sanitize_input($row['staff_id']); ?>">
+											<input type="hidden" name="lawyer_id" value="<?php echo sanitize_input($row['lawyer_id']); ?>">
 											<input type="hidden" name="btn_reactivate" value="1">
 											<button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" onclick="reactivateConfirmModal(() => this.closest('form').submit())">
 												<i class="fas fa-refresh"></i> Reactive
@@ -507,18 +489,18 @@ if (isset($_POST["btn_reactivate"])) {
 				</table>
 			</div>
 		</div>
-		<?php
-			}
+<?php
+	}
 			// <!-- FULL VIEW SECTION -->
 			}elseif (isset($_GET['option']) && $_GET['option'] == "full_view" && $_GET['id']) {
-					$staffId = $_GET['id'];
+					$lawyer_id = $_GET['id'];
 			
-					$row = getStaffDataFromDatabase(sanitize_input($staffId), $conn);
+					$row = getLawyerDataFromDatabase(sanitize_input($lawyer_id), $conn);
 				?>
 		<div class="container py-5">
 			<div class="card shadow-lg rounded-4 border-0">
 				<div class="card-header bg-dark text-white rounded-top-4 d-flex align-items-center justify-content-between">
-					<h3 class="mb-0"><i class="bi bi-person-lines-fill me-2"></i>Staff Profile</h3>
+					<h3 class="mb-0"><i class="bi bi-person-lines-fill me-2"></i>Lawyer Profile</h3>
 				</div>
 				<div class="card-body">
 					<div class="row mb-4">
@@ -530,36 +512,25 @@ if (isset($_POST["btn_reactivate"])) {
 								class="img-thumbnail shadow-sm border border-3 border-primary" 
 								style="width: 300px; height: 300px; object-fit: cover;"
 								>
-								<form method="POST" action="index.php?pg=staff.php&option=dpchange" enctype="multipart/form-data" class="mt-3">
-									<div class="mb-2">
-										<input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-										<input hidden type="text" class="form-control" id="txt_staff_id" name="txt_staff_id" value="<?php echo sanitize_input($staffId); ?>" readonly required>
-										<input type="file" name="img_profile_photo" id="img_profile_photo" accept="image/*" class="form-control form-control-sm" required>
-									</div>
-									<button class="btn btn-secondary btn-sm" name="btn_dpchange" id="btn_dpchange" type="submit">
-										<i class="fas fa-upload"></i> Upload New Photo
-									</button>
-								</form>
 						</div>
-						
 						<div class="col-md-9">
 							<div class="card-footer text-end bg-light rounded-bottom-4">
 								<div class="d-flex justify-content-between">
 									<?php
 										// Remove the 'S' and convert to integer
-										$number = (int) filter_var($row['staff_id'], FILTER_SANITIZE_NUMBER_INT);
+										$number = (int) filter_var($row['lawyer_id'], FILTER_SANITIZE_NUMBER_INT);
 										
 										// Increment the number
 										$next_number = $number - 1;
 										
 										// Pad with leading zeroes and add the prefix 'S'
-										$previous_staff_id = 'S' . str_pad($next_number, 4, '0', STR_PAD_LEFT);
+										$previous_lawyer_id = 'L' . str_pad($next_number, 4, '0', STR_PAD_LEFT);
 										
-										// Optional: Check if staff exists before rendering the button
-										$next_exists = getStaffDataFromDatabase($previous_staff_id, $conn);
+										// Optional: Check if lawyer exists before rendering the button
+										$next_exists = getLawyerDataFromDatabase($previous_lawyer_id, $conn);
 										
 										if ($next_exists){ ?>
-									<a href="index.php?pg=staff.php&option=full_view&id=<?php echo $previous_staff_id; ?>" class="btn btn-outline-success">
+									<a href="index.php?pg=lawyer.php&option=full_view&id=<?php echo $previous_lawyer_id; ?>" class="btn btn-outline-success">
 									<i class="bi bi-arrow-left-circle"></i> Previous
 									</a>
 									<?php }else{ ?>
@@ -568,24 +539,24 @@ if (isset($_POST["btn_reactivate"])) {
 									</button>
 									<?php }; ?>
 									<!-- Exit and  go back to view dashboard button -->
-									<a href="index.php?pg=staff.php&option=view" class="btn btn-danger">
+									<a href="index.php?pg=lawyer.php&option=view" class="btn btn-danger">
 									Exit <i class="bi bi-x-circle"></i>
 									</a>
 									<?php
 										// Remove the 'S' and convert to integer
-										$number = (int) filter_var($row['staff_id'], FILTER_SANITIZE_NUMBER_INT);
+										$number = (int) filter_var($row['lawyer_id'], FILTER_SANITIZE_NUMBER_INT);
 										
 										// Increment the number
 										$next_number = $number + 1;
 										
 										// Pad with leading zeroes and add the prefix 'S'
-										$next_staff_id = 'S' . str_pad($next_number, 4, '0', STR_PAD_LEFT);
+										$next_lawyer_id = 'L' . str_pad($next_number, 4, '0', STR_PAD_LEFT);
 										
 										// Optional: Check if staff exists before rendering the button
-										$next_exists = getStaffDataFromDatabase($next_staff_id, $conn);
+										$next_exists = getLawyerDataFromDatabase($next_lawyer_id, $conn);
 										
 										if ($next_exists){ ?>
-									<a href="index.php?pg=staff.php&option=full_view&id=<?php echo $next_staff_id; ?>" class="btn btn-outline-success">
+									<a href="index.php?pg=lawyer.php&option=full_view&id=<?php echo $next_lawyer_id; ?>" class="btn btn-outline-success">
 									Next <i class="bi bi-arrow-right-circle"></i>
 									</a>
 									<?php }else{ ?>
@@ -599,8 +570,8 @@ if (isset($_POST["btn_reactivate"])) {
 								<table class="table table-hover table-bordered align-middle">
 									<tbody>
 										<tr>
-											<th scope="row">Staff ID</th>
-											<td><?php echo ltrim(substr($row['staff_id'], 1), '0'); ?></td>
+											<th scope="row">Lawyer ID</th>
+											<td><?php echo ltrim(substr($row['lawyer_id'], 1), '0'); ?></td>
 										</tr>
 										<tr>
 											<th scope="row">First Name</th>
@@ -631,15 +602,15 @@ if (isset($_POST["btn_reactivate"])) {
 											<td><?php echo sanitize_input($row['gender']); ?></td>
 										</tr>
 										<tr>
-											<th scope="row">Staff Type</th>
-											<td><?php echo sanitize_input($row['appointment']); ?></td>
+											<th scope="row">Supreme Court Enrolment Number</th>
+											<td><?php echo sanitize_input($row['enrolment_number']); ?></td>
 										</tr>
 										<th scope="row">Address</th>
 										<td><?php echo sanitize_input($row['address']); ?></td>
 										</tr>
 										<tr>
-											<th scope="row">Court ID</th>
-											<td><?php echo getCourtName($row['court_id']); ?></td>
+											<th scope="row">Station/ Type</th>
+											<td><?php echo sanitize_input($row['station']); ?></td>
 										</tr>
 										<tr>
 											<th scope="row">Joined Date</th>
@@ -669,8 +640,8 @@ if (isset($_POST["btn_reactivate"])) {
 				<div class="card-footer bg-light rounded-bottom-4">
 					<div class="d-flex justify-content-center gap-2">
 						<!-- Edit Button within Full View-->
-						<form method="POST" action="http://localhost/ucms/index.php?pg=staff.php&option=edit" class="d-inline">
-							<input type="hidden" name="staff_id" value="<?php echo sanitize_input($row['staff_id']); ?>">
+						<form method="POST" action="http://localhost/ucms/index.php?pg=lawyer.php&option=edit" class="d-inline">
+							<input type="hidden" name="lawyer_id" value="<?php echo sanitize_input($row['lawyer_id']); ?>">
 							<button type="submit" class="btn btn-primary btn-sm" name="btn_edit">
 							<i class="fas fa-pen-to-square me-1"></i> Edit
 							</button>
@@ -681,7 +652,7 @@ if (isset($_POST["btn_reactivate"])) {
 						<?php if ($row['is_active']) { ?>
 							<!-- Delete Button for Active User -->
 							<form method="POST" action="#" class="d-inline delete-form">
-								<input type="hidden" name="staff_id" value="<?php echo sanitize_input($row['staff_id']); ?>">
+								<input type="hidden" name="lawyer_id" value="<?php echo sanitize_input($row['lawyer_id']); ?>">
 								<input type="hidden" name="btn_delete" value="1">
 								<button type="button" class="btn btn-danger btn-sm" onclick="deleteConfirmModal(() => this.closest('form').submit())">
 									<i class="fas fa-trash-alt"></i> Delete
@@ -690,7 +661,7 @@ if (isset($_POST["btn_reactivate"])) {
 						<?php } else { ?>
 							<!-- Reactive Button for Deleted/Inactive User -->
 							<form method="POST" action="#" class="d-inline reactive-form">
-								<input type="hidden" name="staff_id" value="<?php echo sanitize_input($row['staff_id']); ?>">
+								<input type="hidden" name="lawyer_id" value="<?php echo sanitize_input($row['lawyer_id']); ?>">
 								<input type="hidden" name="btn_reactivate" value="1">
 								<button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" onclick="reactivateConfirmModal(() => this.closest('form').submit())">
 									<i class="fas fa-refresh"></i> Reactive
@@ -701,10 +672,137 @@ if (isset($_POST["btn_reactivate"])) {
 				</div>
 			</div>
 		</div>
+
+
+
+
+
+
+
+
+		<!-- Fetch all required data -->
+<?php
+
+$query1 = "SELECT * FROM cases WHERE plaintiff_lawyer = ? OR defendant_lawyer = ?";
+$cstmt = $conn->prepare($query1);
+$cstmt->bind_param("ss", $lawyer_id, $lawyer_id);
+$cstmt->execute();
+$caseResult = $cstmt->get_result();
+
+$party_id = "P0001";
+$query2 = "SELECT * FROM parties WHERE party_id = ? AND is_deleted = 0";
+$pstmt = $conn->prepare($query2);
+$pstmt->bind_param("s", $party_id);
+$pstmt->execute();
+$partyResult = $pstmt->get_result();
+
+// $case_id = "C0001";
+$case_name = "C0001";
+$query3 = "SELECT * FROM dailycaseactivities WHERE case_name = ?";
+$dstmt = $conn->prepare($query3);
+$dstmt->bind_param("s", $case_name);
+$dstmt->execute();
+$dailyCaseActivityResult = $dstmt->get_result();
+
+$parties = [];
+$cases = [];
+
+while ($row = $partyResult->fetch_assoc()) {
+    $parties[] = $row;
+}
+while ($row = $caseResult->fetch_assoc()) {
+    $cases[] = $row;
+}
+?>
+<div class="accordion" id="accordionExample">
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingOne">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+        Client Details
+      </button>
+    </h2>
+    <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+      <div class="accordion-body">
+		<?php
+			foreach ($parties as $party) {
+		?>
+		<div class='card mb-3 shadow-sm'>
+			<div class='card-body'>
+				<h5 class='card-title'>Client Name: <?php echo "{$party['first_name']} {$party['last_name']}"; ?></h5>
+				<p><strong>NIC:</strong> <?php echo "{$party['nic_no']}"; ?></p>
+				<p><strong>Mobile:</strong> <?php echo "{$party['mobile_number']}"; ?></p>
+				<p><strong>Email:</strong> <?php echo "{$party['email_address']}"; ?></p>
+				<p><strong>DOB:</strong> <?php echo "{$party['date_of_birth']}"; ?></p>
+				<p><strong>Joined:</strong> <?php echo "{$party['joined_date']}"; ?></p>
+				<p><strong>Address:</strong> <?php echo "{$party['address']}"; ?></p>
+			</div>
+		</div>
+		<?php
+			}
+		?>
+      </div>
+    </div>
+  </div>
+
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingTwo">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+        Case Details
+      </button>
+    </h2>
+    <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+      <div class="accordion-body">
+		<?php
+			foreach ($cases as $case) {
+		?>
+		<div class='card mb-3 shadow-sm'>
+            <div class='card-body'>
+				<h5 class='card-title'>Case: <?php echo "{$case['case_name']}";?></h5>
+				<p><strong>Status:</strong> <?php echo "{$case['status']}"; ?></p>
+				<p><strong>Next Date:</strong> <?php echo "{$case['next_date']}"; ?></p>
+				<p><strong>For:</strong> <?php echo "{$case['for_what']}"; ?></p>
+				<form method="GET" action="index.php" class="d-inline">
+					<!-- <input type="hidden" name="pg" value="lawyer.php">
+					<input type="hidden" name="option" value="full_view">
+					<input type="hidden" name="id" value="<?php echo urlencode(sanitize_input($row['lawyer_id'])); ?>"> -->
+					<button type="submit" class="btn btn-info btn-sm text-white">
+					<i class="fas fa-eye"></i> Full View
+					</button>
+				</form>
+			</div>
+		</div>
+		<?php
+			}
+		?>
+      </div>
+    </div>
+  </div>
+
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingThree">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+        Accordion Item #3
+      </button>
+    </h2>
+    <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExample">
+      <div class="accordion-body">
+        <strong>This is the third item's accordion body.</strong> It is hidden by default...
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
 		<?php
 			// <!-- ADD SECTION -->
 			}elseif (isset($_GET['option']) && $_GET['option'] == "add") {
-				$next_staff_id = generateNextStaffID($conn); // Get the next ID *before* the form
+				$next_lawyer_id = generateNextStaffID($conn); // Get the next ID *before* the form
 			?>
 		<div class="container-fluid bg-primary text-white text-center py-3">
 			<h1>ADD NEW STAFF</h1>
@@ -714,7 +812,7 @@ if (isset($_POST["btn_reactivate"])) {
 				<div class="col-md-8 col-lg-6">
 					<form action="#" method="POST" id="staffForm" name="staffForm" enctype="multipart/form-data">
 						<div class="row mb-3">
-							<label hidden for="staff_id" class="form-label">Staff ID</label>
+							<label hidden for="lawyer_id" class="form-label">Staff ID</label>
 							<input hidden type="text" class="form-control" id="txt_staff_id" name="txt_staff_id" value="<?php echo sanitize_input($next_staff_id); ?>" readonly required>
 						</div>
 						<div class="row mb-3">
@@ -816,8 +914,8 @@ if (isset($_POST["btn_reactivate"])) {
 		</div>
 		`	<?php
 			// <!-- EDIT SECTION -->
-			}elseif(isset($_GET['option']) && $_GET['option'] == "edit" && isset($_POST['staff_id'])) {
-				$data = getStaffDataFromDatabase(sanitize_input($_POST['staff_id']), $conn);
+			}elseif(isset($_GET['option']) && $_GET['option'] == "edit" && isset($_POST['lawyer_id'])) {
+				$data = getStaffDataFromDatabase(sanitize_input($_POST['lawyer_id']), $conn);
 			
 				$txt_first_name = $data['first_name'];
 				$txt_last_name = $data['last_name'];
@@ -828,7 +926,7 @@ if (isset($_POST["btn_reactivate"])) {
 				$txt_address = $data['address'];
 				$select_court_name = $data['court_id'];
 				$select_role_name = $data['role_id'];
-				// $txt_image_path = $data['image_path'];
+				$txt_image_path = $data['image_path'];
 				$select_gender = $data['gender'];
 				$select_appointment = $data['appointment'];
 			
@@ -841,8 +939,8 @@ if (isset($_POST["btn_reactivate"])) {
 				<div class="col-md-8 col-lg-6">
 					<form action="#" method="POST" id="staffForm" enctype="multipart/form-data">
 						<div class="row mb-3">
-							<label hidden for="staff_id" class="form-label">Staff ID</label>
-							<input hidden type="text" class="form-control" id="txt_staff_id" name="txt_staff_id" value="<?php echo sanitize_input($_POST['staff_id']); ?>" readonly required>
+							<label hidden for="lawyer_id" class="form-label">Staff ID</label>
+							<input hidden type="text" class="form-control" id="txt_staff_id" name="txt_staff_id" value="<?php echo sanitize_input($_POST['lawyer_id']); ?>" readonly required>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
@@ -857,7 +955,7 @@ if (isset($_POST["btn_reactivate"])) {
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<label for="mobile" class="form-label">Mobile Number</label>
-								<input type="text" name="int_mobile" id="int_mobile" class="form-control check-duplicate" data-check="mobile" data-feedback="mobileFeedback" value="<?php echo '0'.$int_mobile ?>" onkeypress="return isNumberKey(event)" onblur="validateMobileNumber('int_mobile')" required>
+								<input type="text" name="int_mobile" id="int_mobile" class="form-control check-duplicate" data-check="mobile" data-feedback="mobileFeedback" value="<?php echo $int_mobile ?>" onkeypress="return isNumberKey(event)" onblur="validateMobileNumber('int_mobile')" required>
 								<small id="mobileFeedback" class="text-danger"></small>
 							</div>
 							<div class="col-md-6">
@@ -905,13 +1003,8 @@ if (isset($_POST["btn_reactivate"])) {
 								</select>
 							</div>
 							<div class="col-md-6">
-								<label for="court_id" class="form-label">Officer Classification</label>
-								<select class="form-select" id="select_appointment" name="select_appointment" value="<?php echo $select_appointment ?>" required>
-									<option value="" disabled hidden>Select type of appointment</option>
-									<option value="Judicial Staff (JSC)">Judicial Staff (JSC)</option>
-									<option value="Ministry Staff">Ministry Staff</option>
-									<option value="O.E.S/ Peon/ Security">O.E.S/ Peon/ Security</option>
-								</select>
+								<label for="profile_photo" class="form-label">Upload Profile Photo</label>
+								<input type="file" class="form-control" id="img_profile_photo" name="img_profile_photo" accept="image/*" required>
 							</div>
 						</div>
 						<div class="row mb-3">
@@ -922,6 +1015,15 @@ if (isset($_POST["btn_reactivate"])) {
 									<option value="Male">Male</option>
 									<option value="Female">Female</option>
 									<option value="Other">Other</option>
+								</select>
+							</div>
+							<div class="col-md-6">
+								<label for="court_id" class="form-label">Officer Classification</label>
+								<select class="form-select" id="select_appointment" name="select_appointment" value="<?php echo $select_appointment ?>" required>
+									<option value="" disabled hidden>Select type of appointment</option>
+									<option value="Judicial Staff (JSC)">Judicial Staff (JSC)</option>
+									<option value="Ministry Staff">Ministry Staff</option>
+									<option value="O.E.S/ Peon/ Security">O.E.S/ Peon/ Security</option>
 								</select>
 							</div>
 						</div>

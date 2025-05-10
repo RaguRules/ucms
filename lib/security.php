@@ -1,3 +1,4 @@
+<!-- this security.php is a reflection of Modularity concept – Build security as independent modules. One of the Core Principle of Security Design -->
 <?php
 	function secure_image_upload($file_input_name = 'image', $upload_dir = 'uploads/', $allowed_ext = ['jpg', 'jpeg', 'png', 'heic', 'heif'], $max_file_size = 6 * 1024 * 1024)
 	{

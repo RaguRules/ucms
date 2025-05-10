@@ -5,3 +5,14 @@
 [2025-04-27 14:44:58] Gatekeeper error: No registration found for this ID.
 [2025-04-27 14:45:19] Gatekeeper error: No registration found for this ID.
 [2025-04-27 15:04:38] Gatekeeper error: Column count doesn't match value count at row 1
+[2025-05-04 12:59:12] Unknown column 'user_id' in 'where clause'
+[2025-05-04 13:17:00] No login record was updated.
+[2025-05-10 16:56:04] No login record updated. Username not found?
+[2025-05-10 16:57:23] No login record updated. Username not found?
+[2025-05-10 16:58:43] No login record updated. Username not found?
+[2025-05-10 16:59:22] No login record updated. Username not found?
+[2025-05-10 17:01:39] No login record updated. Username not found?
+[2025-05-10 17:10:24] No login record updated. Username not found?
+[2025-05-10 17:11:55] No login record updated. Username not found?
+[2025-05-10 17:12:47] No login record updated. Username not found?
+[2025-05-10 17:15:56] No login record updated. Username not found?
