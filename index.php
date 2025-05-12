@@ -11,10 +11,21 @@ if(isset($_SESSION["LOGIN_USERTYPE"])){
 	$system_usertype = "GUEST";
 }
 
-include_once('menu.php');
-include_once('lib/db.php');
-require_once ('lib/security.php');
-require_once ('lib/helper.php');
+
+// Handle logout
+if (isset($_GET['logout']) && $_GET['logout'] === 'true') {
+    // Unset only the login-related session variables
+    unset($_SESSION["LOGIN_USERNAME"]);
+    unset($_SESSION["LOGIN_USERTYPE"]);
+
+    // Optionally destroy the whole session
+    session_destroy();
+
+    // Redirect to the login page
+    echo "<script>location.href='login.php';</script>";
+    exit;
+}
+
 
 ?>
 
@@ -42,19 +53,11 @@ require_once ('lib/helper.php');
 		<link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
 		<link href="assets/css/main.css" rel="stylesheet">
 		<link href="assets/css/ragu.css" rel="stylesheet">
+
 	</head>
 	<body>
-		<?php
-			if(isset($_GET['pg'])){
-			    $page = $_GET['pg'];
-			    include_once("$page");
-			}else{
-			    include_once("body.php");
-			    include_once("footer.php");
-			}
-			?>
 
-		<a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+	<a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 		<script src="assets/vendor/jquery3.7/jquery.min.js"></script>
 		<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 		<script src="assets/vendor/php-email-form/validate.js"></script>
@@ -65,6 +68,24 @@ require_once ('lib/helper.php');
 		<script src="assets/js/jsfunctions.js"></script>
 		<!-- <script src="assets/js/flatpickr.js"></script> -->
 		<!-- <script src="assets/js/main.js"></script> -->
+
+		<?php
+
+			include_once('lib/db.php');
+			require_once ('lib/security.php');
+			require_once ('lib/helper.php');
+			include_once('menu.php');
+
+			if(isset($_GET['pg'])){
+			    $page = $_GET['pg'];
+			    include_once("$page");
+			}else{
+			    include_once("body.php");
+			    include_once("footer.php");
+			}
+			?>
+
+		
 
 	</body>
 </html>

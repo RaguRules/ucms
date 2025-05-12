@@ -1,7 +1,5 @@
 <?php
 
-// require 'db.php';
-
 if(isset($_SESSION["LOGIN_USERTYPE"])){
     $system_usertype = $_SESSION["LOGIN_USERTYPE"];
 	$system_username = $_SESSION["LOGIN_USERNAME"];
@@ -16,7 +14,7 @@ if (empty($_SESSION['csrf_token'])) {
 $helper = new Helper($conn);
 $security = new Security();
 
-$lawyer_id = null;
+$lawyerId = null;
 
 if ($system_usertype === "R06" && $system_username) {
     // Get lawyer_id by email
@@ -26,7 +24,7 @@ if ($system_usertype === "R06" && $system_username) {
     $result = $stmt->get_result();
 
     if ($row = $result->fetch_assoc()) {
-        $lawyer_id = $row['lawyer_id'];
+        $lawyerId = $row['lawyer_id'];
     } else {
         // If email not found in DB, logout or redirect
 		// #TODO : logout.php not available
@@ -36,36 +34,178 @@ if ($system_usertype === "R06" && $system_username) {
 } else {
     // Not a valid session
     // echo "<script>location.href='login.php';</script>";
+    Security::logError("Invalid session: by $lawyerId on " . date("Y-m-d H:i:s"));
     // exit;
 }
 
 
 // Get all cases related to this lawyer
-$query = "SELECT * FROM cases WHERE plaintiff_lawyer = ? OR defendant_lawyer = ?";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("ss", $lawyer_id, $lawyer_id);
-$stmt->execute();
-$cases = $stmt->get_result();
+// $query = "SELECT * FROM cases WHERE plaintiff_lawyer = ? OR defendant_lawyer = ?";
+// $stmt = $conn->prepare($query);
+// $stmt->bind_param("ss", $lawyerId, $lawyerId);
+// $stmt->execute();
+// $cases = $stmt->get_result();
+
+
+
+
+if (isset($_POST['case_id'])) {
+
+    // Check for CSRF Tokens
+	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+		die("Invalid CSRF token.");
+	}
+
+    $caseId = $_POST['case_id'];
+    // $lawyerId = $_SESSION["LOGIN_USERNAME"];
+    $lawyerId = $helper->getId($system_username, $system_usertype);
+    //TODO : Change lawyerID with login session id
+    // $lawyerId = "L0001"; // Replace with $_SESSION["LOGIN_USERNAME"] in production
+
+    // Verify the lawyer is authorized to access this case
+    $query = "SELECT * FROM cases WHERE case_id = ? AND (plaintiff_lawyer = ? OR defendant_lawyer = ?)";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("sss", $caseId, $lawyerId, $lawyerId);
+    $stmt->execute();
+    $caseResult = $stmt->get_result();
+
+    if ($case = $caseResult->fetch_assoc()) {
+
+        // Case details
+        $case_name = $case['case_name'];
+        $nature = $case['nature'];
+        $is_warrant = $case['is_warrant'];
+        $registered_date = $case['registered_date'];
+        $courtId = $helper -> getCourtName($case['court_id']);
+        
+           // Get Plaintiff Name
+        $plaintiffData = $helper->getPartyData($case['plaintiff']);
+        $plaintiff = $plaintiffData ? $plaintiffData['first_name'] . ' ' . $plaintiffData['last_name'] : 'Unknown';
+
+        // Get Defendant Name
+        $defendantData = $helper->getPartyData($case['defendant']);
+        $defendant = $defendantData ? $defendantData['first_name'] . ' ' . $defendantData['last_name'] : 'Unknown';
+
+
+        // Get Plaintiff Lawyer Name
+        $plaintiffLawyerData = $helper->getLawyerData($case['plaintiff_lawyer']);
+        $plaintiffLawyer = $plaintiffLawyerData ? $plaintiffLawyerData['first_name'] . ' ' . $plaintiffLawyerData['last_name'] : 'Unknown';
+
+        // Get Defendant Lawyer Name
+        $defendantLawyerData = $helper->getLawyerData($case['defendant_lawyer']);
+        $defendantLawyer = $defendantLawyerData ? $defendantLawyerData['first_name'] . ' ' . $defendantLawyerData['last_name'] : 'Unknown';
+
+
+        // Fetch daily activities
+        $query_activities = "SELECT * FROM dailycaseactivities WHERE case_name = ?";
+        $stmt_activities = $conn->prepare($query_activities);
+        $stmt_activities->bind_param("s", $caseId);
+        $stmt_activities->execute();
+        $activities_result = $stmt_activities->get_result();
+        ?>
+
+        <!-- Modal HTML -->
+        <div class="modal fade" id="caseDetailModal" tabindex="-1" aria-labelledby="caseDetailModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content" style="background-color: #ffffff; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    <div class="modal-header">
+                        <h5 class="modal-title" style="font-weight: bold; color: #007bff;">Case Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <!-- Left Column -->
+                            <div class="col-md-6">
+                                <p style="font-size: 22px; font-weight: bold; color: #007bff;"><?= Security::sanitize($case_name) ?></p>
+                                <p><strong>Plaintiff Name:</strong> <?= Security::sanitize($plaintiff) ?></p>
+                                <p><strong>Defendant Name:</strong> <?= Security::sanitize($defendant) ?></p>
+                                <p><strong>Plaintiff Lawyer:</strong> <?= Security::sanitize($plaintiffLawyer) ?></p>
+                                <p><strong>Defendant Lawyer:</strong> <?= Security::sanitize($defendantLawyer) ?></p>
+                            </div>
+
+                            <!-- Right Column -->
+                            <div class="col-md-6">
+                                <p><strong>Nature of the Case:</strong> <?= Security::sanitize($nature) ?></p>
+                                <p><strong>Warrant:</strong> 
+                                    <span style="font-weight: bold; padding: 5px 10px; border-radius: 5px; color: #fff; background-color: <?= $is_warrant ? '#dc3545' : '#28a745' ?>;">
+                                        <?= $is_warrant ? 'Arrest Warrant Issued' : 'No Warrant' ?>
+                                    </span>
+                                </p>
+                                <p><strong>Court Name:</strong> <?= Security::sanitize($courtId) ?></p>
+                                <p><strong>Case Registered Date:</strong> <?= Security::sanitize($registered_date) ?></p>
+                            </div>
+                        </div>
+
+                        <!-- Daily Activities -->
+                        <div class="mt-4">
+                            <h4 style="font-weight: bold; color: #007bff;">Quick Journal</h4>
+                            <?php if ($activities_result->num_rows > 0): ?>
+                                <?php while ($activity = $activities_result->fetch_assoc()): ?>
+                                    <div class="mb-3 p-3" style="background-color: #f8f9fa; border: 1px solid #ddd; border-radius: 8px;">
+                                        <h5 style="color: #007bff;"><?= Security::sanitize($activity['activity_date']) ?></h5>
+                                        <p><strong>Summary:</strong> <?= Security::sanitize($activity['summary']) ?></p>
+                                        <p><strong>Next Date:</strong> <?= Security::sanitize($activity['next_date']) ?></p>
+                                        <p><strong>Next Steps:</strong> <?= Security::sanitize($activity['next_status']) ?></p>
+                                    </div>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <p>No activities recorded for this case yet.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auto show modal -->
+        <script>
+            window.onload = function() {
+                var modal = new bootstrap.Modal(document.getElementById('caseDetailModal'));
+                modal.show();
+            }
+        </script>
+
+        <?php
+        $stmt_activities->close();
+    } else {
+        Security::logError("Unauthorized access attempt to case $caseId by $lawyerId on " . date("Y-m-d H:i:s"));
+        echo "<script>alert('Access denied: You are not assigned to this case.');</script>";
+    }
+
+    $stmt->close();
+}
+
 	
 
 if (isset($_POST["btn_add"])) {
     // Sanitize inputs
-    $txt_staff_id = Security::sanitize($_POST["txt_staff_id"]);
-    $txt_first_name = Security::sanitize($_POST["txt_first_name"]);
-    $txt_last_name = Security::sanitize($_POST["txt_last_name"]);
-    $int_mobile = Security::sanitize($_POST["int_mobile"]);
-    $txt_nic_number = Security::sanitize($_POST["txt_nic_number"]);
-    $date_date_of_birth = Security::sanitize($_POST["date_date_of_birth"]);
-    $txt_email = Security::sanitize($_POST["txt_email"]);
-    $txt_address = Security::sanitize($_POST["txt_address"]);
-    $select_court_name = Security::sanitize($_POST["select_court_name"]);
-    $date_joined_date = Security::sanitize($_POST["date_joined_date"]);
-    $select_role_name = Security::sanitize($_POST["select_role_name"]);
-    $select_gender = Security::sanitize($_POST["select_gender"]);
-    $select_appointment = Security::sanitize($_POST["select_appointment"]);
-    $status = "active";
+    $txtLawyerId = $helper->generateNextLawyerID();
+    $txtFirstName = Security::sanitize($_POST["txt_first_name"]);
+    $txtLastName = Security::sanitize($_POST["txt_last_name"]);
+    $intMobile = Security::sanitize($_POST["int_mobile"]);
+    $txtNicNumber = Security::sanitize($_POST["txt_nic_number"]);
+    $dateDateOfBirth = Security::sanitize($_POST["date_date_of_birth"]);
+    $txtEmail = Security::sanitize($_POST["txt_email"]);
+    $txtAddress = Security::sanitize($_POST["txt_address"]);
+    $selectStation = Security::sanitize($_POST["select_station"]);
+    $dateJoinedDate = Security::sanitize($_POST["date_joined_date"]);
+    $selectGender = Security::sanitize($_POST["select_gender"]);
+    $txtEnrolmentNumber = Security::sanitize($_POST["txt_enrolment_number"]);
+    $selectRoleName = "R06";
+    $isActive = "active";
+    $txtAddedBy = $_SESSION["LOGIN_USERTYPE"];
+    $txtWrittenId = $helper->getId($_SESSION["LOGIN_USERNAME"], $_SESSION["LOGIN_USERTYPE"]);
+    // $txtAddedBy = "R03";
+    // $txtStaffId = "S0001";
 
-	// Check for CSRF Tokens
+    // echo "<script>alert('Added by: $txtAddedBy');</script>";
+    // echo "<script>alert('Entered by: $txtWrittenId');</script>";
+
+
+    // Check for CSRF Tokens
 	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
 		die("Invalid CSRF token.");
 	}
@@ -73,27 +213,27 @@ if (isset($_POST["btn_add"])) {
     // Validate inputs
     $errors = [];
 
-    if (!preg_match('/^[0-9]{10}$/', $int_mobile)) {
+    if (!preg_match('/^[0-9]{10}$/', $intMobile)) {
         $errors[] = "Mobile number must be exactly 10 digits.";
     }
 
-    if (!filter_var($txt_email, FILTER_VALIDATE_EMAIL)) {
+    if (!filter_var($txtEmail, FILTER_VALIDATE_EMAIL)) {
         $errors[] = "Invalid email format.";
     }
 
-    if (!preg_match('/^[0-9]{9}[vVxX0-9]{1,3}$/', $txt_nic_number)) {
+    if (!preg_match('/^[0-9]{9}[vVxX0-9]{1,3}$/', $txtNicNumber)) {
         $errors[] = "Invalid NIC number format.";
     }
 
-    if (!validateDate($date_date_of_birth)) {
+    if (!$helper->validateDate($dateDateOfBirth)) {
         $errors[] = "Invalid date of birth.";
     }
 
-    if (!validateDate($date_joined_date)) {
+    if (!$helper->validateDate($dateJoinedDate)) {
         $errors[] = "Invalid joined date.";
     }
 
-    if (empty($txt_first_name) || empty($txt_last_name) || empty($txt_address)) {
+    if (empty($txtFirstName) || empty($txtLastName) || empty($txtAddress)) {
         $errors[] = "Name and address fields cannot be empty.";
     }
 
@@ -105,67 +245,75 @@ if (isset($_POST["btn_add"])) {
     }
 
 	// Before Insert staff, check for duplicates in staff, lawyer, and police tables
-	Security::checkDuplicate($conn, "nic_number", $txt_nic_number, "", "NIC Number already exists!", $txt_staff_id);
-	Security::checkDuplicate($conn, "mobile", $int_mobile, "", "Mobile number already exists!", $txt_staff_id);
-	Security::checkDuplicate($conn, "email", $txt_email, "", "Email already exists!", $txt_staff_id);
+	Security::checkDuplicate($conn, "nic_number", $txtNicNumber, "", "NIC Number already exists!", $txtLawyerId);
+	Security::checkDuplicate($conn, "mobile", $intMobile, "", "Mobile number already exists!", $txtLawyerId);
+	Security::checkDuplicate($conn, "email", $txtEmail, "", "Email already exists!", $txtLawyerId);
 
     // Image upload
-    $upload_result = $Security->uploadImage('img_profile_photo');
+    $uploadResult = $security->uploadImage('img_profile_photo');
 
-    if (!$upload_result['success']) {
-        die("Image upload failed: " . $upload_result['error']);
+    if (!$uploadResult['success']) {
+        die("Image upload failed: " . $uploadResult['error']);
     }
 
-    $txt_image_path = 'uploads/' . $upload_result['filename'];
+    $txtImagePath = 'uploads/' . $uploadResult['filename'];
 
     // Begin transaction
-    mysqli_begin_transaction($conn);
+	$conn->begin_transaction();
 
     try {
-        // Insert into staff table
-        $stmtStaff = $conn->prepare("INSERT INTO staff (lawyer_id, first_name, last_name, mobile, nic_number, date_of_birth, email, address, court_id, joined_date, role_id, image_path, gender, appointment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        
-		$stmtStaff->bind_param(
-            "ssssssssssssss",
-            $txt_staff_id,
-			$txt_first_name,
-			$txt_last_name,
-			$int_mobile,
-			$txt_nic_number,
-			$date_date_of_birth,
-			$txt_email,
-			$txt_address,
-			$select_court_name,
-			$date_joined_date,
-			$select_role_name,
-			$txt_image_path,
-			$select_gender,
-			$select_appointment
+        // Insert into lawyer table
+        $stmtLawyer = $conn->prepare("INSERT INTO lawyer (lawyer_id, first_name, last_name, mobile, email, address, nic_number, date_of_birth, enrolment_number, joined_date, is_active, role_id, station, image_path, gender, added_by, staff_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+		$stmtLawyer->bind_param(
+            "sssisssssssssssss",
+            $txtLawyerId,
+			$txtFirstName,
+			$txtLastName,
+			$intMobile,
+			$txtEmail,
+			$txtAddress,
+            $txtNicNumber,
+			$dateDateOfBirth,
+            $txtEnrolmentNumber,
+			$dateJoinedDate,
+            $isActive,
+			$selectRoleName,
+			$selectStation,
+			$txtImagePath,
+			$selectGender,
+            $txtAddedBy,
+            $txtWrittenId
         );
 
-        $stmtStaff->execute();
+        $stmtLawyer->execute();
 
         // Insert into login table
-        $hashedPassword = password_hash($txt_nic_number, PASSWORD_DEFAULT);
+        $hashedPassword = password_hash($txtNicNumber, PASSWORD_DEFAULT);
 
-        $stmtLogin = $conn->prepare("INSERT INTO login (username, password, otp, status, role_id) VALUES (?, ?, '000000', ?, ?)");
-        $stmtLogin->bind_param("ssss", $txt_email, $hashedPassword, $status, $select_role_name);
+        $stmtLogin = $conn->prepare("INSERT INTO login (username, password, otp, status, role_id) VALUES (?, ?, '000000', 'active', ?)");
+        $stmtLogin->bind_param("sss", $txtEmail, $hashedPassword, $selectRoleName);
         $stmtLogin->execute();
 
         //  Both successful
-        mysqli_commit($conn);
+        $conn->commit();
 
-        echo '<script>alert("Successfully added staff member.");</script>';
+        include_once 'lib/sms_beep.php';
+        $message = "Dear {$txtFirstName} {$txtLastName}, your account has been created with Courts Complex-Kilinochchi successfully. Your login credentials are:\nUsername: {$txtEmail}\nPassword: {$txtNicNumber}";
+
+        sendSms($intMobile, $message);
+
+        echo '<script>alert("Successfully added a lawyer.");</script>';
         echo "<script>location.href='index.php?pg=lawyer.php&option=view';</script>";
         exit;
 
     } catch (Exception $e) {
         // Rollback on error
-        mysqli_rollback($conn);
+        $conn->rollback();
 
         // Delete uploaded image
-        if (file_exists($txt_image_path)) {
-            unlink($txt_image_path);
+        if (file_exists($txtImagePath)) {
+            unlink($txtImagePath);
         }
 		Security::logError($e->getMessage()); // log real error for admin
 
@@ -176,44 +324,47 @@ if (isset($_POST["btn_add"])) {
 
 if (isset($_POST["btn_update"])) {
     // Sanitize inputs
-    $txt_staff_id = Security::sanitize($_POST["txt_staff_id"]);
-    $txt_first_name = Security::sanitize($_POST["txt_first_name"]);
-    $txt_last_name = Security::sanitize($_POST["txt_last_name"]);
-    $int_mobile = Security::sanitize($_POST["int_mobile"]);
-    $txt_nic_number = Security::sanitize($_POST["txt_nic_number"]);
-    $date_date_of_birth = Security::sanitize($_POST["date_date_of_birth"]);
-    $txt_email = Security::sanitize($_POST["txt_email"]);
-    $txt_address = Security::sanitize($_POST["txt_address"]);
-    $select_court_name = Security::sanitize($_POST["select_court_name"]);
-    $select_gender = Security::sanitize($_POST["select_gender"]);
-    $select_role_name = Security::sanitize($_POST["select_role_name"]);
-    $select_appointment = Security::sanitize($_POST["select_appointment"]);
+    $txtLawyerId = Security::sanitize($_POST["txt_lawyer_id"]);
+    $txtFirstName = Security::sanitize($_POST["txt_first_name"]);
+    $txtLastName = Security::sanitize($_POST["txt_last_name"]);
+    $intMobile = Security::sanitize($_POST["int_mobile"]);
+    $txtNicNumber = Security::sanitize($_POST["txt_nic_number"]);
+    $dateDateOfBirth = Security::sanitize($_POST["date_date_of_birth"]);
+    $txtEmail = Security::sanitize($_POST["txt_email"]);
+    $txtAddress = Security::sanitize($_POST["txt_address"]);
+    $selectStation = Security::sanitize($_POST["select_station"]);
+    $selectGender = Security::sanitize($_POST["select_gender"]);
+    $txtEnrolmentNumber = Security::sanitize($_POST["txt_enrolment_number"]);
+    $txtAddedBy = $_SESSION["LOGIN_USERTYPE"];
+    $txtWrittenId = $helper->getId($_SESSION["LOGIN_USERNAME"], $_SESSION["LOGIN_USERTYPE"]);
+    // $txtAddedBy = "R03";
+    // $txtStaffId = "S0001";
 
-	// CSRF Protection
+    // Check for CSRF Tokens
 	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
 		die("Invalid CSRF token.");
-    }
+	}
 
 	// Validate inputs
     $errors = [];
 
-    if (!preg_match('/^[0-9]{10}$/', $int_mobile)) {
+    if (!preg_match('/^[0-9]{10}$/', $intMobile)) {
         $errors[] = "Mobile number must be exactly 10 digits.";
     }
 
-    if (!filter_var($txt_email, FILTER_VALIDATE_EMAIL)) {
+    if (!filter_var($txtEmail, FILTER_VALIDATE_EMAIL)) {
         $errors[] = "Invalid email format.";
     }
 
-    if (!preg_match('/^[0-9]{9}[vVxX0-9]{1,3}$/', $txt_nic_number)) {
+    if (!preg_match('/^[0-9]{9}[vVxX0-9]{1,3}$/', $txtNicNumber)) {
         $errors[] = "Invalid NIC number format.";
     }
 
-    if (!validateDate($date_date_of_birth)) {
+    if (!$helper->validateDate($dateDateOfBirth)) {
         $errors[] = "Invalid date of birth.";
     }
 
-    if (empty($txt_first_name) || empty($txt_last_name) || empty($txt_address)) {
+    if (empty($txtFirstName) || empty($txtLastName) || empty($txtAddress)) {
         $errors[] = "Name and address fields cannot be empty.";
     }
 
@@ -225,65 +376,41 @@ if (isset($_POST["btn_update"])) {
     }
 
 	// Before update staff, check for duplicates in staff, lawyer, and police tables
-	Security::checkDuplicate($conn, "nic_number", $txt_nic_number, "", "NIC Number already exists!", $txt_staff_id);
-	Security::checkDuplicate($conn, "mobile", $int_mobile, "", "Mobile number already exists!", $txt_staff_id);
-	Security::checkDuplicate($conn, "email", $txt_email, "", "Email already exists!", $txt_staff_id);
-
-	// Upload image only if a new one was selected
-    $new_image_uploaded = ($_FILES['img_profile_photo']['error'] !== 4); // Error 4 = no file uploaded
-
-    if ($new_image_uploaded) {
-        $upload_result = $Security->uploadImage('img_profile_photo');
-        if (!$upload_result['success']) {
-            die("Image upload failed: " . $upload_result['error']);
-        }
-        $txt_image_path = 'uploads/' . $upload_result['filename'];
-    } else {
-        // No new image, fetch old image path from database
-        $stmtOld = $conn->prepare("SELECT image_path FROM staff WHERE lawyer_id = ?");
-        $stmtOld->bind_param("s", $txt_staff_id);
-        $stmtOld->execute();
-        $resultOld = $stmtOld->get_result();
-        $rowOld = $resultOld->fetch_assoc();
-        $txt_image_path = $rowOld['image_path']; // Use old image path
-    }
+	// Security::checkDuplicate($conn, "nic_number", $txtNicNumber, "", "NIC Number already exists!", $txtLawyerId);
+	// Security::checkDuplicate($conn, "mobile", $intMobile, "", "Mobile number already exists!", $txtLawyerId);
+	// Security::checkDuplicate($conn, "email", $txtEmail, "", "Email already exists!", $txtLawyerId);
 
     // Start Transaction
-    mysqli_begin_transaction($conn);
+    $conn->begin_transaction();
 
     try {
-        $stmtUpdate = $conn->prepare("UPDATE staff SET first_name=?, last_name=?, mobile=?, nic_number=?, date_of_birth=?, email=?, address=?, court_id=?, role_id=?, image_path=?, gender=?, appointment=? WHERE lawyer_id=?");
-        
+        $stmtUpdate = $conn->prepare("UPDATE lawyer SET first_name=?, last_name=?, mobile=?, email=?, address=?, nic_number=?, date_of_birth=?, enrolment_number=?, station=?,  gender=?, added_by=?, staff_id=? WHERE lawyer_id=?");
+
 		$stmtUpdate->bind_param(
-            "sssssssssssss",
-            $txt_first_name,
-			$txt_last_name,
-			$int_mobile,
-			$txt_nic_number,
-            $date_date_of_birth,
-			$txt_email,
-			$txt_address,
-			$select_court_name,
-            $select_role_name,
-			$txt_image_path,
-			$select_gender,
-			$select_appointment,
-			$txt_staff_id
+            "ssissssssssss",
+            $txtFirstName,
+			$txtLastName,
+			$intMobile,
+			$txtEmail,
+			$txtAddress,
+			$txtNicNumber,
+            $dateDateOfBirth,
+            $txtEnrolmentNumber,
+			$selectStation,
+			$selectGender,
+			$txtAddedBy,
+			$txtWrittenId,
+            $txtLawyerId
         );
         $stmtUpdate->execute();
 
-        mysqli_commit($conn);
+        $conn->commit();
 
-        echo '<script>alert("Successfully updated staff member.");</script>';
+        echo '<script>alert("Successfully updated a Lawyer.");</script>';
         echo "<script>location.href='index.php?pg=lawyer.php&option=view';</script>";
         exit;
     } catch (Exception $e) {
-        mysqli_rollback($conn);
-
-		// If new image was uploaded, delete it
-        if ($new_image_uploaded && file_exists($txt_image_path)) {
-            unlink($txt_image_path);
-        }
+        $conn->rollback();
 
         Security::logError($e->getMessage());
         echo '<script>alert("An error occurred while updating. Please try again.");</script>';
@@ -291,20 +418,25 @@ if (isset($_POST["btn_update"])) {
 }
 
 if (isset($_POST["btn_delete"])) {
-    $txt_staff_id = Security::sanitize($_POST['lawyer_id']);
+    $txtLawyerId = Security::sanitize($_POST['lawyer_id']);
+
+    // Check for CSRF Tokens
+	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+		die("Invalid CSRF token.");
+	}
 
     // Start Transaction
-    mysqli_begin_transaction($conn);
+     $conn->begin_transaction();
 
     try {
         // Get email first
-        $stmtSelect = $conn->prepare("SELECT email FROM staff WHERE lawyer_id=?");
-        $stmtSelect->bind_param("s", $txt_staff_id);
+        $stmtSelect = $conn->prepare("SELECT email FROM lawyer WHERE lawyer_id=?");
+        $stmtSelect->bind_param("s", $txtLawyerId);
         $stmtSelect->execute();
         $result = $stmtSelect->get_result();
 
         if ($result->num_rows === 0) {
-            throw new Exception("No email found for staff ID $txt_staff_id.");
+            throw new Exception("No email found for lawyer ID $txtLawyerId.");
         }
 
         $row = $result->fetch_assoc();
@@ -319,42 +451,47 @@ if (isset($_POST["btn_delete"])) {
         $stmtLoginUpdate->bind_param("s", $email);
         $stmtLoginUpdate->execute();
 
-        // Set staff is_active=0
-        $stmtStaffDelete = $conn->prepare("
-            UPDATE staff 
+        // Set lawyer is_active=0
+        $stmtLawyerDelete = $conn->prepare("
+            UPDATE lawyer 
             SET is_active='0' 
             WHERE lawyer_id=?
         ");
-        $stmtStaffDelete->bind_param("s", $txt_staff_id);
-        $stmtStaffDelete->execute();
+        $stmtLawyerDelete->bind_param("s", $txtLawyerId);
+        $stmtLawyerDelete->execute();
 
-        mysqli_commit($conn);
+        $conn->commit();
 
-        echo '<script>alert("Successfully deleted staff member.");</script>';
+        echo '<script>alert("Successfully deleted the Lawyer.");</script>';
         echo "<script>location.href='index.php?pg=lawyer.php&option=view';</script>";
         exit;
     } catch (Exception $e) {
-        mysqli_rollback($conn);
+        $conn->rollback();
         Security::logError($e->getMessage());
         echo '<script>alert("An error occurred while deleting. Please try again.");</script>';
     }
 }
 
 if (isset($_POST["btn_reactivate"])) {
-    $txt_staff_id = Security::sanitize($_POST['lawyer_id']);
+    $txtLawyerId = Security::sanitize($_POST['lawyer_id']);
+
+    // Check for CSRF Tokens
+	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+		die("Invalid CSRF token.");
+	}
 
     // Start Transaction
-    mysqli_begin_transaction($conn);
+    $conn->begin_transaction();
 
     try {
         // Get email first
-        $stmtSelect = $conn->prepare("SELECT email FROM staff WHERE lawyer_id=?");
-        $stmtSelect->bind_param("s", $txt_staff_id);
+        $stmtSelect = $conn->prepare("SELECT email FROM lawyer WHERE lawyer_id=?");
+        $stmtSelect->bind_param("s", $txtLawyerId);
         $stmtSelect->execute();
         $result = $stmtSelect->get_result();
 
         if ($result->num_rows === 0) {
-            throw new Exception("No email found for staff ID $txt_staff_id.");
+            throw new Exception("No email found for lawyer ID $txtLawyerId.");
         }
 
         $row = $result->fetch_assoc();
@@ -369,22 +506,22 @@ if (isset($_POST["btn_reactivate"])) {
         $stmtLoginUpdate->bind_param("s", $email);
         $stmtLoginUpdate->execute();
 
-        // Set staff is_active=1 (reactivate)
-        $stmtStaffReactivate = $conn->prepare("
-            UPDATE staff 
+        // Set lawyer is_active=1 (reactivate)
+        $stmtLawyerReactivate = $conn->prepare("
+            UPDATE lawyer
             SET is_active='1' 
             WHERE lawyer_id=?
         ");
-        $stmtStaffReactivate->bind_param("s", $txt_staff_id);
-        $stmtStaffReactivate->execute();
+        $stmtLawyerReactivate->bind_param("s", $txtLawyerId);
+        $stmtLawyerReactivate->execute();
 
-        mysqli_commit($conn);
+        $conn->commit();
 
-        echo '<script>alert("Successfully reactivated staff member.");</script>';
+        echo '<script>alert("Successfully reactivated the lawyer.");</script>';
         echo "<script>location.href='index.php?pg=lawyer.php&option=view';</script>";
         exit;
     } catch (Exception $e) {
-        mysqli_rollback($conn);
+        $conn->rollback();
         Security::logError($e->getMessage());
         echo '<script>alert("An error occurred while reactivating. Please try again.");</script>';
     }
@@ -409,9 +546,9 @@ if (isset($_POST["btn_reactivate"])) {
 				// $sql_read = "SELECT lawyer_id, first_name, last_name, nic_number, mobile, court_id, lawyer_id, email FROM staff WHERE is_active = 1";
 				
 				$sql_read = "SELECT lawyer_id, first_name, last_name, nic_number, mobile, email, enrolment_number, is_active FROM lawyer";
-				$result = mysqli_query($conn, $sql_read);
-			
-				if ($result && mysqli_num_rows($result) > 0) {
+				$result = $conn->query($sql_read);
+
+				if ($result && $result->num_rows > 0) {
 			?>
 		<div class="container mt-4">
 			<!-- For bigger list  <div class="container-fluid mt-4"> -->
@@ -433,7 +570,7 @@ if (isset($_POST["btn_reactivate"])) {
 						</tr>
 					</thead>
 					<tbody>
-						<?php $count = 1; while ($row = mysqli_fetch_assoc($result)) { ?>
+						<?php $count = 1; while ($row = $result->fetch_assoc()) { ?>
 						<tr>
 							<td><?php echo $count; ?></td>
 							<td>
@@ -451,6 +588,7 @@ if (isset($_POST["btn_reactivate"])) {
 							<td>
 								<div class="d-flex flex-wrap gap-1">
 									<form method="POST" action="index.php?pg=lawyer.php&option=edit" class="d-inline">
+                                        
 										<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
 										<button class="btn btn-primary btn-sm" type="submit" name="btn_edit">
 										<i class="fas fa-edit"></i> Edit
@@ -468,6 +606,7 @@ if (isset($_POST["btn_reactivate"])) {
 									<?php if ($row['is_active']) { ?>
 										<!-- Delete Button for Active User -->
 										<form method="POST" action="#" class="d-inline delete-form">
+                                            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">	
 											<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
 											<input type="hidden" name="btn_delete" value="1">
 											<button type="button" class="btn btn-danger btn-sm" onclick="deleteConfirmModal(() => this.closest('form').submit())">
@@ -477,6 +616,7 @@ if (isset($_POST["btn_reactivate"])) {
 									<?php } else { ?>
 										<!-- Reactive Button for Deleted/Inactive User -->
 										<form method="POST" action="#" class="d-inline reactive-form">
+                                            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">	
 											<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
 											<input type="hidden" name="btn_reactivate" value="1">
 											<button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" onclick="reactivateConfirmModal(() => this.closest('form').submit())">
@@ -655,6 +795,7 @@ if (isset($_POST["btn_reactivate"])) {
 						<?php if ($row['is_active']) { ?>
 							<!-- Delete Button for Active User -->
 							<form method="POST" action="#" class="d-inline delete-form">
+                                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 								<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
 								<input type="hidden" name="btn_delete" value="1">
 								<button type="button" class="btn btn-danger btn-sm" onclick="deleteConfirmModal(() => this.closest('form').submit())">
@@ -664,6 +805,7 @@ if (isset($_POST["btn_reactivate"])) {
 						<?php } else { ?>
 							<!-- Reactive Button for Deleted/Inactive User -->
 							<form method="POST" action="#" class="d-inline reactive-form">
+                                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 								<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
 								<input type="hidden" name="btn_reactivate" value="1">
 								<button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" onclick="reactivateConfirmModal(() => this.closest('form').submit())">
@@ -683,40 +825,65 @@ if (isset($_POST["btn_reactivate"])) {
 
 
 
-		<!-- Fetch all required data -->
 <?php
-
+// Fetch case results
 $query1 = "SELECT * FROM cases WHERE plaintiff_lawyer = ? OR defendant_lawyer = ?";
 $cstmt = $conn->prepare($query1);
-$cstmt->bind_param("ss", $lawyer_id, $lawyer_id);
+$cstmt->bind_param("ss", $lawyerId, $lawyerId);
 $cstmt->execute();
 $caseResult = $cstmt->get_result();
 
-$party_id = "P0001";
-$query2 = "SELECT * FROM parties WHERE party_id = ? AND is_deleted = 0";
-$pstmt = $conn->prepare($query2);
-$pstmt->bind_param("s", $party_id);
-$pstmt->execute();
-$partyResult = $pstmt->get_result();
-
-// $case_id = "C0001";
-$case_name = "C0001";
-$query3 = "SELECT * FROM dailycaseactivities WHERE case_name = ?";
-$dstmt = $conn->prepare($query3);
-$dstmt->bind_param("s", $case_name);
-$dstmt->execute();
-$dailyCaseActivityResult = $dstmt->get_result();
-
-$parties = [];
 $cases = [];
+$partyDetails = [];
 
-while ($row = $partyResult->fetch_assoc()) {
-    $parties[] = $row;
-}
+// Fetch case and party details
 while ($row = $caseResult->fetch_assoc()) {
-    $cases[] = $row;
+    $cases[] = $row; // store the case for later use
+
+    // Determine which party to retrieve based on the lawyer's role
+    $party_id = ($row['plaintiff_lawyer'] == $lawyerId) ? $row['plaintiff'] : $row['defendant'];
+
+    // Fetch party details
+    $query2 = "SELECT party_id, first_name, last_name, mobile, nic_number, email, joined_date, address, date_of_birth, is_active FROM parties WHERE party_id = ?";
+    $pstmt = $conn->prepare($query2);
+    $pstmt->bind_param("s", $partyId);
+    $pstmt->execute();
+    $partyResult = $pstmt->get_result();
+
+    if ($partyRow = $partyResult->fetch_assoc()) {
+        $partyDetails[] = $partyRow;
+    }
+
+    $pstmt->close();
 }
+
+$cstmt->close();
+
+// Assuming the case_id you need is from the fetched cases array
+// Fetch related daily case activities for each case
+foreach ($cases as $case) {
+    $case_name = $case['case_id']; // Get the case_id dynamically
+
+    // Fetch related daily case activities from the dailycaseactivities table
+    $query3 = "SELECT * FROM dailycaseactivities WHERE case_name = ?";
+    $stmt3 = $conn->prepare($query3);
+    $stmt3->bind_param("s", $caseName);
+    $stmt3->execute();
+    $dailyCaseActivitiesResult = $stmt3->get_result();
+
+    // Combine daily activities in the case array
+    $case['daily_activities'] = [];
+    while ($activity = $dailyCaseActivitiesResult->fetch_assoc()) {
+        $case['daily_activities'][] = $activity;
+    }
+
+    $stmt3->close();
+}
+
+// Now you have $cases array that includes both case and daily activities
 ?>
+
+
 <div class="accordion" id="accordionExample">
   <div class="accordion-item">
     <h2 class="accordion-header" id="headingOne">
@@ -727,59 +894,59 @@ while ($row = $caseResult->fetch_assoc()) {
     <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
       <div class="accordion-body">
 		<?php
-			foreach ($parties as $party) {
-		?>
-		<div class='card mb-3 shadow-sm'>
-			<div class='card-body'>
-				<h5 class='card-title'>Client Name: <?php echo "{$party['first_name']} {$party['last_name']}"; ?></h5>
-				<p><strong>NIC:</strong> <?php echo "{$party['nic_no']}"; ?></p>
-				<p><strong>Mobile:</strong> <?php echo "{$party['mobile_number']}"; ?></p>
-				<p><strong>Email:</strong> <?php echo "{$party['email_address']}"; ?></p>
-				<p><strong>DOB:</strong> <?php echo "{$party['date_of_birth']}"; ?></p>
-				<p><strong>Joined:</strong> <?php echo "{$party['joined_date']}"; ?></p>
-				<p><strong>Address:</strong> <?php echo "{$party['address']}"; ?></p>
-			</div>
-		</div>
-		<?php
+			foreach ($partyDetails as $party) {
+			?>
+				<div class='card mb-3 shadow-sm'>
+					<div class='card-body'>
+						<h5 class='card-title'>Client Name: <?php echo "{$party['first_name']} {$party['last_name']}"; ?></h5>
+						<p><strong>NIC:</strong> <?php echo Security::sanitize("{$party['nic_number']}"); ?></p>
+						<p><strong>Mobile:</strong> <?php echo Security::sanitize("{$party['mobile']}"); ?></p>
+						<p><strong>Email:</strong> <?php echo Security::sanitize("{$party['email']}"); ?></p>
+						<p><strong>DOB:</strong> <?php echo Security::sanitize("{$party['date_of_birth']}"); ?></p>
+						<p><strong>Joined:</strong> <?php echo Security::sanitize("{$party['joined_date']}"); ?></p>
+						<p><strong>Address:</strong> <?php echo Security::sanitize("{$party['address']}"); ?></p>
+					</div>
+				</div>
+			<?php
 			}
-		?>
+			?>
+
       </div>
     </div>
   </div>
 
   <div class="accordion-item">
-    <h2 class="accordion-header" id="headingTwo">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-        Case Details
-      </button>
-    </h2>
-    <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
-      <div class="accordion-body">
-		<?php
-			foreach ($cases as $case) {
-		?>
-		<div class='card mb-3 shadow-sm'>
-            <div class='card-body'>
-				<h5 class='card-title'>Case: <?php echo "{$case['case_name']}";?></h5>
-				<p><strong>Status:</strong> <?php echo "{$case['status']}"; ?></p>
-				<p><strong>Next Date:</strong> <?php echo "{$case['next_date']}"; ?></p>
-				<p><strong>For:</strong> <?php echo "{$case['for_what']}"; ?></p>
-				<form method="GET" action="index.php" class="d-inline">
-					<!-- <input type="hidden" name="pg" value="lawyer.php">
-					<input type="hidden" name="option" value="full_view">
-					<input type="hidden" name="id" value="<?php echo urlencode(Security::sanitize($row['lawyer_id'])); ?>"> -->
-					<button type="submit" class="btn btn-info btn-sm text-white">
-					<i class="fas fa-eye"></i> Full View
-					</button>
-				</form>
-			</div>
-		</div>
-		<?php
-			}
-		?>
-      </div>
+  <h2 class="accordion-header" id="headingTwo">
+    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+      Case Details
+    </button>
+  </h2>
+  <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+    <div class="accordion-body">
+      <?php foreach ($cases as $case): ?>
+        <div class="card mb-3 shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">Case: <?= Security::sanitize($case['case_name']) ?></h5>
+            <p><strong>Status:</strong> <?= Security::sanitize($case['status']) ?></p>
+            <p><strong>Next Date:</strong> <?= Security::sanitize($case['next_date']) ?></p>
+            <p><strong>For:</strong> <?= Security::sanitize($case['for_what']) ?></p>
+
+<form method="POST" action="index.php?pg=lawyer.php&option=full_view&id=<?= $lawyerId ?>" class="d-inline">
+    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+    <input type="hidden" name="case_id" value="<?= urlencode($case['case_id']) ?>">
+    <button type="submit" class="btn btn-info btn-sm text-white">
+        <i class="fas fa-eye"></i> Full View
+    </button>
+</form>
+
+
+          </div>
+        </div>
+      <?php endforeach; ?>
     </div>
   </div>
+</div>
+
 
   <div class="accordion-item">
     <h2 class="accordion-header" id="headingThree">
@@ -808,12 +975,12 @@ while ($row = $caseResult->fetch_assoc()) {
 				$next_lawyer_id = $helper->generateNextLawyerID(); // Get the next ID *before* the form
 			?>
 		<div class="container-fluid bg-primary text-white text-center py-3">
-			<h1>ADD NEW STAFF</h1>
+			<h1>ADD NEW LAWYER</h1>
 		</div>
 		<div class="container mt-4">
 			<div class="row justify-content-center">
 				<div class="col-md-8 col-lg-6">
-					<form action="#" method="POST" id="staffForm" name="staffForm" enctype="multipart/form-data">
+					<form action="#" method="POST" id="lawyerForm" name="lawyerForm" enctype="multipart/form-data">
 						<div class="row mb-3">
 							<label hidden for="lawyer_id" class="form-label">Lawyer ID</label>
 							<input hidden type="text" class="form-control" id="txt_lawyer_id" name="txt_lawyer_id" value="<?php echo Security::sanitize($next_lawyer_id); ?>" readonly required>
@@ -843,7 +1010,7 @@ while ($row = $caseResult->fetch_assoc()) {
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
-								<label for="email" class="form-label">Email</label>
+								<label for="email" class="form-label">Email/ Username</label>
 								<input type="email" name="txt_email" id="txt_email" class="form-control check-duplicate" data-check="email" data-feedback="emailFeedback" onblur="validateEmail('txt_email')" required>
 								<small id="emailFeedback" class="text-danger"></small>
 							</div>
@@ -854,12 +1021,12 @@ while ($row = $caseResult->fetch_assoc()) {
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
-								<label for="court_id" class="form-label">Officer Classification</label>
-								<select class="form-select" id="select_appointment" name="select_appointment" required>
-									<option value="" disabled selected hidden>Select type of appointment</option>
-									<option value="Judicial Staff (JSC)">Judicial Staff (JSC)</option>
-									<option value="Ministry Staff">Ministry Staff</option>
-									<option value="O.E.S/ Peon/ Security">O.E.S/ Peon/ Security</option>
+								<label for="court_id" class="form-label">Station</label>
+								<select class="form-select" id="select_station" name="select_station">
+									<option value="" disabled selected hidden>Job Type</option>
+									<option value="Legal Aid Commission">Legal Aid Commission</option>
+                                    <option value="Attorney General Department">Attorney General Department</option>
+									<option value="Private">Private</option>
 								</select>
 							</div>
 							<div class="col-md-6">
@@ -882,28 +1049,11 @@ while ($row = $caseResult->fetch_assoc()) {
 								</select>
 							</div>
 						</div>
-						<div class="row mb-3">
-							<div class="col-md-6">
-								<label for="court_id" class="form-label">Court Name</label>
-								<select class="form-select" id="select_court_name" name="select_court_name" required>
-									<option name=""disabled selected hidden>Select Court</option>
-									<option name="Magistrate's Court" value="C01">Magistrate's Court</option>
-									<option name="District Court" value="C02">District Court</option>
-									<option name="High Court" value="C03">High Court</option>
-								</select>
-							</div>
-							<div class="col-md-6">
-								<label for="role-id" class="form-label">Role Name</label>
-								<select class="form-select" id="select_role_name" name="select_role_name" required>
-									<option name="" disabled selected hidden>Select Role</option>
-									<option name="Administrator" value="R01">Administrator</option>
-									<option name="Hon. Judge" value="R02">Hon. Judge</option>
-									<option name="The Registrar" value="R03">The Registrar</option>
-									<option name="Interpreter" value="R04">Interpreter</option>
-									<option name="Other Staff" value="R05">Other Staff</option>
-								</select>
-							</div>
-						</div>
+                        <div class="mb-3">
+                            <label for="lawyer_id" class="form-label">Lawyer Enrolment/Supreme Court Reg. Number</label>
+                            <input type="text" class="form-control" id="txt_enrolment_number" name="txt_enrolment_number" required>
+                        </div>
+                        <label">* Plese be kind enough to note that Password will be generated, & sent to Registered email/ mobile</label><br><br>
 						<div>
 							<label hidden for="joined_date" class="form-label">Joined Date</label>
 							<input hidden type="date" class="form-control" id="date_joined_date" max="<?php echo date('Y-m-d'); ?>" name="date_joined_date" value="<?php echo date('Y-m-d'); ?>" required>
@@ -920,94 +1070,77 @@ while ($row = $caseResult->fetch_assoc()) {
 			}elseif(isset($_GET['option']) && $_GET['option'] == "edit" && isset($_POST['lawyer_id'])) {
 				$data = $helper->getLawyerData(Security::sanitize($_POST['lawyer_id']), $conn);
 			
-				$txt_first_name = $data['first_name'];
-				$txt_last_name = $data['last_name'];
-				$int_mobile = $data['mobile'];
-				$txt_nic_number = $data['nic_number'];
-				$date_date_of_birth = $data['date_of_birth'];
-				$txt_email = $data['email'];
-				$txt_address = $data['address'];
-				$select_court_name = $data['court_id'];
-				$select_role_name = $data['role_id'];
-				$txt_image_path = $data['image_path'];
-				$select_gender = $data['gender'];
-				$select_appointment = $data['appointment'];
-			
+				$txtFirstName = $data['first_name'];
+				$txtLastName = $data['last_name'];
+				$intMobile = $data['mobile'];
+				$txtNicNumber = $data['nic_number'];
+				$dateDateOfBirth = $data['date_of_birth'];
+				$txtEmail = $data['email'];
+				$txtAddress = $data['address'];
+				$txtEnrolmentNumber = $data['enrolment_number'];
+				$selectGender = $data['gender'];
+                $selectStation = $data['station'];
+
+
 			?>
 		<div class="container-fluid bg-primary text-white text-center py-3">
-			<h1>EDIT STAFF</h1>
+			<h1>EDIT LAWYER</h1>
 		</div>
 		<div class="container mt-4">
 			<div class="row justify-content-center">
 				<div class="col-md-8 col-lg-6">
 					<form action="#" method="POST" id="staffForm" enctype="multipart/form-data">
 						<div class="row mb-3">
-							<label hidden for="lawyer_id" class="form-label">Staff ID</label>
-							<input hidden type="text" class="form-control" id="txt_staff_id" name="txt_staff_id" value="<?php echo Security::sanitize($_POST['lawyer_id']); ?>" readonly required>
+							<label hidden for="lawyer_id" class="form-label">Lawyer ID</label>
+                            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+							<input hidden type="text" class="form-control" id="txt_lawyer_id" name="txt_lawyer_id" value="<?php echo Security::sanitize($_POST['lawyer_id']); ?>" readonly required>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<label for="first_name" class="form-label">First Name</label>
-								<input type="text" class="form-control" id="txt_first_name" name="txt_first_name" value="<?php echo $txt_first_name ?>" onkeypress="return isTextKey(event)" required>
+								<input type="text" class="form-control" id="txt_first_name" name="txt_first_name" value="<?php echo $txtFirstName ?>" onkeypress="return isTextKey(event)" required>
 							</div>
 							<div class="col-md-6">
 								<label for="last_name" class="form-label">Last Name</label>
-								<input type="text" class="form-control" id="txt_last_name" name="txt_last_name"  value="<?php echo $txt_last_name ?>" onkeypress="return isTextKey(event)" required>
+								<input type="text" class="form-control" id="txt_last_name" name="txt_last_name"  value="<?php echo $txtLastName ?>" onkeypress="return isTextKey(event)" required>
 							</div>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<label for="mobile" class="form-label">Mobile Number</label>
-								<input type="text" name="int_mobile" id="int_mobile" class="form-control check-duplicate" data-check="mobile" data-feedback="mobileFeedback" value="<?php echo $int_mobile ?>" onkeypress="return isNumberKey(event)" onblur="validateMobileNumber('int_mobile')" required>
+								<input type="text" name="int_mobile" id="int_mobile" class="form-control check-duplicate" data-check="mobile" data-feedback="mobileFeedback" value="<?php echo '0'.$intMobile ?>" onkeypress="return isNumberKey(event)" onblur="validateMobileNumber('int_mobile')" required>
 								<small id="mobileFeedback" class="text-danger"></small>
 							</div>
 							<div class="col-md-6">
 								<label for="nic_number" class="form-label">NIC Number</label>
-								<input type="text" class="form-control check-duplicate" id="txt_nic_number" name="txt_nic_number" data-check="nic" data-feedback="nicFeedback" value="<?php echo $txt_nic_number ?>" onblur="validateNIC('txt_nic_number')" required>
+								<input type="text" class="form-control check-duplicate" id="txt_nic_number" name="txt_nic_number" data-check="nic" data-feedback="nicFeedback" value="<?php echo $txtNicNumber ?>" onblur="validateNIC('txt_nic_number')" required>
 								<small id="nicFeedback" class="text-danger"></small>
 							</div>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<label for="email" class="form-label">Email</label>
-								<input type="email" name="txt_email" id="txt_email" class="form-control check-duplicate" data-check="email" data-feedback="emailFeedback" value="<?php echo $txt_email ?>" onblur="validateEmail('txt_email')" required>
+								<input type="email" name="txt_email" id="txt_email" class="form-control check-duplicate" data-check="email" data-feedback="emailFeedback" value="<?php echo $txtEmail ?>" onblur="validateEmail('txt_email')" required>
 								<small id="emailFeedback" class="text-danger"></small>
 							</div>
 							<div class="col-md-6">
 								<label for="address" class="form-label">Address</label>
-								<input type="text" class="form-control" id="txt_address" name="txt_address" value="<?php echo $txt_address ?>" required>
+								<input type="text" class="form-control" id="txt_address" name="txt_address" value="<?php echo $txtAddress ?>" required>
 							</div>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
+								<label for="court_id" class="form-label">Station</label>
+								<select class="form-select" id="select_station" name="select_station">
+									<option disabled selected hidden value="<?php echo $selectStation ?>"><?php echo $selectStation ?></option>
+									<option value="Legal Aid Commission">Legal Aid Commission</option>
+                                    <option value="Attorney General Department">Attorney General Department</option>
+									<option value="Private">Private</option>
+								</select>
+							</div>
+                            <div class="col-md-6">
 								<label for="date_of_birth" class="form-label">Date of Birth</label>
-								<input type="date" class="form-control" id="date_date_of_birth" name="date_date_of_birth" value="<?php echo $date_date_of_birth ?>" required>
-							</div>
-							<div class="col-md-6">
-								<label for="court_name" class="form-label">Court Name</label>
-								<select class="form-select" id="select_court_name" name="select_court_name" required>
-									<option name="" selected hidden value="<?php echo $select_court_name ?>" ><?php echo getCourtName($select_court_name) ?></option>
-									<option name="Magistrate's Court" value="C01">Magistrate's Court</option>
-									<option name="District Court" value="C02">District Court</option>
-									<option name="High Court" value="C03">High Court</option>
-								</select>
-							</div>
-						</div>
-						<div class="row mb-3">
-							<div class="col-md-6">
-								<label for="court_name" class="form-label">Role Name</label>
-								<select class="form-select" id="select_role_name" name="select_role_name" required>
-									<option name="" selected hidden value="<?php echo $select_role_name ?>"><?php echo getRoleName($select_role_name) ?></option>
-									<option name="Administrator" value="R01">Administrator</option>
-									<option name="Hon. Judge" value="R02">Hon. Judge</option>
-									<option name="The Registrar" value="R03">The Registrar</option>
-									<option name="Interpreter" value="R04">Interpreter</option>
-									<option name="Other Staff" value="R05">Other Staff</option>
-								</select>
-							</div>
-							<div class="col-md-6">
-								<label for="profile_photo" class="form-label">Upload Profile Photo</label>
-								<input type="file" class="form-control" id="img_profile_photo" name="img_profile_photo" accept="image/*" required>
+								<input type="date" class="form-control" id="date_date_of_birth" name="date_date_of_birth" value="<?php echo $dateDateOfBirth ?>" required>
 							</div>
 						</div>
 						<div class="row mb-3">
@@ -1020,20 +1153,10 @@ while ($row = $caseResult->fetch_assoc()) {
 									<option value="Other">Other</option>
 								</select>
 							</div>
-							<div class="col-md-6">
-								<label for="court_id" class="form-label">Officer Classification</label>
-								<select class="form-select" id="select_appointment" name="select_appointment" value="<?php echo $select_appointment ?>" required>
-									<option value="" disabled hidden>Select type of appointment</option>
-									<option value="Judicial Staff (JSC)">Judicial Staff (JSC)</option>
-									<option value="Ministry Staff">Ministry Staff</option>
-									<option value="O.E.S/ Peon/ Security">O.E.S/ Peon/ Security</option>
-								</select>
-							</div>
-						</div>
-						<div class="mb-3">
-							<label hidden for="role_id" class="form-label">Role ID</label>
-							<input hidden type="text" class="form-control" id="txt_role_id" name="txt_role_id">
-							<input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                            <div class="col-md-6">
+                            <label for="lawyer_id" class="form-label">Supreme Court Reg. No</label>
+                            <input type="text" class="form-control" id="txt_enrolment_number" name="txt_enrolment_number" value="<?php echo $txtEnrolmentNumber ?>" required>
+                        </div>
 						</div>
 						<button type="submit" class="btn btn-primary" id="btn_update" name="btn_update">Submit</button>
 						<button type="button" class="btn btn-secondary" id="btn_clear" name="btn_clear">Clear Inputs</button>
@@ -1105,5 +1228,109 @@ while ($row = $caseResult->fetch_assoc()) {
 				</div>
 			</div>
 		</div>
-	</body>
+		<!-- Case Detail Modal -->
+
+        
+        <!-- Case Detail Modal -->
+<div class="modal fade" id="caseDetailModal" tabindex="-1" aria-labelledby="caseDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content" style="background-color: #C0C0C0;"> <!-- Silver background -->
+      <div class="modal-header">
+        <h5 class="modal-title" id="caseDetailModalLabel">Case Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="case-detail-content">
+          <?php
+            // Check if case data is available
+            if (isset($_POST['case_id'])) {
+                $case_id = $_POST['case_id'];
+
+                // Fetch case details based on case_id
+                $query = "SELECT * FROM cases WHERE case_id = ?";
+                $stmt = $conn->prepare($query);
+                $stmt->bind_param("s", $case_id);
+                $stmt->execute();
+                $caseResult = $stmt->get_result();
+
+                if ($case = $caseResult->fetch_assoc()) {
+                    $case_name = $case['case_name'];
+                    $plaintiff = $case['plaintiff'];
+                    $defendant = $case['defendant'];
+                    $plaintiff_lawyer = $case['plaintiff_lawyer'];
+                    $defendant_lawyer = $case['defendant_lawyer'];
+                    $nature = $case['nature'];
+                    $is_warrant = $case['is_warrant'];
+                    $court_id = $case['court_id'];
+                    $registered_date = $case['registered_date'];
+
+                    // Fetch related daily case activities
+                    $query_activities = "SELECT * FROM dailycaseactivities WHERE case_name = ?";
+                    $stmt_activities = $conn->prepare($query_activities);
+                    $stmt_activities->bind_param("s", $case_id);
+                    $stmt_activities->execute();
+                    $activities_result = $stmt_activities->get_result();
+
+                    // Start building the modal content
+                    ?>
+                    <div class="case-header"><?= Security::sanitize($case_name) ?></div>
+                    
+                    <div class="case-row">
+                      <div class="case-column">
+                        <p><span class="case-label">Plaintiff Name:</span> <span class="case-value"><?= Security::sanitize($plaintiff) ?></span></p>
+                        <p><span class="case-label">Defendant Name:</span> <span class="case-value"><?= Security::sanitize($defendant) ?></span></p>
+                        <p><span class="case-label">Plaintiff Lawyer:</span> <span class="case-value"><?= Security::sanitize($plaintiff_lawyer) ?></span></p>
+                        <p><span class="case-label">Defendant Lawyer:</span> <span class="case-value"><?= Security::sanitize($defendant_lawyer) ?></span></p>
+                      </div>
+                      <div class="case-column">
+                        <p><span class="case-label">Nature of the Case:</span> <span class="case-value"><?= Security::sanitize($nature) ?></span></p>
+                        <p><span class="case-label">Warrant:</span> 
+                          <span class="warrant-status <?= $is_warrant ? 'warrant-yes' : 'warrant-no' ?>">
+                            <?= $is_warrant ? 'Arrest Warrant Issued' : 'No Warrant' ?>
+                          </span>
+                        </p>
+                        <p><span class="case-label">Court Name:</span> <span class="case-value"><?= Security::sanitize($court_id) ?></span></p>
+                        <p><span class="case-label">Case Registered Date:</span> <span class="case-value"><?= Security::sanitize($registered_date) ?></span></p>
+                      </div>
+                    </div>
+
+                    <div class="activities-section">
+                      <h4>Daily Case Activities</h4>
+                      <?php
+                      if ($activities_result->num_rows > 0) {
+                          while ($activity = $activities_result->fetch_assoc()) {
+                              ?>
+                              <div class="activity-card">
+                                <h5><?= Security::sanitize($activity['activity_date']) ?></h5>
+                                <p><strong>Summary:</strong> <?= Security::sanitize($activity['summary']) ?></p>
+                                <p><strong>Next Date:</strong> <?= Security::sanitize($activity['next_date']) ?></p>
+                                <p><strong>Next Steps:</strong> <?= Security::sanitize($activity['next_status']) ?></p>
+                              </div>
+                              <?php
+                          }
+                      } else {
+                          echo "<p>No activities recorded for this case yet.</p>";
+                      }
+                      ?>
+                    </div>
+                    <?php
+                } else {
+                    echo "<p>Case details not found.</p>";
+                }
+
+                $stmt->close();
+                $stmt_activities->close();
+            }
+          ?>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
 </html>

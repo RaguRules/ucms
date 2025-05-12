@@ -3,6 +3,11 @@ if (!isset($_SESSION)){
     session_start();
 }
 
+if (isset($_SESSION["LOGIN_USERTYPE"]) && isset($_SESSION["LOGIN_USERNAME"])) {
+    echo "<script>location.href='index.php';</script>";
+}
+
+
 include_once('lib/db.php');
 
 $username = '';

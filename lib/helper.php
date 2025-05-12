@@ -27,6 +27,10 @@ class Helper {
         return $this->generateNextID('staff', 'staff_id', 'S', 4);
     }
 
+    public function generateNextPartyID() {
+        return $this->generateNextID('parties', 'party_id', 'P', 4);
+    }
+
     private function generateNextID($table, $column, $prefix, $padLength) {
         $sql = "SELECT MAX($column) AS max_id FROM $table";
         $result = mysqli_query($this->conn, $sql);
@@ -65,6 +69,15 @@ class Helper {
         return ($result && $result->num_rows > 0) ? $result->fetch_assoc() : null;
     }
 
+    public function getPartyData($party_id) {
+        $stmt = $this->conn->prepare("SELECT * FROM parties WHERE party_id = ?");
+        $stmt->bind_param("s", $party_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        return ($result && $result->num_rows > 0) ? $result->fetch_assoc() : null;
+    }
+
     public function getCourtName($court_id) {
         $courts = [
             'C01' => "Magistrate's Court",
@@ -91,4 +104,45 @@ class Helper {
         $d = DateTime::createFromFormat($format, $date);
         return $d && $d->format($format) === $date;
     }
+
+    public function getId($username, $type) {
+        switch ($type) {
+            case 'R01':
+            case 'R02':
+            case 'R03':
+            case 'R04':
+            case 'R05':
+                $table = 'staff';
+                $idColumn = 'staff_id';
+                break;
+            case 'R06':
+                $table = 'lawyer';
+                $idColumn = 'lawyer_id';
+                break;
+            case 'R07':
+                $table = 'police';
+                $idColumn = 'police_id';
+                break;
+            default:
+                return null; // Unknown role
+        }
+
+        // Prepare and execute query
+        $stmt = $this->conn->prepare("SELECT $idColumn FROM $table WHERE email = ?");
+        if (!$stmt) {
+            return null;
+        }
+
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        // Fetch and return the ID
+        if ($row = $result->fetch_assoc()) {
+            return $row[$idColumn];
+        }
+
+        return null; // No matching user found
+    }
+
 }

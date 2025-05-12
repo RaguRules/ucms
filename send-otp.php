@@ -64,10 +64,6 @@
     <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="assets/vendor/jquery3.7/jquery.min.js"></script>
     
-
-    <!-- Scripts -->
-    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/vendor/jquery3.7/jquery.min.js"></script>
     <script>
 
         // Function to set a cookie
@@ -126,25 +122,7 @@
         // Apply theme on page load
         applySavedTheme();
     </script>
-    
-    
-    
-    <!-- <script>
-        // Theme Toggle Script
-        const themeToggle = document.getElementById('theme-toggle');
-        const body = document.body;
 
-        themeToggle.addEventListener('click', () => {
-            body.classList.toggle('dark-mode');
-            body.classList.toggle('light-mode');
-
-            if (body.classList.contains('dark-mode')) {
-                themeToggle.innerHTML = '<i class="fas fa-sun"></i>'; // Change to Sun Icon
-            } else {
-                themeToggle.innerHTML = '<i class="fas fa-moon"></i>'; // Change to Moon Icon
-            }
-        });
-    </script> -->
 
 </body>
 </html>

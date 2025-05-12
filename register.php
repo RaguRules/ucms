@@ -1,109 +1,114 @@
 <?php
-	if (!isset($_SESSION)){
-	    session_start();
+if (!isset($_SESSION)){
+	session_start();
+}
+
+include_once ('lib/db.php');
+require_once ('lib/security.php');
+require_once ('lib/helper.php');
+
+$helper = new Helper($conn);
+$security = new Security();
+	
+$type = $_GET['type'] ?? '';
+
+if ($type === 'lawyer') {
+	$role = "LAWYER";
+
+} elseif ($type === 'police') {
+	$role = "POLICE";
+
+} else {
+	$role = "null";
+	$role_id = "null";
+	echo "<script> location.href='index.php'; </script>";
+	exit;
+}
+
+
+$next_reg_id = $helper->generateNextRegistrationID();
+
+if(isset($_POST['btn_add'])){
+
+	$txt_enrolment_number = '';
+	$int_badge_number = '';
+	$txt_reg_id = mysqli_real_escape_string($conn, $_POST["txt_reg_id"]);
+	$txt_first_name = mysqli_real_escape_string($conn, $_POST["txt_first_name"]);
+	$txt_last_name = mysqli_real_escape_string($conn, $_POST["txt_last_name"]);
+	$int_mobile = mysqli_real_escape_string($conn, $_POST["int_mobile"]);
+	$txt_email = mysqli_real_escape_string($conn, $_POST["txt_email"]);
+	$txt_address = mysqli_real_escape_string($conn, $_POST["txt_address"]);
+	$txt_nic_number = mysqli_real_escape_string($conn, $_POST["txt_nic_number"]);
+	$txt_role_id = mysqli_real_escape_string($conn, $_POST["txt_role_id"]);
+	if ($type === 'lawyer') {
+		$txt_enrolment_number = isset($_POST["txt_enrolment_number"]) ? mysqli_real_escape_string($conn, $_POST["txt_enrolment_number"]) : '';
+
+	} elseif ($type === 'police') {
+		$int_badge_number = isset($_POST["int_badge_number"]) ? mysqli_real_escape_string($conn, $_POST["int_badge_number"]) : '';
 	}
 	
-	include_once ('lib/db.php');
-	require_once ('lib/security.php');
-	require_once ('lib/helper.php');
-		
-		$type = $_GET['type'] ?? '';
-		
-		if ($type === 'lawyer') {
-			$role = "LAWYER";
+	$select_station = mysqli_real_escape_string($conn, $_POST["select_station"]);
+	$date_joined_date = mysqli_real_escape_string($conn, $_POST["date_joined_date"]);
+	$date_date_of_birth = mysqli_real_escape_string($conn, $_POST["date_date_of_birth"]);
+	$status = "Pending";
+	$select_gender = mysqli_real_escape_string($conn, $_POST["select_gender"]);
+	$txt_password = mysqli_real_escape_string($conn, $_POST["txt_password"]);
+	$hashedPassword = password_hash($txt_password, PASSWORD_DEFAULT);
 	
-		} elseif ($type === 'police') {
-			$role = "POLICE";
-		
-		} else {
-			$role = "null";
-			$role_id = "null";
-			echo "<script> location.href='index.php'; </script>";
+
+	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+		$upload_result = secure_image_upload('img_profile_photo');
+	
+		if (!$upload_result['success']) {
+			die("Image upload failed: " . $upload_result['error']);
+		}
+	
+		$txt_image_path = 'uploads/' . $upload_result['filename']; // Save in DB
+		$txt_image_path = mysqli_real_escape_string($conn, $txt_image_path);
+
+	}
+	
+	
+	$sqlInsert = "INSERT INTO registration (reg_id, first_name, last_name, mobile, email, address, nic_number, enrolment_number, badge_number, station, joined_date, date_of_birth, status, role_id, password, image_path, gender) VALUES (
+		'$txt_reg_id',
+		'$txt_first_name', 
+		'$txt_last_name', 
+		'$int_mobile', 
+		'$txt_email',
+		'$txt_address', 
+		'$txt_nic_number', 
+		'$txt_enrolment_number',
+		'$int_badge_number',
+		'$select_station',
+		'$date_joined_date', 
+		'$date_date_of_birth', 	
+		'$status',
+		'$txt_role_id',
+		'$hashedPassword',
+		'$txt_image_path',
+		'$select_gender'
+	)";
+	
+	$resultInsert = mysqli_query($conn, $sqlInsert) or die("Error in sqlInsert: " . mysqli_error($conn));
+	if ($resultInsert) {
+		$sqlInsert = "INSERT INTO `courtsmanagement`.`login` (`username`, `password`, `otp`, `status`, `role_id`) VALUES ('$txt_email', '$hashedPassword', '1329', 'pending', '$txt_role_id');";
+		$resultInsert = mysqli_query($conn, $sqlInsert) or die("Error in sqlInsert: " . mysqli_error($conn));
+		if ($resultInsert) {
+			echo '<script>alert("Successfully submitted your registration request. Wait for the Admin Approval");</script>';
+			echo '<script>window.location.href = "index.php";</script>'; // redirect to avoid resubmission
 			exit;
-		}
-		
-		
-		$next_reg_id = generateNextRegistrationID($conn);
-		
-		if(isset($_POST['btn_add'])){
-		
-			$txt_enrolment_number = '';
-			$int_badge_number = '';
-			$txt_reg_id = mysqli_real_escape_string($conn, $_POST["txt_reg_id"]);
-			$txt_first_name = mysqli_real_escape_string($conn, $_POST["txt_first_name"]);
-			$txt_last_name = mysqli_real_escape_string($conn, $_POST["txt_last_name"]);
-			$int_mobile = mysqli_real_escape_string($conn, $_POST["int_mobile"]);
-			$txt_email = mysqli_real_escape_string($conn, $_POST["txt_email"]);
-			$txt_address = mysqli_real_escape_string($conn, $_POST["txt_address"]);
-			$txt_nic_number = mysqli_real_escape_string($conn, $_POST["txt_nic_number"]);
-			$txt_role_id = mysqli_real_escape_string($conn, $_POST["txt_role_id"]);
-			if ($type === 'lawyer') {
-				$txt_enrolment_number = isset($_POST["txt_enrolment_number"]) ? mysqli_real_escape_string($conn, $_POST["txt_enrolment_number"]) : '';
-		
-			} elseif ($type === 'police') {
-				$int_badge_number = isset($_POST["int_badge_number"]) ? mysqli_real_escape_string($conn, $_POST["int_badge_number"]) : '';
-			}
-			
-			$select_station = mysqli_real_escape_string($conn, $_POST["select_station"]);
-			$date_joined_date = mysqli_real_escape_string($conn, $_POST["date_joined_date"]);
-			$date_date_of_birth = mysqli_real_escape_string($conn, $_POST["date_date_of_birth"]);
-			$status = "Pending";
-			$select_gender = mysqli_real_escape_string($conn, $_POST["select_gender"]);
-			$txt_password = mysqli_real_escape_string($conn, $_POST["txt_password"]);
-			$hashedPassword = password_hash($txt_password, PASSWORD_DEFAULT);
-			
-		
-			if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-				$upload_result = secure_image_upload('img_profile_photo');
-			
-				if (!$upload_result['success']) {
-					die("Image upload failed: " . $upload_result['error']);
-				}
-			
-				$txt_image_path = 'uploads/' . $upload_result['filename']; // Save in DB
-				$txt_image_path = mysqli_real_escape_string($conn, $txt_image_path);
-		
-			}
-			
-			
-			$sqlInsert = "INSERT INTO registration (reg_id, first_name, last_name, mobile, email, address, nic_number, enrolment_number, badge_number, station, joined_date, date_of_birth, status, role_id, password, image_path, gender) VALUES (
-				'$txt_reg_id',
-				'$txt_first_name', 
-				'$txt_last_name', 
-				'$int_mobile', 
-				'$txt_email',
-				'$txt_address', 
-				'$txt_nic_number', 
-				'$txt_enrolment_number',
-				'$int_badge_number',
-				'$select_station',
-				'$date_joined_date', 
-				'$date_date_of_birth', 	
-				'$status',
-				'$txt_role_id',
-				'$hashedPassword',
-				'$txt_image_path',
-				'$select_gender'
-			)";
-			
-			$resultInsert = mysqli_query($conn, $sqlInsert) or die("Error in sqlInsert: " . mysqli_error($conn));
-			if ($resultInsert) {
-				$sqlInsert = "INSERT INTO `courtsmanagement`.`login` (`username`, `password`, `otp`, `status`, `role_id`) VALUES ('$txt_email', '$hashedPassword', '1329', 'pending', '$txt_role_id');";
-				$resultInsert = mysqli_query($conn, $sqlInsert) or die("Error in sqlInsert: " . mysqli_error($conn));
-				if ($resultInsert) {
-					echo '<script>alert("Successfully submitted your registration request. Wait for the Admin Approval");</script>';
-					echo '<script>window.location.href = "index.php";</script>'; // redirect to avoid resubmission
-		    		exit;
-				} else {
-					$sqlDelete = "DELETE FROM registration WHERE reg_id = '$txt_reg_id'";
-					mysqli_query($conn, $sqlDelete);
-					echo '<script>alert("Error: " . mysqli_error($conn) . ".");</script>';
-				}	
-			} else {
-				echo '<script>alert("Error: " . mysqli_error($conn) . ".");</script>';
-			}
-		}
-		?>
+		} else {
+			$sqlDelete = "DELETE FROM registration WHERE reg_id = '$txt_reg_id'";
+			mysqli_query($conn, $sqlDelete);
+			echo '<script>alert("Error: " . mysqli_error($conn) . ".");</script>';
+		}	
+	} else {
+		echo '<script>alert("Error: " . mysqli_error($conn) . ".");</script>';
+	}
+}
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -208,6 +213,7 @@
 								<select class="form-select" id="select_station" name="select_station">
 									<option value="" disabled selected hidden>Job Type</option>
 									<option value="Legal Aid Commission">Legal Aid Commission</option>
+									<option value="Attorney General Department">Attorney General Department</option>
 									<option value="Private">Private</option>
 								</select>
 								<?php }else{ ?>

@@ -1,4 +1,6 @@
 <header id="header" class="header sticky-top">
+	
+			<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 	<div class="topbar d-flex align-items-center">
 		<div class="container d-flex justify-content-center justify-content-md-between">
 			<div class="contact-info d-flex align-items-center">
@@ -43,7 +45,7 @@
 						<a href="#"><span>Administration</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
 						<ul>
 							<li><a href="index.php?pg=courts.php">Courts</a></li>
-							<li><a href="index.php?pg=lawyers.php">Lawyers</a></li>
+							<li><a href="index.php?pg=lawyer.php&option=view">Lawyers</a></li>
 							<li><a href="index.php?pg=staff.php&option=view">Staff</a></li>
 							<li><a href="index.php?pg=roles.php">Roles</a></li>
 						</ul>
@@ -58,13 +60,33 @@
 				</ul>
 				<i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
 			</nav>
+
 		<!-- <a class="cta-btn d-none d-sm-block" href="#appointment">#TO BE USED</a> -->
 		<!-- <a class="cta-btn d-none d-sm-block" href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Register</a>
 		<a class="cta-btn d-none d-sm-block" href="login.php">Login</a> -->
-		<div class="d-flex gap-3">
-			<a href="login.php" class="btn btn-outline-primary px-4 shadow-sm rounded-pill d-none d-sm-block">Login</a>
-			<a href="#" class="btn btn-primary px-4 shadow-sm rounded-pill d-none d-sm-block" data-bs-toggle="modal" data-bs-target="#registerModal">Register</a>
-		</div>
+		<div class="d-flex align-items-center gap-3">
+    <?php if (isset($_SESSION["LOGIN_USERNAME"])){ ?>
+        <?php
+            $username = htmlspecialchars($_SESSION["LOGIN_USERNAME"]);
+            $firstLetter = strtoupper($username[0]);
+        ?>
+        <div class="dropdown">
+            <button class="btn btn-light shadow-sm rounded-circle d-flex align-items-center justify-content-center" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="width: 45px; height: 45px; font-weight: bold;">
+                <?= $firstLetter ?>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdown">
+                <li class="px-3 py-2"><strong><?= $username ?></strong></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="profile.php"><i class="bi bi-person-circle me-2"></i>My Profile</a></li>
+                <li><a class="dropdown-item text-danger" href="index.php?logout=true"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+            </ul>
+        </div>
+    <?php }else{ ?>
+        <a href="login.php" class="btn btn-outline-primary px-4 shadow-sm rounded-pill">Login</a>
+        <a href="#" class="btn btn-primary px-4 shadow-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#registerModal">Register</a>
+    <?php } ?>
+</div>
+
 		</div>
 
 	</div>

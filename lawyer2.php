@@ -1,11 +1,14 @@
 <?php
 
+// require 'db.php';
+
 if(isset($_SESSION["LOGIN_USERTYPE"])){
     $system_usertype = $_SESSION["LOGIN_USERTYPE"];
 	$system_username = $_SESSION["LOGIN_USERNAME"];
 }else{
 	$system_usertype = "GUEST";
 }
+
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
@@ -13,6 +16,36 @@ if (empty($_SESSION['csrf_token'])) {
 $helper = new Helper($conn);
 $security = new Security();
 
+$lawyer_id = null;
+
+if ($system_usertype === "R06" && $system_username) {
+    // Get lawyer_id by email
+    $stmt = $conn->prepare("SELECT lawyer_id FROM lawyer WHERE email = ?");
+    $stmt->bind_param("s", $system_username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($row = $result->fetch_assoc()) {
+        $lawyer_id = $row['lawyer_id'];
+    } else {
+        // If email not found in DB, logout or redirect
+		// #TODO : logout.php not available
+        // echo "<script>location.href='logout.php';</script>";
+        // exit;
+    }
+} else {
+    // Not a valid session
+    // echo "<script>location.href='login.php';</script>";
+    // exit;
+}
+
+
+// Get all cases related to this lawyer
+$query = "SELECT * FROM cases WHERE plaintiff_lawyer = ? OR defendant_lawyer = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("ss", $lawyer_id, $lawyer_id);
+$stmt->execute();
+$cases = $stmt->get_result();
 	
 
 if (isset($_POST["btn_add"])) {
@@ -52,11 +85,11 @@ if (isset($_POST["btn_add"])) {
         $errors[] = "Invalid NIC number format.";
     }
 
-    if (!$helper->validateDate($date_date_of_birth)) {
+    if (!validateDate($date_date_of_birth)) {
         $errors[] = "Invalid date of birth.";
     }
 
-    if (!$helper->validateDate($date_joined_date)) {
+    if (!validateDate($date_joined_date)) {
         $errors[] = "Invalid joined date.";
     }
 
@@ -86,11 +119,11 @@ if (isset($_POST["btn_add"])) {
     $txt_image_path = 'uploads/' . $upload_result['filename'];
 
     // Begin transaction
-    $conn->begin_transaction();
+    mysqli_begin_transaction($conn);
 
     try {
         // Insert into staff table
-        $stmtStaff = $conn->prepare("INSERT INTO staff (staff_id, first_name, last_name, mobile, nic_number, date_of_birth, email, address, court_id, joined_date, role_id, image_path, gender, appointment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmtStaff = $conn->prepare("INSERT INTO staff (lawyer_id, first_name, last_name, mobile, nic_number, date_of_birth, email, address, court_id, joined_date, role_id, image_path, gender, appointment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         
 		$stmtStaff->bind_param(
             "ssssssssssssss",
@@ -120,15 +153,15 @@ if (isset($_POST["btn_add"])) {
         $stmtLogin->execute();
 
         //  Both successful
-        $conn->commit();
+        mysqli_commit($conn);
 
         echo '<script>alert("Successfully added staff member.");</script>';
-        echo "<script>location.href='index.php?pg=staff.php&option=view';</script>";
+        echo "<script>location.href='index.php?pg=lawyer.php&option=view';</script>";
         exit;
 
     } catch (Exception $e) {
         // Rollback on error
-        $conn->rollback();
+        mysqli_rollback($conn);
 
         // Delete uploaded image
         if (file_exists($txt_image_path)) {
@@ -156,8 +189,6 @@ if (isset($_POST["btn_update"])) {
     $select_role_name = Security::sanitize($_POST["select_role_name"]);
     $select_appointment = Security::sanitize($_POST["select_appointment"]);
 
-	$updateLoginStatus = null;
-
 	// CSRF Protection
 	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
 		die("Invalid CSRF token.");
@@ -178,7 +209,7 @@ if (isset($_POST["btn_update"])) {
         $errors[] = "Invalid NIC number format.";
     }
 
-    if (!$helper->validateDate($date_date_of_birth)) {
+    if (!validateDate($date_date_of_birth)) {
         $errors[] = "Invalid date of birth.";
     }
 
@@ -198,17 +229,33 @@ if (isset($_POST["btn_update"])) {
 	Security::checkDuplicate($conn, "mobile", $int_mobile, "", "Mobile number already exists!", $txt_staff_id);
 	Security::checkDuplicate($conn, "email", $txt_email, "", "Email already exists!", $txt_staff_id);
 
+	// Upload image only if a new one was selected
+    $new_image_uploaded = ($_FILES['img_profile_photo']['error'] !== 4); // Error 4 = no file uploaded
 
-	
+    if ($new_image_uploaded) {
+        $upload_result = $Security->uploadImage('img_profile_photo');
+        if (!$upload_result['success']) {
+            die("Image upload failed: " . $upload_result['error']);
+        }
+        $txt_image_path = 'uploads/' . $upload_result['filename'];
+    } else {
+        // No new image, fetch old image path from database
+        $stmtOld = $conn->prepare("SELECT image_path FROM staff WHERE lawyer_id = ?");
+        $stmtOld->bind_param("s", $txt_staff_id);
+        $stmtOld->execute();
+        $resultOld = $stmtOld->get_result();
+        $rowOld = $resultOld->fetch_assoc();
+        $txt_image_path = $rowOld['image_path']; // Use old image path
+    }
 
     // Start Transaction
-    $conn->begin_transaction();
+    mysqli_begin_transaction($conn);
 
     try {
-        $stmtUpdate = $conn->prepare("UPDATE staff SET first_name=?, last_name=?, mobile=?, nic_number=?, date_of_birth=?, email=?, address=?, court_id=?, role_id=?, gender=?, appointment=? WHERE staff_id=?");
+        $stmtUpdate = $conn->prepare("UPDATE staff SET first_name=?, last_name=?, mobile=?, nic_number=?, date_of_birth=?, email=?, address=?, court_id=?, role_id=?, image_path=?, gender=?, appointment=? WHERE lawyer_id=?");
         
 		$stmtUpdate->bind_param(
-            "ssssssssssss",
+            "sssssssssssss",
             $txt_first_name,
 			$txt_last_name,
 			$int_mobile,
@@ -218,85 +265,20 @@ if (isset($_POST["btn_update"])) {
 			$txt_address,
 			$select_court_name,
             $select_role_name,
+			$txt_image_path,
 			$select_gender,
 			$select_appointment,
 			$txt_staff_id
         );
         $stmtUpdate->execute();
 
-		// 2. Update login table
-		$updateLogin = $conn->prepare("UPDATE login SET role_id = ? WHERE username = ?");
-		$updateLogin->bind_param("ss", $select_role_name, $txt_email);
-		$updateLogin->execute();
+        mysqli_commit($conn);
 
-		if ($updateLogin->affected_rows === 0) {
-			throw new Exception("No login record updated. Username not found?");
-		}
-
-		$conn->commit();
-
-		echo '<script>alert("Final: Successfully updated staff member.");</script>';
+        echo '<script>alert("Successfully updated staff member.");</script>';
+        echo "<script>location.href='index.php?pg=lawyer.php&option=view';</script>";
         exit;
     } catch (Exception $e) {
-        $conn->rollback();
-
-        Security::logError($e->getMessage());
-        echo '<script>alert("An error occurred while updating. Please try again.");</script>';
-    }
-}
-
-
-if (isset($_POST["btn_dpchange"])) {
-
-	// $txt_image_path = null;
-	$txt_staff_id = Security::sanitize($_POST["txt_staff_id"]);
-    
-	// CSRF Protection
-	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-		die("Invalid CSRF token.");
-    }
-
-	// Upload image only if a new one was selected
-    $new_image_uploaded = ($_FILES['img_profile_photo']['error'] !== 4); // Error 4 = no file uploaded
-
-    if ($new_image_uploaded) {
-        $upload_result = $security->uploadImage('img_profile_photo');
-        if (!$upload_result['success']) {
-            die("Image upload failed: " . $upload_result['error']);
-        }
-        $txt_image_path = 'uploads/' . $upload_result['filename'];
-		echo "<script>alert('right way man: $txt_image_path');</script>";
-    } else {
-        // No new image, fetch old image path from database
-        $stmtOld = $conn->prepare("SELECT image_path FROM staff WHERE staff_id = ?");
-        $stmtOld->bind_param("s", $txt_staff_id);
-        $stmtOld->execute();
-        $resultOld = $stmtOld->get_result();
-        $rowOld = $resultOld->fetch_assoc();
-        $txt_image_path = $rowOld['image_path']; // Use old image path
-		echo "<script>alert('going to wrong block');</script>";
-    } 
-
-    // Start Transaction
-    $conn->begin_transaction();
-
-    try {
-        $stmtUpdate = $conn->prepare("UPDATE staff SET image_path=? WHERE staff_id=?");
-        
-		$stmtUpdate->bind_param(
-            "ss",
-			$txt_image_path,
-			$txt_staff_id
-        );
-        $stmtUpdate->execute();
-
-        $conn->commit();
-
-        echo '<script>alert("Successfully changed profile picture.");</script>';
-        echo "<script>location.href='index.php?pg=staff.php&option=view';</script>";
-        exit;
-    } catch (Exception $e) {
-        $conn->rollback();
+        mysqli_rollback($conn);
 
 		// If new image was uploaded, delete it
         if ($new_image_uploaded && file_exists($txt_image_path)) {
@@ -308,16 +290,15 @@ if (isset($_POST["btn_dpchange"])) {
     }
 }
 
-
 if (isset($_POST["btn_delete"])) {
-    $txt_staff_id = Security::sanitize($_POST['staff_id']);
+    $txt_staff_id = Security::sanitize($_POST['lawyer_id']);
 
     // Start Transaction
-    $conn->begin_transaction();
+    mysqli_begin_transaction($conn);
 
     try {
         // Get email first
-        $stmtSelect = $conn->prepare("SELECT email FROM staff WHERE staff_id=?");
+        $stmtSelect = $conn->prepare("SELECT email FROM staff WHERE lawyer_id=?");
         $stmtSelect->bind_param("s", $txt_staff_id);
         $stmtSelect->execute();
         $result = $stmtSelect->get_result();
@@ -342,32 +323,32 @@ if (isset($_POST["btn_delete"])) {
         $stmtStaffDelete = $conn->prepare("
             UPDATE staff 
             SET is_active='0' 
-            WHERE staff_id=?
+            WHERE lawyer_id=?
         ");
         $stmtStaffDelete->bind_param("s", $txt_staff_id);
         $stmtStaffDelete->execute();
 
-        $conn->commit();
+        mysqli_commit($conn);
 
         echo '<script>alert("Successfully deleted staff member.");</script>';
-        echo "<script>location.href='index.php?pg=staff.php&option=view';</script>";
+        echo "<script>location.href='index.php?pg=lawyer.php&option=view';</script>";
         exit;
     } catch (Exception $e) {
-        $conn->rollback();
+        mysqli_rollback($conn);
         Security::logError($e->getMessage());
         echo '<script>alert("An error occurred while deleting. Please try again.");</script>';
     }
 }
 
 if (isset($_POST["btn_reactivate"])) {
-    $txt_staff_id = Security::sanitize($_POST['staff_id']);
+    $txt_staff_id = Security::sanitize($_POST['lawyer_id']);
 
     // Start Transaction
-    $conn->begin_transaction();
+    mysqli_begin_transaction($conn);
 
     try {
         // Get email first
-        $stmtSelect = $conn->prepare("SELECT email FROM staff WHERE staff_id=?");
+        $stmtSelect = $conn->prepare("SELECT email FROM staff WHERE lawyer_id=?");
         $stmtSelect->bind_param("s", $txt_staff_id);
         $stmtSelect->execute();
         $result = $stmtSelect->get_result();
@@ -392,18 +373,18 @@ if (isset($_POST["btn_reactivate"])) {
         $stmtStaffReactivate = $conn->prepare("
             UPDATE staff 
             SET is_active='1' 
-            WHERE staff_id=?
+            WHERE lawyer_id=?
         ");
         $stmtStaffReactivate->bind_param("s", $txt_staff_id);
         $stmtStaffReactivate->execute();
 
-        $conn->commit();
+        mysqli_commit($conn);
 
         echo '<script>alert("Successfully reactivated staff member.");</script>';
-        echo "<script>location.href='index.php?pg=staff.php&option=view';</script>";
+        echo "<script>location.href='index.php?pg=lawyer.php&option=view';</script>";
         exit;
     } catch (Exception $e) {
-        $conn->rollback();
+        mysqli_rollback($conn);
         Security::logError($e->getMessage());
         echo '<script>alert("An error occurred while reactivating. Please try again.");</script>';
     }
@@ -425,19 +406,18 @@ if (isset($_POST["btn_reactivate"])) {
 		<?php
 			if(isset($_GET['option']) && $_GET['option'] == "view") {
 			
-				// $sql_read = "SELECT staff_id, first_name, last_name, nic_number, mobile, court_id, staff_id, email FROM staff WHERE is_active = 1";
+				// $sql_read = "SELECT lawyer_id, first_name, last_name, nic_number, mobile, court_id, lawyer_id, email FROM staff WHERE is_active = 1";
 				
-				$sql_read = "SELECT staff_id, first_name, last_name, nic_number, mobile, court_id, staff_id, email, is_active FROM staff";
-				$result = $conn->query($sql_read);
-
+				$sql_read = "SELECT lawyer_id, first_name, last_name, nic_number, mobile, email, enrolment_number, is_active FROM lawyer";
+				$result = mysqli_query($conn, $sql_read);
 			
-				if ($result && $result->num_rows > 0) {
+				if ($result && mysqli_num_rows($result) > 0) {
 			?>
 		<div class="container mt-4">
 			<!-- For bigger list  <div class="container-fluid mt-4"> -->
 			<div class="d-flex justify-content-start mb-3">
-				<a href="index.php?pg=staff.php&option=add" class="btn btn-success btn-sm me-1">
-				<i class="fas fa-plus"></i> Add Staff
+				<a href="index.php?pg=lawyer.php&option=add" class="btn btn-success btn-sm me-1">
+				<i class="fas fa-plus"></i> Add Lawyer
 				</a>
 			</div>
 			<div class="table-responsive">
@@ -448,15 +428,12 @@ if (isset($_POST["btn_reactivate"])) {
 							<th>Full Name</th>
 							<th>NIC</th>
 							<th>Mobile</th>
-							<th>Court Name</th>
+							<th>Supreme Court Reg.No</th>
 							<th>Actions</th>
 						</tr>
 					</thead>
 					<tbody>
-						<?php
-							$count = 1;
-							while ($row = $result->fetch_assoc()) {
-						?>
+						<?php $count = 1; while ($row = mysqli_fetch_assoc($result)) { ?>
 						<tr>
 							<td><?php echo $count; ?></td>
 							<td>
@@ -470,19 +447,19 @@ if (isset($_POST["btn_reactivate"])) {
 							</td>
 							<td><?php echo $row['nic_number']; ?></td>
 							<td><?php echo $row['mobile']; ?></td>
-							<td><?php echo $helper->getCourtName($row['court_id']); ?></td>
+							<td><?php echo $row['enrolment_number']; ?></td>
 							<td>
 								<div class="d-flex flex-wrap gap-1">
-									<form method="POST" action="index.php?pg=staff.php&option=edit" class="d-inline">
-										<input type="hidden" name="staff_id" value="<?php echo Security::sanitize($row['staff_id']); ?>">
+									<form method="POST" action="index.php?pg=lawyer.php&option=edit" class="d-inline">
+										<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
 										<button class="btn btn-primary btn-sm" type="submit" name="btn_edit">
 										<i class="fas fa-edit"></i> Edit
 										</button>
 									</form>
 									<form method="GET" action="index.php" class="d-inline">
-										<input type="hidden" name="pg" value="staff.php">
+										<input type="hidden" name="pg" value="lawyer.php">
 										<input type="hidden" name="option" value="full_view">
-										<input type="hidden" name="id" value="<?php echo urlencode(Security::sanitize($row['staff_id'])); ?>">
+										<input type="hidden" name="id" value="<?php echo urlencode(Security::sanitize($row['lawyer_id'])); ?>">
 										<button type="submit" class="btn btn-info btn-sm text-white">
 										<i class="fas fa-eye"></i> Full View
 										</button>
@@ -491,7 +468,7 @@ if (isset($_POST["btn_reactivate"])) {
 									<?php if ($row['is_active']) { ?>
 										<!-- Delete Button for Active User -->
 										<form method="POST" action="#" class="d-inline delete-form">
-											<input type="hidden" name="staff_id" value="<?php echo Security::sanitize($row['staff_id']); ?>">
+											<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
 											<input type="hidden" name="btn_delete" value="1">
 											<button type="button" class="btn btn-danger btn-sm" onclick="deleteConfirmModal(() => this.closest('form').submit())">
 												<i class="fas fa-trash-alt"></i> Delete
@@ -500,7 +477,7 @@ if (isset($_POST["btn_reactivate"])) {
 									<?php } else { ?>
 										<!-- Reactive Button for Deleted/Inactive User -->
 										<form method="POST" action="#" class="d-inline reactive-form">
-											<input type="hidden" name="staff_id" value="<?php echo Security::sanitize($row['staff_id']); ?>">
+											<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
 											<input type="hidden" name="btn_reactivate" value="1">
 											<button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" onclick="reactivateConfirmModal(() => this.closest('form').submit())">
 												<i class="fas fa-refresh"></i> Reactive
@@ -515,18 +492,18 @@ if (isset($_POST["btn_reactivate"])) {
 				</table>
 			</div>
 		</div>
-		<?php
-			}
+<?php
+	}
 			// <!-- FULL VIEW SECTION -->
 			}elseif (isset($_GET['option']) && $_GET['option'] == "full_view" && $_GET['id']) {
-					$staffId = $_GET['id'];
+					$lawyer_id = $_GET['id'];
 			
-					$row = $helper->getStaffData(Security::sanitize($staffId));
+					$row = $helper->getLawyerData(Security::sanitize($lawyer_id));
 				?>
 		<div class="container py-5">
 			<div class="card shadow-lg rounded-4 border-0">
 				<div class="card-header bg-dark text-white rounded-top-4 d-flex align-items-center justify-content-between">
-					<h3 class="mb-0"><i class="bi bi-person-lines-fill me-2"></i>Staff Profile</h3>
+					<h3 class="mb-0"><i class="bi bi-person-lines-fill me-2"></i>Lawyer Profile</h3>
 				</div>
 				<div class="card-body">
 					<div class="row mb-4">
@@ -538,36 +515,25 @@ if (isset($_POST["btn_reactivate"])) {
 								class="img-thumbnail shadow-sm border border-3 border-primary" 
 								style="width: 300px; height: 300px; object-fit: cover;"
 								>
-								<form method="POST" action="index.php?pg=staff.php&option=dpchange" enctype="multipart/form-data" class="mt-3">
-									<div class="mb-2">
-										<input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-										<input hidden type="text" class="form-control" id="txt_staff_id" name="txt_staff_id" value="<?php echo Security::sanitize($staffId); ?>" readonly required>
-										<input type="file" name="img_profile_photo" id="img_profile_photo" accept="image/*" class="form-control form-control-sm" required>
-									</div>
-									<button class="btn btn-secondary btn-sm" name="btn_dpchange" id="btn_dpchange" type="submit">
-										<i class="fas fa-upload"></i> Upload New Photo
-									</button>
-								</form>
 						</div>
-						
 						<div class="col-md-9">
 							<div class="card-footer text-end bg-light rounded-bottom-4">
 								<div class="d-flex justify-content-between">
 									<?php
 										// Remove the 'S' and convert to integer
-										$number = (int) filter_var($row['staff_id'], FILTER_SANITIZE_NUMBER_INT);
+										$number = (int) filter_var($row['lawyer_id'], FILTER_SANITIZE_NUMBER_INT);
 										
 										// Increment the number
 										$next_number = $number - 1;
 										
 										// Pad with leading zeroes and add the prefix 'S'
-										$previous_staff_id = 'S' . str_pad($next_number, 4, '0', STR_PAD_LEFT);
+										$previous_lawyer_id = 'L' . str_pad($next_number, 4, '0', STR_PAD_LEFT);
 										
-										// Optional: Check if staff exists before rendering the button
-										$next_exists = $helper->getStaffData($previous_staff_id);
+										// Optional: Check if lawyer exists before rendering the button
+										$next_exists = $helper->getLawyerData($previous_lawyer_id);
 										
 										if ($next_exists){ ?>
-									<a href="index.php?pg=staff.php&option=full_view&id=<?php echo $previous_staff_id; ?>" class="btn btn-outline-success">
+									<a href="index.php?pg=lawyer.php&option=full_view&id=<?php echo $previous_lawyer_id; ?>" class="btn btn-outline-success">
 									<i class="bi bi-arrow-left-circle"></i> Previous
 									</a>
 									<?php }else{ ?>
@@ -576,24 +542,24 @@ if (isset($_POST["btn_reactivate"])) {
 									</button>
 									<?php }; ?>
 									<!-- Exit and  go back to view dashboard button -->
-									<a href="index.php?pg=staff.php&option=view" class="btn btn-danger">
+									<a href="index.php?pg=lawyer.php&option=view" class="btn btn-danger">
 									Exit <i class="bi bi-x-circle"></i>
 									</a>
 									<?php
 										// Remove the 'S' and convert to integer
-										$number = (int) filter_var($row['staff_id'], FILTER_SANITIZE_NUMBER_INT);
+										$number = (int) filter_var($row['lawyer_id'], FILTER_SANITIZE_NUMBER_INT);
 										
 										// Increment the number
 										$next_number = $number + 1;
 										
 										// Pad with leading zeroes and add the prefix 'S'
-										$next_staff_id = 'S' . str_pad($next_number, 4, '0', STR_PAD_LEFT);
+										$next_lawyer_id = 'L' . str_pad($next_number, 4, '0', STR_PAD_LEFT);
 										
 										// Optional: Check if staff exists before rendering the button
-										$next_exists = $helper->getStaffData($next_staff_id);
+										$next_exists = $helper->getLawyerData($next_lawyer_id);
 										
 										if ($next_exists){ ?>
-									<a href="index.php?pg=staff.php&option=full_view&id=<?php echo $next_staff_id; ?>" class="btn btn-outline-success">
+									<a href="index.php?pg=lawyer.php&option=full_view&id=<?php echo $next_lawyer_id; ?>" class="btn btn-outline-success">
 									Next <i class="bi bi-arrow-right-circle"></i>
 									</a>
 									<?php }else{ ?>
@@ -607,8 +573,8 @@ if (isset($_POST["btn_reactivate"])) {
 								<table class="table table-hover table-bordered align-middle">
 									<tbody>
 										<tr>
-											<th scope="row">Staff ID</th>
-											<td><?php echo ltrim(substr($row['staff_id'], 1), '0'); ?></td>
+											<th scope="row">Lawyer ID</th>
+											<td><?php echo ltrim(substr($row['lawyer_id'], 1), '0'); ?></td>
 										</tr>
 										<tr>
 											<th scope="row">First Name</th>
@@ -639,15 +605,15 @@ if (isset($_POST["btn_reactivate"])) {
 											<td><?php echo Security::sanitize($row['gender']); ?></td>
 										</tr>
 										<tr>
-											<th scope="row">Staff Type</th>
-											<td><?php echo Security::sanitize($row['appointment']); ?></td>
+											<th scope="row">Supreme Court Enrolment Number</th>
+											<td><?php echo Security::sanitize($row['enrolment_number']); ?></td>
 										</tr>
 										<th scope="row">Address</th>
 										<td><?php echo Security::sanitize($row['address']); ?></td>
 										</tr>
 										<tr>
-											<th scope="row">Court ID</th>
-											<td><?php echo $helper->getCourtName($row['court_id']); ?></td>
+											<th scope="row">Station/ Type</th>
+											<td><?php echo Security::sanitize($row['station']); ?></td>
 										</tr>
 										<tr>
 											<th scope="row">Joined Date</th>
@@ -677,8 +643,8 @@ if (isset($_POST["btn_reactivate"])) {
 				<div class="card-footer bg-light rounded-bottom-4">
 					<div class="d-flex justify-content-center gap-2">
 						<!-- Edit Button within Full View-->
-						<form method="POST" action="http://localhost/ucms/index.php?pg=staff.php&option=edit" class="d-inline">
-							<input type="hidden" name="staff_id" value="<?php echo Security::sanitize($row['staff_id']); ?>">
+						<form method="POST" action="http://localhost/ucms/index.php?pg=lawyer.php&option=edit" class="d-inline">
+							<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
 							<button type="submit" class="btn btn-primary btn-sm" name="btn_edit">
 							<i class="fas fa-pen-to-square me-1"></i> Edit
 							</button>
@@ -689,7 +655,7 @@ if (isset($_POST["btn_reactivate"])) {
 						<?php if ($row['is_active']) { ?>
 							<!-- Delete Button for Active User -->
 							<form method="POST" action="#" class="d-inline delete-form">
-								<input type="hidden" name="staff_id" value="<?php echo Security::sanitize($row['staff_id']); ?>">
+								<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
 								<input type="hidden" name="btn_delete" value="1">
 								<button type="button" class="btn btn-danger btn-sm" onclick="deleteConfirmModal(() => this.closest('form').submit())">
 									<i class="fas fa-trash-alt"></i> Delete
@@ -698,7 +664,7 @@ if (isset($_POST["btn_reactivate"])) {
 						<?php } else { ?>
 							<!-- Reactive Button for Deleted/Inactive User -->
 							<form method="POST" action="#" class="d-inline reactive-form">
-								<input type="hidden" name="staff_id" value="<?php echo Security::sanitize($row['staff_id']); ?>">
+								<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
 								<input type="hidden" name="btn_reactivate" value="1">
 								<button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" onclick="reactivateConfirmModal(() => this.closest('form').submit())">
 									<i class="fas fa-refresh"></i> Reactive
@@ -709,10 +675,163 @@ if (isset($_POST["btn_reactivate"])) {
 				</div>
 			</div>
 		</div>
+
+
+
+
+
+
+
+
+<?php
+// Fetch case results
+$query1 = "SELECT * FROM cases WHERE plaintiff_lawyer = ? OR defendant_lawyer = ?";
+$cstmt = $conn->prepare($query1);
+$cstmt->bind_param("ss", $lawyer_id, $lawyer_id);
+$cstmt->execute();
+$caseResult = $cstmt->get_result();
+
+$cases = [];
+$partyDetails = [];
+
+// Fetch case and party details
+while ($row = $caseResult->fetch_assoc()) {
+    $cases[] = $row; // store the case for later use
+
+    // Determine which party to retrieve based on the lawyer's role
+    $party_id = ($row['plaintiff_lawyer'] == $lawyer_id) ? $row['plaintiff'] : $row['defendant'];
+
+    // Fetch party details
+    $query2 = "SELECT party_id, first_name, last_name, mobile_number, nic_no, email_address, joined_date, address, date_of_birth, is_deleted FROM parties WHERE party_id = ?";
+    $pstmt = $conn->prepare($query2);
+    $pstmt->bind_param("s", $party_id);
+    $pstmt->execute();
+    $partyResult = $pstmt->get_result();
+
+    if ($partyRow = $partyResult->fetch_assoc()) {
+        $partyDetails[] = $partyRow;
+    }
+
+    $pstmt->close();
+}
+
+$cstmt->close();
+
+// Assuming the case_id you need is from the fetched cases array
+// Fetch related daily case activities for each case
+foreach ($cases as $case) {
+    $case_name = $case['case_id']; // Get the case_id dynamically
+
+    // Fetch related daily case activities from the dailycaseactivities table
+    $query3 = "SELECT * FROM dailycaseactivities WHERE case_name = ?";
+    $stmt3 = $conn->prepare($query3);
+    $stmt3->bind_param("s", $case_name);
+    $stmt3->execute();
+    $dailyCaseActivitiesResult = $stmt3->get_result();
+
+    // Combine daily activities in the case array
+    $case['daily_activities'] = [];
+    while ($activity = $dailyCaseActivitiesResult->fetch_assoc()) {
+        $case['daily_activities'][] = $activity;
+    }
+
+    $stmt3->close();
+}
+
+// Now you have $cases array that includes both case and daily activities
+?>
+
+
+<div class="accordion" id="accordionExample">
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingOne">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+        Client Details
+      </button>
+    </h2>
+    <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+      <div class="accordion-body">
+		<?php
+			foreach ($partyDetails as $party) {
+			?>
+				<div class='card mb-3 shadow-sm'>
+					<div class='card-body'>
+						<h5 class='card-title'>Client Name: <?php echo "{$party['first_name']} {$party['last_name']}"; ?></h5>
+						<p><strong>NIC:</strong> <?php echo Security::sanitize("{$party['nic_no']}"); ?></p>
+						<p><strong>Mobile:</strong> <?php echo Security::sanitize("{$party['mobile_number']}"); ?></p>
+						<p><strong>Email:</strong> <?php echo Security::sanitize("{$party['email_address']}"); ?></p>
+						<p><strong>DOB:</strong> <?php echo Security::sanitize("{$party['date_of_birth']}"); ?></p>
+						<p><strong>Joined:</strong> <?php echo Security::sanitize("{$party['joined_date']}"); ?></p>
+						<p><strong>Address:</strong> <?php echo Security::sanitize("{$party['address']}"); ?></p>
+					</div>
+				</div>
+			<?php
+			}
+			?>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="accordion-item">
+  <h2 class="accordion-header" id="headingTwo">
+    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+      Case Details
+    </button>
+  </h2>
+  <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+    <div class="accordion-body">
+      <?php foreach ($cases as $case): ?>
+        <div class="card mb-3 shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">Case: <?= Security::sanitize($case['case_name']) ?></h5>
+            <p><strong>Status:</strong> <?= Security::sanitize($case['status']) ?></p>
+            <p><strong>Next Date:</strong> <?= Security::sanitize($case['next_date']) ?></p>
+            <p><strong>For:</strong> <?= Security::sanitize($case['for_what']) ?></p>
+            
+            <form method="GET" action="index.php" class="d-inline">
+              <input type="hidden" name="pg" value="lawyer.php">
+              <input type="hidden" name="option" value="full_view">
+              <input type="hidden" name="id" value="<?= urlencode($case['case_id']) ?>">
+              <button type="button" class="btn btn-info btn-sm text-white view-case-btn" data-bs-toggle="modal" data-bs-target="#caseDetailModal" data-case='<?= json_encode($case, JSON_HEX_APOS | JSON_UNESCAPED_UNICODE) ?>'>
+				<i class="fas fa-eye"></i> Full View
+			</button>
+
+
+            </form>
+          </div>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  </div>
+</div>
+
+
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingThree">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+        Accordion Item #3
+      </button>
+    </h2>
+    <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExample">
+      <div class="accordion-body">
+        <strong>This is the third item's accordion body.</strong> It is hidden by default...
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
 		<?php
 			// <!-- ADD SECTION -->
 			}elseif (isset($_GET['option']) && $_GET['option'] == "add") {
-				$next_staff_id = $helper->generateNextStaffID(); // Get the next ID *before* the form
+				$next_lawyer_id = $helper->generateNextLawyerID(); // Get the next ID *before* the form
 			?>
 		<div class="container-fluid bg-primary text-white text-center py-3">
 			<h1>ADD NEW STAFF</h1>
@@ -722,8 +841,8 @@ if (isset($_POST["btn_reactivate"])) {
 				<div class="col-md-8 col-lg-6">
 					<form action="#" method="POST" id="staffForm" name="staffForm" enctype="multipart/form-data">
 						<div class="row mb-3">
-							<label hidden for="staff_id" class="form-label">Staff ID</label>
-							<input hidden type="text" class="form-control" id="txt_staff_id" name="txt_staff_id" value="<?php echo Security::sanitize($next_staff_id); ?>" readonly required>
+							<label hidden for="lawyer_id" class="form-label">Lawyer ID</label>
+							<input hidden type="text" class="form-control" id="txt_lawyer_id" name="txt_lawyer_id" value="<?php echo Security::sanitize($next_lawyer_id); ?>" readonly required>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
@@ -824,9 +943,9 @@ if (isset($_POST["btn_reactivate"])) {
 		</div>
 		`	<?php
 			// <!-- EDIT SECTION -->
-			}elseif(isset($_GET['option']) && $_GET['option'] == "edit" && isset($_POST['staff_id'])) {
-				$data = $helper->getStaffData($_POST['staff_id']);
-
+			}elseif(isset($_GET['option']) && $_GET['option'] == "edit" && isset($_POST['lawyer_id'])) {
+				$data = $helper->getLawyerData(Security::sanitize($_POST['lawyer_id']), $conn);
+			
 				$txt_first_name = $data['first_name'];
 				$txt_last_name = $data['last_name'];
 				$int_mobile = $data['mobile'];
@@ -836,7 +955,7 @@ if (isset($_POST["btn_reactivate"])) {
 				$txt_address = $data['address'];
 				$select_court_name = $data['court_id'];
 				$select_role_name = $data['role_id'];
-				// $txt_image_path = $data['image_path'];
+				$txt_image_path = $data['image_path'];
 				$select_gender = $data['gender'];
 				$select_appointment = $data['appointment'];
 			
@@ -849,8 +968,8 @@ if (isset($_POST["btn_reactivate"])) {
 				<div class="col-md-8 col-lg-6">
 					<form action="#" method="POST" id="staffForm" enctype="multipart/form-data">
 						<div class="row mb-3">
-							<label hidden for="staff_id" class="form-label">Staff ID</label>
-							<input hidden type="text" class="form-control" id="txt_staff_id" name="txt_staff_id" value="<?php echo Security::sanitize($_POST['staff_id']); ?>" readonly required>
+							<label hidden for="lawyer_id" class="form-label">Staff ID</label>
+							<input hidden type="text" class="form-control" id="txt_staff_id" name="txt_staff_id" value="<?php echo Security::sanitize($_POST['lawyer_id']); ?>" readonly required>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
@@ -865,7 +984,7 @@ if (isset($_POST["btn_reactivate"])) {
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<label for="mobile" class="form-label">Mobile Number</label>
-								<input type="text" name="int_mobile" id="int_mobile" class="form-control check-duplicate" data-check="mobile" data-feedback="mobileFeedback" value="<?php echo '0'.$int_mobile ?>" onkeypress="return isNumberKey(event)" onblur="validateMobileNumber('int_mobile')" required>
+								<input type="text" name="int_mobile" id="int_mobile" class="form-control check-duplicate" data-check="mobile" data-feedback="mobileFeedback" value="<?php echo $int_mobile ?>" onkeypress="return isNumberKey(event)" onblur="validateMobileNumber('int_mobile')" required>
 								<small id="mobileFeedback" class="text-danger"></small>
 							</div>
 							<div class="col-md-6">
@@ -893,7 +1012,7 @@ if (isset($_POST["btn_reactivate"])) {
 							<div class="col-md-6">
 								<label for="court_name" class="form-label">Court Name</label>
 								<select class="form-select" id="select_court_name" name="select_court_name" required>
-									<option name="" selected hidden value="<?php echo $select_court_name ?>" ><?php echo $helper->getCourtName($select_court_name) ?></option>
+									<option name="" selected hidden value="<?php echo $select_court_name ?>" ><?php echo getCourtName($select_court_name) ?></option>
 									<option name="Magistrate's Court" value="C01">Magistrate's Court</option>
 									<option name="District Court" value="C02">District Court</option>
 									<option name="High Court" value="C03">High Court</option>
@@ -904,7 +1023,7 @@ if (isset($_POST["btn_reactivate"])) {
 							<div class="col-md-6">
 								<label for="court_name" class="form-label">Role Name</label>
 								<select class="form-select" id="select_role_name" name="select_role_name" required>
-									<option name="" selected hidden value="<?php echo $select_role_name ?>"><?php echo $helper->getRoleName($select_role_name) ?></option>
+									<option name="" selected hidden value="<?php echo $select_role_name ?>"><?php echo getRoleName($select_role_name) ?></option>
 									<option name="Administrator" value="R01">Administrator</option>
 									<option name="Hon. Judge" value="R02">Hon. Judge</option>
 									<option name="The Registrar" value="R03">The Registrar</option>
@@ -913,13 +1032,8 @@ if (isset($_POST["btn_reactivate"])) {
 								</select>
 							</div>
 							<div class="col-md-6">
-								<label for="court_id" class="form-label">Officer Classification2</label>
-								<select class="form-select" id="select_appointment" name="select_appointment">
-									<option value="<?php echo $select_appointment ?>" disabled selected hidden><?php echo $select_appointment ?></option>
-									<option value="Judicial Staff (JSC)">Judicial Staff (JSC)</option>
-									<option value="Ministry Staff">Ministry Staff</option>
-									<option value="O.E.S/ Peon/ Security">O.E.S/ Peon/ Security</option>
-								</select>
+								<label for="profile_photo" class="form-label">Upload Profile Photo</label>
+								<input type="file" class="form-control" id="img_profile_photo" name="img_profile_photo" accept="image/*" required>
 							</div>
 						</div>
 						<div class="row mb-3">
@@ -930,6 +1044,15 @@ if (isset($_POST["btn_reactivate"])) {
 									<option value="Male">Male</option>
 									<option value="Female">Female</option>
 									<option value="Other">Other</option>
+								</select>
+							</div>
+							<div class="col-md-6">
+								<label for="court_id" class="form-label">Officer Classification</label>
+								<select class="form-select" id="select_appointment" name="select_appointment" value="<?php echo $select_appointment ?>" required>
+									<option value="" disabled hidden>Select type of appointment</option>
+									<option value="Judicial Staff (JSC)">Judicial Staff (JSC)</option>
+									<option value="Ministry Staff">Ministry Staff</option>
+									<option value="O.E.S/ Peon/ Security">O.E.S/ Peon/ Security</option>
 								</select>
 							</div>
 						</div>
@@ -1008,5 +1131,153 @@ if (isset($_POST["btn_reactivate"])) {
 				</div>
 			</div>
 		</div>
-	</body>
+		<!-- Case Detail Modal -->
+<!-- Case Detail Modal --> 
+<div class="modal fade" id="caseDetailModal" tabindex="-1" aria-labelledby="caseDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content" style="background-color: #C0C0C0;"> <!-- Silver background -->
+      <div class="modal-header">
+        <h5 class="modal-title" id="caseDetailModalLabel">Case Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="case-detail-content">
+          <!-- Case details will be populated here via JS -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- External Styles -->
+<style>
+  .case-header {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #1d6b9f; /* Blue color for case name */
+  }
+
+  .case-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+  }
+
+  .case-column {
+    width: 48%;
+  }
+
+  .case-label {
+    font-weight: bold;
+  }
+
+  .case-value {
+    color: #333;
+  }
+
+  .warrant-status {
+    padding: 5px 10px;
+    color: white;
+    font-weight: bold;
+    border-radius: 5px;
+    text-align: center;
+  }
+
+  .warrant-yes {
+    background-color: red; /* Arrest warrant issued */
+  }
+
+  .warrant-no {
+    background-color: green; /* No warrant */
+  }
+
+  .activities-section {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 2px solid #ddd;
+  }
+
+  .activity-card {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+  }
+
+  .activity-card h5 {
+    color: #1d6b9f; /* Blue for headings */
+  }
+
+  .activity-card p {
+    color: #444;
+  }
+</style>
+
+<!-- JavaScript for Modal Logic -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById('caseDetailModal');
+    const contentDiv = document.getElementById('case-detail-content');
+
+    document.querySelectorAll('.view-case-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        const caseData = JSON.parse(button.getAttribute('data-case'));
+
+        // Start building the HTML content
+        let html = `
+          <div class="case-header">${caseData.case_name}</div>
+          
+          <div class="case-row">
+            <div class="case-column">
+              <p><span class="case-label">Plaintiff Name:</span> <span class="case-value">${caseData.plaintiff}</span></p>
+              <p><span class="case-label">Defendant Name:</span> <span class="case-value">${caseData.defendant}</span></p>
+              <p><span class="case-label">Plaintiff Lawyer:</span> <span class="case-value">${caseData.plaintiff_lawyer}</span></p>
+              <p><span class="case-label">Defendant Lawyer:</span> <span class="case-value">${caseData.defendant_lawyer}</span></p>
+            </div>
+            <div class="case-column">
+              <p><span class="case-label">Nature of the Case:</span> <span class="case-value">${caseData.nature}</span></p>
+              <p><span class="case-label">Warrant:</span> 
+                <span class="warrant-status ${caseData.is_warrant ? 'warrant-yes' : 'warrant-no'}">
+                  ${caseData.is_warrant ? 'Arrest Warrant Issued' : 'No Warrant'}
+                </span>
+              </p>
+              <p><span class="case-label">Court Name:</span> <span class="case-value">${caseData.court_id}</span></p>
+              <p><span class="case-label">Case Registered Date:</span> <span class="case-value">${caseData.registered_date}</span></p>
+            </div>
+          </div>
+          
+          <div class="activities-section">
+            <h4>Daily Case Activities</h4>
+        `;
+
+        // Loop through daily activities and add to HTML
+        if (caseData.daily_activities && caseData.daily_activities.length > 0) {
+          caseData.daily_activities.forEach(activity => {
+            html += `
+              <div class="activity-card">
+                <h5>${activity.activity_date}</h5>
+                <p><strong>Last Date:</strong> ${activity.summary}</p>
+                // <p><strong>Current Status as per last date:</strong> ${activity.next_status}</p>
+				<p><strong>Summary as per last date:</strong> ${activity.summary}</p>
+				<p><strong>Next Date:</strong> ${activity.next_date}</p>
+				<p><strong>Next Steps:</strong> ${activity.next_status}</p>
+              </div>
+            `;
+          });
+        } else {
+          html += `<p>No activities recorded for this case yet.</p>`;
+        }
+
+        html += `</div>`; // Close activities section
+        contentDiv.innerHTML = html;
+      });
+    });
+  });
+</script>
+
+
 </html>
