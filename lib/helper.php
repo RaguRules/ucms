@@ -69,6 +69,15 @@ class Helper {
         return ($result && $result->num_rows > 0) ? $result->fetch_assoc() : null;
     }
 
+    public function getPoliceData($police_id) {
+        $stmt = $this->conn->prepare("SELECT * FROM police WHERE police_id = ?");
+        $stmt->bind_param("s", $police_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        return ($result && $result->num_rows > 0) ? $result->fetch_assoc() : null;
+    }
+
     public function getPartyData($party_id) {
         $stmt = $this->conn->prepare("SELECT * FROM parties WHERE party_id = ?");
         $stmt->bind_param("s", $party_id);
@@ -145,4 +154,15 @@ class Helper {
         return null; // No matching user found
     }
 
+
+    public function hasArrestWarrant($caseId) {
+        $stmt = $this->conn->prepare("SELECT is_warrant FROM cases WHERE case_id = ?");
+        $stmt->bind_param("s", $caseId);
+        $stmt->execute();
+        $stmt->bind_result($isWarrent);
+        if ($stmt->fetch()) {
+            return $isWarrent == 1;
+        }
+        return false; // Case not found or no warrant
+    }
 }

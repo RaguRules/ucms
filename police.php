@@ -14,30 +14,64 @@ if (empty($_SESSION['csrf_token'])) {
 $helper = new Helper($conn);
 $security = new Security();
 
-$lawyerId = null;
 
-if ($systemUsertype === "R06") {
-    // Only lawyers have a lawyer_id in the lawyer table
-    $stmt = $conn->prepare("SELECT lawyer_id FROM lawyer WHERE email = ?");
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['case_input'])) {
+    $input = trim($_POST['case_input']);
+
+    // Fetch case by case_id or case_name
+    $stmt = $conn->prepare("SELECT * FROM cases WHERE case_id = ? OR case_name = ?");
+    $stmt->bind_param("ss", $input, $input);
+    $stmt->execute();
+    $caseResult = $stmt->get_result();
+
+    if ($case = $caseResult->fetch_assoc()) {
+        // Check if warrant issued
+        $isWarrant = $case['is_warrant'];
+
+        // Get latest daily activity
+        $stmt2 = $conn->prepare("SELECT activity_date, summary, next_date FROM dailycaseactivities WHERE case_name = ? ORDER BY activity_date DESC LIMIT 1");
+        $stmt2->bind_param("s", $case['case_id']);
+        $stmt2->execute();
+        $activityResult = $stmt2->get_result();
+        $latestActivity = $activityResult->fetch_assoc();
+
+        // Return JSON response
+        echo json_encode([
+            'case_name' => $case['case_name'],
+            'is_warrant' => $isWarrant,
+            'activity' => $latestActivity
+        ]);
+    } else {
+        echo json_encode(['error' => 'Case not found']);
+    }
+}
+
+
+$policeId = null;
+
+if ($systemUsertype === "R07") {
+    // Only polices have a police_id in the police table
+    $stmt = $conn->prepare("SELECT police_id FROM police WHERE email = ?");
     $stmt->bind_param("s", $systemUsername);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($row = $result->fetch_assoc()) {
-        $lawyerId = $row['lawyer_id'];
+        $policeId = $row['police_id'];
     } else {
-        // Lawyer email not found
-        Security::logError("Lawyer email not found for: $systemUsername");
+        // police email not found
+        Security::logError("police email not found for: $systemUsername");
         echo "<script>alert('Unauthorized access.'); location.href='login.php';</script>";
         exit;
     }
 }
 
 
-// Get all cases related to this lawyer
-// $query = "SELECT * FROM cases WHERE plaintiff_lawyer = ? OR defendant_lawyer = ?";
+// Get all cases related to this police
+// $query = "SELECT * FROM cases WHERE plaintiff_police = ? OR defendant_police = ?";
 // $stmt = $conn->prepare($query);
-// $stmt->bind_param("ss", $lawyerId, $lawyerId);
+// $stmt->bind_param("ss", $policeId, $policeId);
 // $stmt->execute();
 // $cases = $stmt->get_result();
 
@@ -52,12 +86,12 @@ if (isset($_POST['case_id'])) {
 	}
 
     $caseId = $_POST['case_id'];
-    $lawyerId = $helper->getId($systemUsername, $systemUsertype);
+    $policeId = $helper->getId($systemUsername, $systemUsertype);
 
-    // Verify the lawyer is authorized to access this case
-    $query = "SELECT * FROM cases WHERE case_id = ? AND (plaintiff_lawyer = ? OR defendant_lawyer = ?)";
+    // Verify the police is authorized to access this case
+    $query = "SELECT * FROM cases WHERE case_id = ? AND (plaintiff_police = ? OR defendant_police = ?)";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("sss", $caseId, $lawyerId, $lawyerId);
+    $stmt->bind_param("sss", $caseId, $policeId, $policeId);
     $stmt->execute();
     $caseResult = $stmt->get_result();
 
@@ -79,13 +113,13 @@ if (isset($_POST['case_id'])) {
         $defendant = $defendantData ? $defendantData['first_name'] . ' ' . $defendantData['last_name'] : 'Unknown';
 
 
-        // Get Plaintiff Lawyer Name
-        $plaintiffLawyerData = $helper->getLawyerData($case['plaintiff_lawyer']);
-        $plaintiffLawyer = $plaintiffLawyerData ? $plaintiffLawyerData['first_name'] . ' ' . $plaintiffLawyerData['last_name'] : 'Unknown';
+        // Get Plaintiff police Name
+        $plaintiffpoliceData = $helper->getpoliceData($case['plaintiff_police']);
+        $plaintiffpolice = $plaintiffpoliceData ? $plaintiffpoliceData['first_name'] . ' ' . $plaintiffpoliceData['last_name'] : 'Unknown';
 
-        // Get Defendant Lawyer Name
-        $defendantLawyerData = $helper->getLawyerData($case['defendant_lawyer']);
-        $defendantLawyer = $defendantLawyerData ? $defendantLawyerData['first_name'] . ' ' . $defendantLawyerData['last_name'] : 'Unknown';
+        // Get Defendant police Name
+        $defendantpoliceData = $helper->getpoliceData($case['defendant_police']);
+        $defendantpolice = $defendantpoliceData ? $defendantpoliceData['first_name'] . ' ' . $defendantpoliceData['last_name'] : 'Unknown';
 
 
         // Fetch daily activities
@@ -111,8 +145,8 @@ if (isset($_POST['case_id'])) {
                                 <p style="font-size: 22px; font-weight: bold; color: #007bff;"><?= Security::sanitize($caseName) ?></p>
                                 <p><strong>Plaintiff Name:</strong> <?= Security::sanitize($plaintiff) ?></p>
                                 <p><strong>Defendant Name:</strong> <?= Security::sanitize($defendant) ?></p>
-                                <p><strong>Plaintiff Lawyer:</strong> <?= Security::sanitize($plaintiffLawyer) ?></p>
-                                <p><strong>Defendant Lawyer:</strong> <?= Security::sanitize($defendantLawyer) ?></p>
+                                <p><strong>Plaintiff police:</strong> <?= Security::sanitize($plaintiffpolice) ?></p>
+                                <p><strong>Defendant police:</strong> <?= Security::sanitize($defendantpolice) ?></p>
                             </div>
 
                             <!-- Right Column -->
@@ -163,7 +197,7 @@ if (isset($_POST['case_id'])) {
         <?php
         $stmt_activities->close();
     } else {
-        Security::logError("Unauthorized access attempt to case $caseId by $lawyerId on " . date("Y-m-d H:i:s"));
+        Security::logError("Unauthorized access attempt to case $caseId by $policeId on " . date("Y-m-d H:i:s"));
         echo "<script>alert('Access denied: You are not assigned to this case.');</script>";
     }
 
@@ -174,7 +208,7 @@ if (isset($_POST['case_id'])) {
 
 if (isset($_POST["btn_add"])) {
     // Sanitize inputs
-    $txtLawyerId = $helper->generateNextLawyerID();
+    $txtpoliceId = $helper->generateNextpoliceID();
     $txtFirstName = Security::sanitize($_POST["txt_first_name"]);
     $txtLastName = Security::sanitize($_POST["txt_last_name"]);
     $intMobile = Security::sanitize($_POST["int_mobile"]);
@@ -185,8 +219,8 @@ if (isset($_POST["btn_add"])) {
     $selectStation = Security::sanitize($_POST["select_station"]);
     $dateJoinedDate = Security::sanitize($_POST["date_joined_date"]);
     $selectGender = Security::sanitize($_POST["select_gender"]);
-    $txtEnrolmentNumber = Security::sanitize($_POST["txt_enrolment_number"]);
-    $selectRoleName = "R06";
+    $txtBadgeNumber = Security::sanitize($_POST["txt_badge_number"]);
+    $selectRoleName = "R07";
     $isActive = "1";
     $txtAddedBy = $_SESSION["LOGIN_USERTYPE"];
     $txtWrittenId = $helper->getId($_SESSION["LOGIN_USERNAME"], $_SESSION["LOGIN_USERTYPE"]);
@@ -236,10 +270,10 @@ if (isset($_POST["btn_add"])) {
         exit;
     }
 
-	// Before Insert staff, check for duplicates in staff, lawyer, and police tables
-	Security::checkDuplicate($conn, "nic_number", $txtNicNumber, "", "NIC Number already exists!", $txtLawyerId);
-	Security::checkDuplicate($conn, "mobile", $intMobile, "", "Mobile number already exists!", $txtLawyerId);
-	Security::checkDuplicate($conn, "email", $txtEmail, "", "Email already exists!", $txtLawyerId);
+	// Before Insert staff, check for duplicates in staff, police, and police tables
+	Security::checkDuplicate($conn, "nic_number", $txtNicNumber, "", "NIC Number already exists!", $txtpoliceId);
+	Security::checkDuplicate($conn, "mobile", $intMobile, "", "Mobile number already exists!", $txtpoliceId);
+	Security::checkDuplicate($conn, "email", $txtEmail, "", "Email already exists!", $txtpoliceId);
 
     // Image upload
     $uploadResult = $security->uploadImage('img_profile_photo');
@@ -254,12 +288,12 @@ if (isset($_POST["btn_add"])) {
 	$conn->begin_transaction();
 
     try {
-        // Insert into lawyer table
-        $stmtLawyer = $conn->prepare("INSERT INTO lawyer (lawyer_id, first_name, last_name, mobile, email, address, nic_number, date_of_birth, enrolment_number, joined_date, is_active, role_id, station, image_path, gender, added_by, staff_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        // Insert into police table
+        $stmtpolice = $conn->prepare("INSERT INTO police (police_id, first_name, last_name, mobile, email, address, nic_number, date_of_birth, badge_number, joined_date, is_active, role_id, station, image_path, gender, added_by, staff_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-		$stmtLawyer->bind_param(
+		$stmtpolice->bind_param(
             "sssisssssssssssss",
-            $txtLawyerId,
+            $txtpoliceId,
 			$txtFirstName,
 			$txtLastName,
 			$intMobile,
@@ -267,7 +301,7 @@ if (isset($_POST["btn_add"])) {
 			$txtAddress,
             $txtNicNumber,
 			$dateDateOfBirth,
-            $txtEnrolmentNumber,
+            $txtBadgeNumber,
 			$dateJoinedDate,
             $isActive,
 			$selectRoleName,
@@ -278,7 +312,7 @@ if (isset($_POST["btn_add"])) {
             $txtWrittenId
         );
 
-        $stmtLawyer->execute();
+        $stmtpolice->execute();
 
         // Insert into login table
         $hashedPassword = password_hash($txtNicNumber, PASSWORD_DEFAULT);
@@ -295,8 +329,8 @@ if (isset($_POST["btn_add"])) {
 
         sendSms($intMobile, $message);
 
-        echo '<script>alert("Successfully added a lawyer.");</script>';
-        echo "<script>location.href='index.php?pg=lawyer.php&option=view';</script>";
+        echo '<script>alert("Successfully added a police.");</script>';
+        echo "<script>location.href='index.php?pg=police.php&option=view';</script>";
         exit;
 
     } catch (Exception $e) {
@@ -316,7 +350,7 @@ if (isset($_POST["btn_add"])) {
 
 if (isset($_POST["btn_update"])) {
     // Sanitize inputs
-    $txtLawyerId = Security::sanitize($_POST["txt_lawyer_id"]);
+    $txtpoliceId = Security::sanitize($_POST["txt_police_id"]);
     $txtFirstName = Security::sanitize($_POST["txt_first_name"]);
     $txtLastName = Security::sanitize($_POST["txt_last_name"]);
     $intMobile = Security::sanitize($_POST["int_mobile"]);
@@ -326,7 +360,7 @@ if (isset($_POST["btn_update"])) {
     $txtAddress = Security::sanitize($_POST["txt_address"]);
     $selectStation = Security::sanitize($_POST["select_station"]);
     $selectGender = Security::sanitize($_POST["select_gender"]);
-    $txtEnrolmentNumber = Security::sanitize($_POST["txt_enrolment_number"]);
+    $txtBadgeNumber = Security::sanitize($_POST["txt_badge_number"]);
     $txtAddedBy = $_SESSION["LOGIN_USERTYPE"];
     $txtWrittenId = $helper->getId($_SESSION["LOGIN_USERNAME"], $_SESSION["LOGIN_USERTYPE"]);
     // $txtAddedBy = "R03";
@@ -367,16 +401,16 @@ if (isset($_POST["btn_update"])) {
         exit;
     }
 
-	// Before update staff, check for duplicates in staff, lawyer, and police tables
-	// Security::checkDuplicate($conn, "nic_number", $txtNicNumber, "", "NIC Number already exists!", $txtLawyerId);
-	// Security::checkDuplicate($conn, "mobile", $intMobile, "", "Mobile number already exists!", $txtLawyerId);
-	// Security::checkDuplicate($conn, "email", $txtEmail, "", "Email already exists!", $txtLawyerId);
+	// Before update staff, check for duplicates in staff, police, and police tables
+	// Security::checkDuplicate($conn, "nic_number", $txtNicNumber, "", "NIC Number already exists!", $txtpoliceId);
+	// Security::checkDuplicate($conn, "mobile", $intMobile, "", "Mobile number already exists!", $txtpoliceId);
+	// Security::checkDuplicate($conn, "email", $txtEmail, "", "Email already exists!", $txtpoliceId);
 
     // Start Transaction
     $conn->begin_transaction();
 
     try {
-        $stmtUpdate = $conn->prepare("UPDATE lawyer SET first_name=?, last_name=?, mobile=?, email=?, address=?, nic_number=?, date_of_birth=?, enrolment_number=?, station=?,  gender=?, added_by=?, staff_id=? WHERE lawyer_id=?");
+        $stmtUpdate = $conn->prepare("UPDATE police SET first_name=?, last_name=?, mobile=?, email=?, address=?, nic_number=?, date_of_birth=?, badge_number=?, station=?,  gender=?, added_by=?, staff_id=? WHERE police_id=?");
 
 		$stmtUpdate->bind_param(
             "ssissssssssss",
@@ -387,19 +421,19 @@ if (isset($_POST["btn_update"])) {
 			$txtAddress,
 			$txtNicNumber,
             $dateDateOfBirth,
-            $txtEnrolmentNumber,
+            $txtBadgeNumber,
 			$selectStation,
 			$selectGender,
 			$txtAddedBy,
 			$txtWrittenId,
-            $txtLawyerId
+            $txtpoliceId
         );
         $stmtUpdate->execute();
 
         $conn->commit();
 
-        echo '<script>alert("Successfully updated a Lawyer.");</script>';
-        echo "<script>location.href='index.php?pg=lawyer.php&option=view';</script>";
+        echo '<script>alert("Successfully updated a police.");</script>';
+        echo "<script>location.href='index.php?pg=police.php&option=view';</script>";
         exit;
     } catch (Exception $e) {
         $conn->rollback();
@@ -410,7 +444,7 @@ if (isset($_POST["btn_update"])) {
 }
 
 if (isset($_POST["btn_delete"])) {
-    $txtLawyerId = Security::sanitize($_POST['lawyer_id']);
+    $txtpoliceId = Security::sanitize($_POST['police_id']);
 
     // Check for CSRF Tokens
 	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
@@ -422,13 +456,13 @@ if (isset($_POST["btn_delete"])) {
 
     try {
         // Get email first
-        $stmtSelect = $conn->prepare("SELECT email FROM lawyer WHERE lawyer_id=?");
-        $stmtSelect->bind_param("s", $txtLawyerId);
+        $stmtSelect = $conn->prepare("SELECT email FROM police WHERE police_id=?");
+        $stmtSelect->bind_param("s", $txtpoliceId);
         $stmtSelect->execute();
         $result = $stmtSelect->get_result();
 
         if ($result->num_rows === 0) {
-            throw new Exception("No email found for lawyer ID $txtLawyerId.");
+            throw new Exception("No email found for police ID $txtpoliceId.");
         }
 
         $row = $result->fetch_assoc();
@@ -443,19 +477,19 @@ if (isset($_POST["btn_delete"])) {
         $stmtLoginUpdate->bind_param("s", $email);
         $stmtLoginUpdate->execute();
 
-        // Set lawyer is_active=0
-        $stmtLawyerDelete = $conn->prepare("
-            UPDATE lawyer 
+        // Set police is_active=0
+        $stmtpoliceDelete = $conn->prepare("
+            UPDATE police 
             SET is_active='0' 
-            WHERE lawyer_id=?
+            WHERE police_id=?
         ");
-        $stmtLawyerDelete->bind_param("s", $txtLawyerId);
-        $stmtLawyerDelete->execute();
+        $stmtpoliceDelete->bind_param("s", $txtpoliceId);
+        $stmtpoliceDelete->execute();
 
         $conn->commit();
 
-        echo '<script>alert("Successfully deleted the Lawyer.");</script>';
-        echo "<script>location.href='index.php?pg=lawyer.php&option=view';</script>";
+        echo '<script>alert("Successfully deleted the police.");</script>';
+        echo "<script>location.href='index.php?pg=police.php&option=view';</script>";
         exit;
     } catch (Exception $e) {
         $conn->rollback();
@@ -465,7 +499,7 @@ if (isset($_POST["btn_delete"])) {
 }
 
 if (isset($_POST["btn_reactivate"])) {
-    $txtLawyerId = Security::sanitize($_POST['lawyer_id']);
+    $txtpoliceId = Security::sanitize($_POST['police_id']);
 
     // Check for CSRF Tokens
 	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
@@ -477,13 +511,13 @@ if (isset($_POST["btn_reactivate"])) {
 
     try {
         // Get email first
-        $stmtSelect = $conn->prepare("SELECT email FROM lawyer WHERE lawyer_id=?");
-        $stmtSelect->bind_param("s", $txtLawyerId);
+        $stmtSelect = $conn->prepare("SELECT email FROM police WHERE police_id=?");
+        $stmtSelect->bind_param("s", $txtpoliceId);
         $stmtSelect->execute();
         $result = $stmtSelect->get_result();
 
         if ($result->num_rows === 0) {
-            throw new Exception("No email found for lawyer ID $txtLawyerId.");
+            throw new Exception("No email found for police ID $txtpoliceId.");
         }
 
         $row = $result->fetch_assoc();
@@ -498,19 +532,19 @@ if (isset($_POST["btn_reactivate"])) {
         $stmtLoginUpdate->bind_param("s", $email);
         $stmtLoginUpdate->execute();
 
-        // Set lawyer is_active=1 (reactivate)
-        $stmtLawyerReactivate = $conn->prepare("
-            UPDATE lawyer
+        // Set police is_active=1 (reactivate)
+        $stmtpoliceReactivate = $conn->prepare("
+            UPDATE police
             SET is_active='1' 
-            WHERE lawyer_id=?
+            WHERE police_id=?
         ");
-        $stmtLawyerReactivate->bind_param("s", $txtLawyerId);
-        $stmtLawyerReactivate->execute();
+        $stmtpoliceReactivate->bind_param("s", $txtpoliceId);
+        $stmtpoliceReactivate->execute();
 
         $conn->commit();
 
-        echo '<script>alert("Successfully reactivated the lawyer.");</script>';
-        echo "<script>location.href='index.php?pg=lawyer.php&option=view';</script>";
+        echo '<script>alert("Successfully reactivated the police.");</script>';
+        echo "<script>location.href='index.php?pg=police.php&option=view';</script>";
         exit;
     } catch (Exception $e) {
         $conn->rollback();
@@ -535,9 +569,9 @@ if (isset($_POST["btn_reactivate"])) {
 		<?php
 			if(isset($_GET['option']) && $_GET['option'] == "view") {
 			
-				// $sql_read = "SELECT lawyer_id, first_name, last_name, nic_number, mobile, court_id, lawyer_id, email FROM staff WHERE is_active = 1";
+				// $sql_read = "SELECT police_id, first_name, last_name, nic_number, mobile, court_id, police_id, email FROM staff WHERE is_active = 1";
 				
-				$sql_read = "SELECT lawyer_id, first_name, last_name, nic_number, mobile, email, enrolment_number, is_active FROM lawyer";
+				$sql_read = "SELECT police_id, first_name, last_name, nic_number, mobile, email, badge_number, is_active FROM police";
 				$result = $conn->query($sql_read);
 
 				if ($result && $result->num_rows > 0) {
@@ -545,8 +579,8 @@ if (isset($_POST["btn_reactivate"])) {
 		<div class="container mt-4">
 			<!-- For bigger list  <div class="container-fluid mt-4"> -->
 			<div class="d-flex justify-content-start mb-3">
-				<a href="index.php?pg=lawyer.php&option=add" class="btn btn-success btn-sm me-1">
-				<i class="fas fa-plus"></i> Add Lawyer
+				<a href="index.php?pg=police.php&option=add" class="btn btn-success btn-sm me-1">
+				<i class="fas fa-plus"></i> Add police
 				</a>
 			</div>
 			<div class="table-responsive">
@@ -576,20 +610,20 @@ if (isset($_POST["btn_reactivate"])) {
 							</td>
 							<td><?php echo $row['nic_number']; ?></td>
 							<td><?php echo $row['mobile']; ?></td>
-							<td><?php echo $row['enrolment_number']; ?></td>
+							<td><?php echo $row['badge_number']; ?></td>
 							<td>
 								<div class="d-flex flex-wrap gap-1">
-									<form method="POST" action="index.php?pg=lawyer.php&option=edit" class="d-inline">
+									<form method="POST" action="index.php?pg=police.php&option=edit" class="d-inline">
                                         
-										<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
+										<input type="hidden" name="police_id" value="<?php echo Security::sanitize($row['police_id']); ?>">
 										<button class="btn btn-primary btn-sm" type="submit" name="btn_edit">
 										<i class="fas fa-edit"></i> Edit
 										</button>
 									</form>
 									<form method="GET" action="index.php" class="d-inline">
-										<input type="hidden" name="pg" value="lawyer.php">
+										<input type="hidden" name="pg" value="police.php">
 										<input type="hidden" name="option" value="full_view">
-										<input type="hidden" name="id" value="<?php echo urlencode(Security::sanitize($row['lawyer_id'])); ?>">
+										<input type="hidden" name="id" value="<?php echo urlencode(Security::sanitize($row['police_id'])); ?>">
 										<button type="submit" class="btn btn-info btn-sm text-white">
 										<i class="fas fa-eye"></i> Full View
 										</button>
@@ -599,7 +633,7 @@ if (isset($_POST["btn_reactivate"])) {
 										<!-- Delete Button for Active User -->
 										<form method="POST" action="#" class="d-inline delete-form">
                                             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">	
-											<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
+											<input type="hidden" name="police_id" value="<?php echo Security::sanitize($row['police_id']); ?>">
 											<input type="hidden" name="btn_delete" value="1">
 											<button type="button" class="btn btn-danger btn-sm" onclick="deleteConfirmModal(() => this.closest('form').submit())">
 												<i class="fas fa-trash-alt"></i> Delete
@@ -609,7 +643,7 @@ if (isset($_POST["btn_reactivate"])) {
 										<!-- Reactive Button for Deleted/Inactive User -->
 										<form method="POST" action="#" class="d-inline reactive-form">
                                             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">	
-											<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
+											<input type="hidden" name="police_id" value="<?php echo Security::sanitize($row['police_id']); ?>">
 											<input type="hidden" name="btn_reactivate" value="1">
 											<button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" onclick="reactivateConfirmModal(() => this.closest('form').submit())">
 												<i class="fas fa-refresh"></i> Reactive
@@ -628,14 +662,14 @@ if (isset($_POST["btn_reactivate"])) {
 	}
 			// <!-- FULL VIEW SECTION -->
 			}elseif (isset($_GET['option']) && $_GET['option'] == "full_view" && $_GET['id']) {
-					$lawyer_id = $_GET['id'];
+					$police_id = $_GET['id'];
 			
-					$row = $helper->getLawyerData(Security::sanitize($lawyer_id));
+					$row = $helper->getpoliceData(Security::sanitize($police_id));
 				?>
 		<div class="container py-5">
 			<div class="card shadow-lg rounded-4 border-0">
 				<div class="card-header bg-dark text-white rounded-top-4 d-flex align-items-center justify-content-between">
-					<h3 class="mb-0"><i class="bi bi-person-lines-fill me-2"></i>Lawyer Profile</h3>
+					<h3 class="mb-0"><i class="bi bi-person-lines-fill me-2"></i>police Profile</h3>
 				</div>
 				<div class="card-body">
 					<div class="row mb-4">
@@ -653,19 +687,19 @@ if (isset($_POST["btn_reactivate"])) {
 								<div class="d-flex justify-content-between">
 									<?php
 										// Remove the 'S' and convert to integer
-										$number = (int) filter_var($row['lawyer_id'], FILTER_SANITIZE_NUMBER_INT);
+										$number = (int) filter_var($row['police_id'], FILTER_SANITIZE_NUMBER_INT);
 										
 										// Increment the number
 										$nextNumber = $number - 1;
+
+										// Pad with leading zeroes and add the prefix 'P'
+										$previousPoliceId = 'P' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 										
-										// Pad with leading zeroes and add the prefix 'S'
-										$previousLawyerId = 'L' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
-										
-										// Optional: Check if lawyer exists before rendering the button
-										$nextExists = $helper->getLawyerData($previousLawyerId);
-										
+										// Optional: Check if police exists before rendering the button
+										$nextExists = $helper->getpoliceData($previousPoliceId);
+
 										if ($nextExists){ ?>
-									<a href="index.php?pg=lawyer.php&option=full_view&id=<?php echo $previousLawyerId; ?>" class="btn btn-outline-success">
+									<a href="index.php?pg=police.php&option=full_view&id=<?php echo $previousPoliceId; ?>" class="btn btn-outline-success">
 									<i class="bi bi-arrow-left-circle"></i> Previous
 									</a>
 									<?php }else{ ?>
@@ -674,24 +708,24 @@ if (isset($_POST["btn_reactivate"])) {
 									</button>
 									<?php }; ?>
 									<!-- Exit and  go back to view dashboard button -->
-									<a href="index.php?pg=lawyer.php&option=view" class="btn btn-danger">
+									<a href="index.php?pg=police.php&option=view" class="btn btn-danger">
 									Exit <i class="bi bi-x-circle"></i>
 									</a>
 									<?php
 										// Remove the 'S' and convert to integer
-										$number = (int) filter_var($row['lawyer_id'], FILTER_SANITIZE_NUMBER_INT);
+										$number = (int) filter_var($row['police_id'], FILTER_SANITIZE_NUMBER_INT);
 										
 										// Increment the number
 										$nextNumber = $number + 1;
 										
-										// Pad with leading zeroes and add the prefix 'S'
-										$nextLawyerId = 'L' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+										// Pad with leading zeroes and add the prefix 'P'
+										$nextPoliceId = 'P' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 										
 										// Optional: Check if staff exists before rendering the button
-										$nextExists = $helper->getLawyerData($nextLawyerId);
+										$nextExists = $helper->getpoliceData($nextPoliceId);
 										
 										if ($nextExists){ ?>
-									<a href="index.php?pg=lawyer.php&option=full_view&id=<?php echo $nextLawyerId; ?>" class="btn btn-outline-success">
+									<a href="index.php?pg=police.php&option=full_view&id=<?php echo $nextPoliceId; ?>" class="btn btn-outline-success">
 									Next <i class="bi bi-arrow-right-circle"></i>
 									</a>
 									<?php }else{ ?>
@@ -705,8 +739,8 @@ if (isset($_POST["btn_reactivate"])) {
 								<table class="table table-hover table-bordered align-middle">
 									<tbody>
 										<tr>
-											<th scope="row">Lawyer ID</th>
-											<td><?php echo ltrim(substr($row['lawyer_id'], 1), '0'); ?></td>
+											<th scope="row">police ID</th>
+											<td><?php echo ltrim(substr($row['police_id'], 1), '0'); ?></td>
 										</tr>
 										<tr>
 											<th scope="row">First Name</th>
@@ -737,8 +771,8 @@ if (isset($_POST["btn_reactivate"])) {
 											<td><?php echo Security::sanitize($row['gender']); ?></td>
 										</tr>
 										<tr>
-											<th scope="row">Supreme Court Enrolment Number</th>
-											<td><?php echo Security::sanitize($row['enrolment_number']); ?></td>
+											<th scope="row">Police Badge Number</th>
+											<td><?php echo Security::sanitize($row['badge_number']); ?></td>
 										</tr>
 										<th scope="row">Address</th>
 										<td><?php echo Security::sanitize($row['address']); ?></td>
@@ -775,8 +809,8 @@ if (isset($_POST["btn_reactivate"])) {
 				<div class="card-footer bg-light rounded-bottom-4">
 					<div class="d-flex justify-content-center gap-2">
 						<!-- Edit Button within Full View-->
-						<form method="POST" action="http://localhost/ucms/index.php?pg=lawyer.php&option=edit" class="d-inline">
-							<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
+						<form method="POST" action="http://localhost/ucms/index.php?pg=police.php&option=edit" class="d-inline">
+							<input type="hidden" name="police_id" value="<?php echo Security::sanitize($row['police_id']); ?>">
 							<button type="submit" class="btn btn-primary btn-sm" name="btn_edit">
 							<i class="fas fa-pen-to-square me-1"></i> Edit
 							</button>
@@ -788,7 +822,7 @@ if (isset($_POST["btn_reactivate"])) {
 							<!-- Delete Button for Active User -->
 							<form method="POST" action="#" class="d-inline delete-form">
                                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-								<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
+								<input type="hidden" name="police_id" value="<?php echo Security::sanitize($row['police_id']); ?>">
 								<input type="hidden" name="btn_delete" value="1">
 								<button type="button" class="btn btn-danger btn-sm" onclick="deleteConfirmModal(() => this.closest('form').submit())">
 									<i class="fas fa-trash-alt"></i> Delete
@@ -798,7 +832,7 @@ if (isset($_POST["btn_reactivate"])) {
 							<!-- Reactive Button for Deleted/Inactive User -->
 							<form method="POST" action="#" class="d-inline reactive-form">
                                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-								<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
+								<input type="hidden" name="police_id" value="<?php echo Security::sanitize($row['police_id']); ?>">
 								<input type="hidden" name="btn_reactivate" value="1">
 								<button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" onclick="reactivateConfirmModal(() => this.closest('form').submit())">
 									<i class="fas fa-refresh"></i> Reactive
@@ -819,9 +853,9 @@ if (isset($_POST["btn_reactivate"])) {
 
 <?php
 // Fetch case results
-$query1 = "SELECT * FROM cases WHERE plaintiff_lawyer = ? OR defendant_lawyer = ?";
+$query1 = "SELECT * FROM cases WHERE plaintiff_police = ? OR defendant_police = ?";
 $cstmt = $conn->prepare($query1);
-$cstmt->bind_param("ss", $lawyerId, $lawyerId);
+$cstmt->bind_param("ss", $policeId, $policeId);
 $cstmt->execute();
 $caseResult = $cstmt->get_result();
 
@@ -832,8 +866,8 @@ $partyDetails = [];
 while ($row = $caseResult->fetch_assoc()) {
     $cases[] = $row; // store the case for later use
 
-    // Determine which party to retrieve based on the lawyer's role
-    $partyId = ($row['plaintiff_lawyer'] == $lawyerId) ? $row['plaintiff'] : $row['defendant'];
+    // Determine which party to retrieve based on the police's role
+    $partyId = ($row['plaintiff_police'] == $policeId) ? $row['plaintiff'] : $row['defendant'];
 
     // Fetch party details
     $query2 = "SELECT party_id, first_name, last_name, mobile, nic_number, email, joined_date, address, date_of_birth, is_active FROM parties WHERE party_id = ?";
@@ -918,7 +952,7 @@ foreach ($cases as $case) {
             <p><strong>Next Date:</strong> <?= Security::sanitize($case['next_date']) ?></p>
             <p><strong>For:</strong> <?= Security::sanitize($case['for_what']) ?></p>
 
-<form method="POST" action="index.php?pg=lawyer.php&option=full_view&id=<?= $lawyerId ?>" class="d-inline">
+<form method="POST" action="index.php?pg=police.php&option=full_view&id=<?= $policeId ?>" class="d-inline">
     <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
     <input type="hidden" name="case_id" value="<?= urlencode($case['case_id']) ?>">
     <button type="submit" class="btn btn-info btn-sm text-white">
@@ -959,18 +993,18 @@ foreach ($cases as $case) {
 		<?php
 			// <!-- ADD SECTION -->
 			}elseif (isset($_GET['option']) && $_GET['option'] == "add") {
-				$nextLawyerId = $helper->generateNextLawyerID(); // Get the next ID *before* the form
+				$nextPoliceId = $helper->generateNextpoliceID(); // Get the next ID *before* the form
 			?>
 		<div class="container-fluid bg-primary text-white text-center py-3">
-			<h1>ADD NEW LAWYER</h1>
+			<h1>ADD NEW police</h1>
 		</div>
 		<div class="container mt-4">
 			<div class="row justify-content-center">
 				<div class="col-md-8 col-lg-6">
-					<form action="#" method="POST" id="lawyerForm" name="lawyerForm" enctype="multipart/form-data">
+					<form action="#" method="POST" id="policeForm" name="policeForm" enctype="multipart/form-data">
 						<div class="row mb-3">
-							<label hidden for="lawyer_id" class="form-label">Lawyer ID</label>
-							<input hidden type="text" class="form-control" id="txt_lawyer_id" name="txt_lawyer_id" value="<?php echo Security::sanitize($nextLawyerId); ?>" readonly required>
+							<label hidden for="police_id" class="form-label">police ID</label>
+							<input hidden type="text" class="form-control" id="txt_police_id" name="txt_police_id" value="<?php echo Security::sanitize($nextPoliceId); ?>" readonly required>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
@@ -1010,10 +1044,19 @@ foreach ($cases as $case) {
 							<div class="col-md-6">
 								<label for="court_id" class="form-label">Station</label>
 								<select class="form-select" id="select_station" name="select_station">
-									<option value="" disabled selected hidden>Job Type</option>
-									<option value="Legal Aid Commission">Legal Aid Commission</option>
-                                    <option value="Attorney General Department">Attorney General Department</option>
-									<option value="Private">Private</option>
+									<option value="" disabled selected hidden>Select Police Station</option>
+									<option value="Kilinochchi HQ">Kilinochchi HQ</option>
+									<option value="Palai">Palai</option>
+									<option value="Poonakari">Poonakari</option>
+									<option value="Tharmapuram">Tharmapuram</option>
+									<option value="Jeyapuram">Jeyapuram</option>
+									<option value="Akkarayan">Akkarayan</option>
+									<option value="Maruthankeni">Maruthankeni</option>
+									<option value="Ramanathapuram">Ramanathapuram</option>
+									<option value="Mulankaavil">Mulankaavil</option>
+									<option value="S.C.I.B">S.C.I.B</option>
+									<option value="D.C.D.B">D.C.D.B</option>
+									<option value="C.I.D">C.I.D</option>
 								</select>
 							</div>
 							<div class="col-md-6">
@@ -1037,8 +1080,8 @@ foreach ($cases as $case) {
 							</div>
 						</div>
                         <div class="mb-3">
-                            <label for="lawyer_id" class="form-label">Lawyer Enrolment/Supreme Court Reg. Number</label>
-                            <input type="text" class="form-control" id="txt_enrolment_number" name="txt_enrolment_number" required>
+                            <label for="police_id" class="form-label">police Badge Number</label>
+                            <input type="text" class="form-control" id="txt_badge_number" name="txt_badge_number" required>
                         </div>
                         <label>* Plese be kind enough to note that Password will be generated, & sent to Registered email/ mobile</label><br><br>
 						<div>
@@ -1054,8 +1097,8 @@ foreach ($cases as $case) {
 		</div>
 		`	<?php
 			// <!-- EDIT SECTION -->
-			}elseif(isset($_GET['option']) && $_GET['option'] == "edit" && isset($_POST['lawyer_id'])) {
-				$data = $helper->getLawyerData(Security::sanitize($_POST['lawyer_id']), $conn);
+			}elseif(isset($_GET['option']) && $_GET['option'] == "edit" && isset($_POST['police_id'])) {
+				$data = $helper->getpoliceData(Security::sanitize($_POST['police_id']), $conn);
 			
 				$txtFirstName = $data['first_name'];
 				$txtLastName = $data['last_name'];
@@ -1064,23 +1107,23 @@ foreach ($cases as $case) {
 				$dateDateOfBirth = $data['date_of_birth'];
 				$txtEmail = $data['email'];
 				$txtAddress = $data['address'];
-				$txtEnrolmentNumber = $data['enrolment_number'];
+				$txtBadgeNumber = $data['badge_number'];
 				$selectGender = $data['gender'];
                 $selectStation = $data['station'];
 
 
 			?>
 		<div class="container-fluid bg-primary text-white text-center py-3">
-			<h1>EDIT LAWYER</h1>
+			<h1>EDIT police</h1>
 		</div>
 		<div class="container mt-4">
 			<div class="row justify-content-center">
 				<div class="col-md-8 col-lg-6">
 					<form action="#" method="POST" id="staffForm" enctype="multipart/form-data">
 						<div class="row mb-3">
-							<label hidden for="lawyer_id" class="form-label">Lawyer ID</label>
+							<label hidden for="police_id" class="form-label">police ID</label>
                             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-							<input hidden type="text" class="form-control" id="txt_lawyer_id" name="txt_lawyer_id" value="<?php echo Security::sanitize($_POST['lawyer_id']); ?>" readonly required>
+							<input hidden type="text" class="form-control" id="txt_police_id" name="txt_police_id" value="<?php echo Security::sanitize($_POST['police_id']); ?>" readonly required>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
@@ -1119,10 +1162,19 @@ foreach ($cases as $case) {
 							<div class="col-md-6">
 								<label for="court_id" class="form-label">Station</label>
 								<select class="form-select" id="select_station" name="select_station">
-									<option disabled selected hidden value="<?php echo $selectStation ?>"><?php echo $selectStation ?></option>
-									<option value="Legal Aid Commission">Legal Aid Commission</option>
-                                    <option value="Attorney General Department">Attorney General Department</option>
-									<option value="Private">Private</option>
+									<option value="" disabled selected hidden>Select Police Station</option>
+									<option value="Kilinochchi HQ">Kilinochchi HQ</option>
+									<option value="Palai">Palai</option>
+									<option value="Poonakari">Poonakari</option>
+									<option value="Tharmapuram">Tharmapuram</option>
+									<option value="Jeyapuram">Jeyapuram</option>
+									<option value="Akkarayan">Akkarayan</option>
+									<option value="Maruthankeni">Maruthankeni</option>
+									<option value="Ramanathapuram">Ramanathapuram</option>
+									<option value="Mulankaavil">Mulankaavil</option>
+									<option value="S.C.I.B">S.C.I.B</option>
+									<option value="D.C.D.B">D.C.D.B</option>
+									<option value="C.I.D">C.I.D</option>
 								</select>
 							</div>
                             <div class="col-md-6">
@@ -1141,8 +1193,8 @@ foreach ($cases as $case) {
 								</select>
 							</div>
                             <div class="col-md-6">
-                            <label for="lawyer_id" class="form-label">Supreme Court Reg. No</label>
-                            <input type="text" class="form-control" id="txt_enrolment_number" name="txt_enrolment_number" value="<?php echo $txtEnrolmentNumber ?>" required>
+                            <label for="police_id" class="form-label">Police Badge Number</label>
+                            <input type="text" class="form-control" id="txt_badge_number" name="txt_badge_number" value="<?php echo $txtBadgeNumber ?>" required>
                         </div>
 						</div>
 						<button type="submit" class="btn btn-primary" id="btn_update" name="btn_update">Submit</button>
@@ -1244,8 +1296,8 @@ foreach ($cases as $case) {
                     $caseName = $case['case_name'];
                     $plaintiff = $case['plaintiff'];
                     $defendant = $case['defendant'];
-                    $plaintiffLawyer = $case['plaintiff_lawyer'];
-                    $defendantLawyer = $case['defendant_lawyer'];
+                    $plaintiffpolice = $case['plaintiff_police'];
+                    $defendantpolice = $case['defendant_police'];
                     $nature = $case['nature'];
                     $isWarrant = $case['is_warrant'];
                     $courtId = $case['court_id'];
@@ -1266,8 +1318,8 @@ foreach ($cases as $case) {
                       <div class="case-column">
                         <p><span class="case-label">Plaintiff Name:</span> <span class="case-value"><?= Security::sanitize($plaintiff) ?></span></p>
                         <p><span class="case-label">Defendant Name:</span> <span class="case-value"><?= Security::sanitize($defendant) ?></span></p>
-                        <p><span class="case-label">Plaintiff Lawyer:</span> <span class="case-value"><?= Security::sanitize($plaintiffLawyer) ?></span></p>
-                        <p><span class="case-label">Defendant Lawyer:</span> <span class="case-value"><?= Security::sanitize($defendantLawyer) ?></span></p>
+                        <p><span class="case-label">Plaintiff police:</span> <span class="case-value"><?= Security::sanitize($plaintiffpolice) ?></span></p>
+                        <p><span class="case-label">Defendant police:</span> <span class="case-value"><?= Security::sanitize($defendantpolice) ?></span></p>
                       </div>
                       <div class="case-column">
                         <p><span class="case-label">Nature of the Case:</span> <span class="case-value"><?= Security::sanitize($nature) ?></span></p>
@@ -1317,6 +1369,72 @@ foreach ($cases as $case) {
     </div>
   </div>
 </div>
+
+
+
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+  <div class="card shadow-lg p-4 rounded-4" style="max-width: 600px; width: 100%;">
+    <h4 class="text-center mb-4 text-primary fw-bold">🔍 Search for a Case</h4>
+
+    <form id="caseSearchForm">
+      <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+      <div class="input-group input-group-lg mb-3">
+        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+        <input type="text" class="form-control border-start-0" name="case_input" placeholder="Enter Case ID or Name..." required>
+        <button class="btn btn-outline-primary" type="submit">Search</button>
+      </div>
+    </form>
+
+    <div id="caseResult" class="mt-3"></div>
+  </div>
+</div>
+
+
+
+
+<script>
+document.getElementById('caseSearchForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const formData = new FormData(this);
+
+  fetch('action/donor.ajax.php', {
+    method: 'POST',
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    const resultDiv = document.getElementById('caseResult');
+    if (data.error) {
+      resultDiv.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+      return;
+    }
+
+    const warrantAlert = data.is_warrant == 1
+      ? `<div class="alert alert-danger fw-bold">⚠ Arrest Warrant Issued</div>`
+      : `<div class="alert alert-success">✅ No Arrest Warrant</div>`;
+
+    const activity = data.activity
+      ? `<div class="card">
+           <div class="card-body">
+             <h5 class="card-title">Latest Activity (${data.activity.activity_date})</h5>
+             <p><strong>Summary:</strong> ${data.activity.summary}</p>
+             <p><strong>Next Date:</strong> ${data.activity.next_date}</p>
+           </div>
+         </div>`
+      : `<p class="text-muted">No activity found for this case.</p>`;
+
+    resultDiv.innerHTML = `
+      <div class="mb-3"><strong>Case Name:</strong> ${data.case_name}</div>
+      ${warrantAlert}
+      ${activity}
+    `;
+  })
+  .catch(err => {
+    document.getElementById('caseResult').innerHTML = `<div class="alert alert-warning">Error fetching data.</div>`;
+  });
+});
+</script>
 
 
 

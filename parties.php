@@ -1,9 +1,9 @@
 <?php
 	if(isset($_SESSION["LOGIN_USERTYPE"])){
-	    $system_usertype = $_SESSION["LOGIN_USERTYPE"];
-		$system_username = $_SESSION["LOGIN_USERNAME"];
+	    $systemUsertype = $_SESSION["LOGIN_USERTYPE"];
+		$systemUsername = $_SESSION["LOGIN_USERNAME"];
 	}else{
-		$system_usertype = "GUEST";
+		$systemUsertype = "GUEST";
 	}
 	if (empty($_SESSION['csrf_token'])) {
 	    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -16,20 +16,20 @@
 	
 	if (isset($_POST["btn_add"])) {
 	    // Sanitize inputs
-	    $txt_party_id = Security::sanitize($_POST["txt_party_id"]);
-	    $txt_first_name = Security::sanitize($_POST["txt_first_name"]);
-	    $txt_last_name = Security::sanitize($_POST["txt_last_name"]);
-	    $int_mobile = Security::sanitize($_POST["int_mobile"]);
-	    $txt_nic_number = Security::sanitize($_POST["txt_nic_number"]);
-	    $date_date_of_birth = Security::sanitize($_POST["date_date_of_birth"]);
-	    $txt_email = Security::sanitize($_POST["txt_email"]);
-	    $txt_address = Security::sanitize($_POST["txt_address"]);
-	    $select_gender = Security::sanitize($_POST["select_gender"]);
-	    $int_is_active = 1;
-	    // $txt_added_by = Security::sanitize($_POST["txt_added_by"]);
-	    // $txt_staff_id = Security::sanitize($_POST["txt_staff_id"]);
-	    $txt_added_by = "R03";
-	    $txt_staff_id = "S0001";
+	    $txtPartyId = Security::sanitize($_POST["txt_party_id"]);
+	    $txtFirstName = Security::sanitize($_POST["txt_first_name"]);
+	    $txtLastName = Security::sanitize($_POST["txt_last_name"]);
+	    $intMobile = Security::sanitize($_POST["int_mobile"]);
+	    $txtNicNumber = Security::sanitize($_POST["txt_nic_number"]);
+	    $dateDateOfBirth = Security::sanitize($_POST["date_date_of_birth"]);
+	    $txtEmail = Security::sanitize($_POST["txt_email"]);
+	    $txtAddress = Security::sanitize($_POST["txt_address"]);
+	    $selectGender = Security::sanitize($_POST["select_gender"]);
+	    $intIsActive = 1;
+	    $txtAddedBy = $_SESSION["LOGIN_USERTYPE"];
+    	$txtWrittenId = $helper->getId($_SESSION["LOGIN_USERNAME"], $_SESSION["LOGIN_USERTYPE"]);
+	    // $txtAddedBy = "R03";
+	    // $txtWrittenId = "S0001";
 	
 		// Check for CSRF Tokens
 		if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
@@ -39,27 +39,27 @@
 	    // Validate inputs
 	    $errors = [];
 	
-	    if (!preg_match('/^[0-9]{10}$/', $int_mobile)) {
+	    if (!preg_match('/^[0-9]{10}$/', $intMobile)) {
 	        $errors[] = "Mobile number must be exactly 10 digits.";
 	    }
 	
-	    if (!filter_var($txt_email, FILTER_VALIDATE_EMAIL)) {
+	    if (!filter_var($txtEmail, FILTER_VALIDATE_EMAIL)) {
 	        $errors[] = "Invalid email format.";
 	    }
 	
-	    if (!preg_match('/^[0-9]{9}[vVxX0-9]{1,3}$/', $txt_nic_number)) {
+	    if (!preg_match('/^[0-9]{9}[vVxX0-9]{1,3}$/', $txtNicNumber)) {
 	        $errors[] = "Invalid NIC number format.";
 	    }
 	
-	    if (!$helper->validateDate($date_date_of_birth)) {
+	    if (!$helper->validateDate($dateDateOfBirth)) {
 	        $errors[] = "Invalid date of birth.";
 	    }
 	
-	    if (!$helper->validateDate($date_joined_date)) {
+	    if (!$helper->validateDate($dateJoinedDate)) {
 	        $errors[] = "Invalid joined date.";
 	    }
 	
-	    if (empty($txt_first_name) || empty($txt_last_name) || empty($txt_address)) {
+	    if (empty($txtFirstName) || empty($txtLastName) || empty($txtAddress)) {
 	        $errors[] = "Name and address fields cannot be empty.";
 	    }
 	
@@ -80,19 +80,19 @@
 	
 			$stmtParty->bind_param(
 	            "sssissdsssiss",
-	            $txt_party_id,
-				$txt_first_name,
-				$txt_last_name,
-				$int_mobile,
-				$txt_nic_number,
-	            $txt_email,
-	            $date_joined_date,
-	            $txt_address,
-				$date_date_of_birth,
-				$select_gender,
-				$int_is_active,
-	            $txt_added_by,
-	            $txt_staff_id
+	            $txtPartyId,
+				$txtFirstName,
+				$txtLastName,
+				$intMobile,
+				$txtNicNumber,
+	            $txtEmail,
+	            $dateJoinedDate,
+	            $txtAddress,
+				$dateDateOfBirth,
+				$selectGender,
+				$intIsActive,
+	            $txtAddedBy,
+	            $txtWrittenId
 	        );
 	
 	        $stmtParty->execute();
@@ -114,20 +114,20 @@
 	
 	if (isset($_POST["btn_update"])) {
 	    // Sanitize inputs
-	    $txt_party_id = $_POST['txt_party_id'];  // Party ID from form (hidden field)
-	    $txt_first_name = $_POST['txt_first_name'];
-	    $txt_last_name = $_POST['txt_last_name'];
-	    $int_mobile = $_POST['int_mobile'];
-	    $txt_nic_number = $_POST['txt_nic_number'];
-	    $txt_email = $_POST['txt_email'];
-	    $txt_address = $_POST['txt_address'];
-	    $date_date_of_birth = $_POST['date_date_of_birth'];
-	    $select_gender = $_POST['select_gender'];
-	    $int_is_active = 1;
-	    // $added_by = $_SESSION["LOGIN_USERNAME"]; 
-	    // $staff_id = $_SESSION["LOGIN_USERTYPE"]; 
-	    $txt_added_by = "R03";
-	    $txt_staff_id = "S0001";
+	    $txtPartyId = $_POST['txt_party_id'];  // Party ID from form (hidden field)
+	    $txtFirstName = $_POST['txt_first_name'];
+	    $txtLastName = $_POST['txt_last_name'];
+	    $intMobile = $_POST['int_mobile'];
+	    $txtNicNumber = $_POST['txt_nic_number'];
+	    $txtEmail = $_POST['txt_email'];
+	    $txtAddress = $_POST['txt_address'];
+	    $dateDateOfBirth = $_POST['date_date_of_birth'];
+	    $selectGender = $_POST['select_gender'];
+	    $intIsActive = 1;
+	    $txtAddedBy = $_SESSION["LOGIN_USERTYPE"];
+    	$txtWrittenId = $helper->getId($_SESSION["LOGIN_USERNAME"], $_SESSION["LOGIN_USERTYPE"]);
+	    // $txtAddedBy = "R03";
+	    // $txtWrittenId = "S0001";
 	
 	
 		// CSRF Protection
@@ -138,23 +138,23 @@
 		// Validate inputs
 	    $errors = [];
 	
-	    if (!preg_match('/^[0-9]{10}$/', $int_mobile)) {
+	    if (!preg_match('/^[0-9]{10}$/', $intMobile)) {
 	        $errors[] = "Mobile number must be exactly 10 digits.";
 	    }
 	
-	    if (!filter_var($txt_email, FILTER_VALIDATE_EMAIL)) {
+	    if (!filter_var($txtEmail, FILTER_VALIDATE_EMAIL)) {
 	        $errors[] = "Invalid email format.";
 	    }
 	
-	    if (!preg_match('/^[0-9]{9}[vVxX0-9]{1,3}$/', $txt_nic_number)) {
+	    if (!preg_match('/^[0-9]{9}[vVxX0-9]{1,3}$/', $txtNicNumber)) {
 	        $errors[] = "Invalid NIC number format.";
 	    }
 	
-	    if (!$helper->validateDate($date_date_of_birth)) {
+	    if (!$helper->validateDate($dateDateOfBirth)) {
 	        $errors[] = "Invalid date of birth.";
 	    }
 	
-	    if (empty($txt_first_name) || empty($txt_last_name) || empty($txt_address)) {
+	    if (empty($txtFirstName) || empty($txtLastName) || empty($txtAddress)) {
 	        $errors[] = "Name and address fields cannot be empty.";
 	    }
 	
@@ -166,9 +166,9 @@
 	    }
 	
 		// Before update party, check for duplicates in staff, lawyer, and police tables
-		// Security::checkDuplicate($conn, "nic_number", $txt_nic_number, "", "NIC Number already exists!", $txt_party_id);
-		// Security::checkDuplicate($conn, "mobile", $int_mobile, "", "Mobile number already exists!", $txt_party_id);
-		// Security::checkDuplicate($conn, "email", $txt_email, "", "Email already exists!", $txt_party_id);
+		// Security::checkDuplicate($conn, "nic_number", $txtNicNumber, "", "NIC Number already exists!", $txtPartyId);
+		// Security::checkDuplicate($conn, "mobile", $intMobile, "", "Mobile number already exists!", $txtPartyId);
+		// Security::checkDuplicate($conn, "email", $txtEmail, "", "Email already exists!", $txtPartyId);
 		
 	
 	    // Start Transaction
@@ -180,17 +180,17 @@
 	
 	        $stmtUpdate->bind_param(
 	            "ssissssssss",
-	            $txt_first_name,
-	            $txt_last_name,
-	            $int_mobile,
-	            $txt_nic_number,
-	            $txt_email,
-	            $txt_address,
-	            $date_date_of_birth,
-	            $select_gender,
-	            $txt_added_by,
-	            $txt_staff_id,
-	            $txt_party_id
+	            $txtFirstName,
+	            $txtLastName,
+	            $intMobile,
+	            $txtNicNumber,
+	            $txtEmail,
+	            $txtAddress,
+	            $dateDateOfBirth,
+	            $selectGender,
+	            $txtAddedBy,
+	            $txtWrittenId,
+	            $txtPartyId
 	        );
 	        $stmtUpdate->execute();
 	
@@ -212,7 +212,7 @@
 	
 	
 	if (isset($_POST["btn_delete"])) {
-	    $txt_party_id = Security::sanitize($_POST['party_id']);
+	    $txtPartyId = Security::sanitize($_POST['party_id']);
 	
 	    // Start Transaction
 	    $conn->begin_transaction();
@@ -220,12 +220,12 @@
 	    try {
 	        // Get email first
 	        $stmtSelect = $conn->prepare("SELECT email FROM parties WHERE party_id=?");
-	        $stmtSelect->bind_param("s", $txt_party_id);
+	        $stmtSelect->bind_param("s", $txtPartyId);
 	        $stmtSelect->execute();
 	        $result = $stmtSelect->get_result();
 	
 	        if ($result->num_rows === 0) {
-	            throw new Exception("No email found for party ID $txt_staff_id.");
+	            throw new Exception("No email found for party ID $txtWrittenId.");
 	        }
 	
 	        $row = $result->fetch_assoc();
@@ -234,7 +234,7 @@
 	        // Set staff is_active=0
 	        $stmtPartyDelete = $conn->prepare("UPDATE parties SET is_active='0' WHERE party_id=?
 	        ");
-	        $stmtPartyDelete->bind_param("s", $txt_party_id);
+	        $stmtPartyDelete->bind_param("s", $txtPartyId);
 	        $stmtPartyDelete->execute();
 	
 	        $conn->commit();
@@ -250,7 +250,7 @@
 	}
 	
 	if (isset($_POST["btn_reactivate"])) {
-	    $txt_party_id = Security::sanitize($_POST['party_id']);
+	    $txtPartyId = Security::sanitize($_POST['party_id']);
 	
 	    // Start Transaction
 	    $conn->begin_transaction();
@@ -258,7 +258,7 @@
 	    try {
 	        // Get email first
 	        $stmtSelect = $conn->prepare("SELECT email FROM parties WHERE party_id=?");
-	        $stmtSelect->bind_param("s", $txt_party_id);
+	        $stmtSelect->bind_param("s", $txtPartyId);
 	        $stmtSelect->execute();
 	        $result = $stmtSelect->get_result();
 	
@@ -276,7 +276,7 @@
 	            SET is_active='1' 
 	            WHERE party_id=?
 	        ");
-	        $stmtStaffReactivate->bind_param("s", $txt_party_id);
+	        $stmtStaffReactivate->bind_param("s", $txtPartyId);
 	        $stmtStaffReactivate->execute();
 	
 	        $conn->commit();
@@ -322,15 +322,16 @@
 		<div class="container mt-5">
 			<div class="d-flex justify-content-between align-items-center mb-3">
 				<h3 class="fw-bold">Party Records</h3>
-				<a href="index.php?pg=parties.php&option=add" class="btn btn-primary">
-				<i class="fas fa-user-plus me-1"></i> Add Party
-				</a>
 			</div>
 			<?php
 				if (isset($_GET['option']) && $_GET['option'] == "view") {
 				            ?>
 			<div class="card p-3 shadow-sm">
+				
 				<div class="table-responsive">
+					<a href="index.php?pg=parties.php&option=add" class="btn btn-primary">
+				<i class="fas fa-user-plus me-1"></i> Add Party
+				</a><br><br>
 					<table class="table table-bordered table-hover">
 						<thead>
 							<tr>
@@ -379,6 +380,7 @@
 										<button name="btn_edit" class="btn btn-primary btn-sm" type="submit">
 										<i class="fas fa-edit"></i> Edit
 										</button>
+									</form>
 										<!-- Delete Button or Reactive Button based on status -->
 										<?php if ($row['is_active']) { ?>
 										<!-- Delete Button for Active a Party -->
@@ -423,68 +425,91 @@
 			<div class="row justify-content-center">
 				<div class="col-md-8 col-lg-6">
 					<form action="#" method="POST" id="staffForm" name="staffForm" enctype="multipart/form-data">
-						<div class="row mb-3">
-							<label hidden for="party_id" class="form-label">Party ID</label>
-							<input hidden type="text" class="form-control" id="txt_party_id" name="txt_party_id" value="<?php echo Security::sanitize($nextPartyId); ?>" readonly required>
-						</div>
-						<div class="row mb-3">
-							<div class="col-md-6">
-								<label for="first_name" class="form-label">First Name</label>
-								<input type="text" class="form-control" id="txt_first_name" name="txt_first_name" onkeypress="return isTextKey(event)" required>
-							</div>
-							<div class="col-md-6">
-								<label for="last_name" class="form-label">Last Name</label>
-								<input type="text" class="form-control" id="txt_last_name" name="txt_last_name" onkeypress="return isTextKey(event)" required>
-							</div>
-						</div>
-						<div class="row mb-3">
-							<div class="col-md-6">
-								<label for="mobile" class="form-label">Mobile Number</label>
-								<input type="text" name="int_mobile" id="int_mobile" class="form-control check-duplicate" data-check="mobile" data-feedback="mobileFeedback" onkeypress="return isNumberKey(event)" onblur="validateMobileNumber('int_mobile')" required>
-								<small id="mobileFeedback" class="text-danger"></small>
-							</div>
-							<div class="col-md-6">
-								<label for="nic_number" class="form-label">NIC Number</label>
-								<!-- <input type="text" class="form-control" id="txt_nic_number" name="txt_nic_number" onblur="nicnumber('txt_nic_number')" required> -->
-								<input type="text" name="txt_nic_number" id="txt_nic_number" class="form-control check-duplicate" data-check="nic" data-feedback="nicFeedback" onblur="validateNIC('txt_nic_number')" required>
-								<small id="nicFeedback" class="text-danger"></small>
-							</div>
-						</div>
-						<div class="row mb-3">
-							<div class="col-md-6">
-								<label for="email" class="form-label">Email</label>
-								<input type="email" name="txt_email" id="txt_email" class="form-control check-duplicate" data-check="email" data-feedback="emailFeedback" onblur="validateEmail('txt_email')" required>
-								<small id="emailFeedback" class="text-danger"></small>
-							</div>
-							<div class="col-md-6">
-								<label for="address" class="form-label">Address</label>
-								<input type="text" class="form-control" id="txt_address" name="txt_address" required>
-							</div>
-						</div>
-						<div class="row mb-3">
-							<div class="col-md-6">
-								<label for="date_of_birth" class="form-label">Date of Birth</label>
-								<input type="date" class="form-control" id="date_date_of_birth" name="date_date_of_birth" required>
-							</div>
-							<div class="col-md-6">
-								<label for="court_id" class="form-label">Gender</label>
-								<select class="form-select" id="select_gender" name="select_gender" required>
-									<option value="" disabled selected hidden>Select Gender</option>
-									<option value="Male">Male</option>
-									<option value="Female">Female</option>
-									<option value="Other">Other</option>
-								</select>
-							</div>
-						</div>
-						<label hidden for="joined_date" class="form-label">Joined Date</label>
-						<input hidden type="date" class="form-control" id="txt_added_by"name="txt_added_by" value="<?php echo $_SESSION["LOGIN_USERTYPE"]; ?>" required>
-						<input hidden type="date" class="form-control" id="txt_staff_id" name="txt_staff_id" value="<?php echo $_SESSION["LOGIN_USERNAME"]; ?>" required>
-						<input hidden type="date" class="form-control" id="date_joined_date" max="<?php echo date('Y-m-d'); ?>" name="date_joined_date" value="<?php echo date('Y-m-d'); ?>" required>
-						<input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-				</div>
-				<button type="submit" class="btn btn-primary" id="btn_add" name="btn_add">Submit</button>
-				<button type="button" class="btn btn-secondary" id="btn_clear" name="btn_clear">Clear Inputs</button>
-				</form>
+  <div class="container p-4 bg-light border rounded shadow-sm">
+
+    <h4 class="mb-4 text-primary">Client Registration Form</h4>
+
+    <!-- Hidden Inputs -->
+    <input type="hidden" id="txt_party_id" name="txt_party_id" value="<?php echo Security::sanitize($nextPartyId); ?>" required>
+    <input type="hidden" id="txt_added_by" name="txt_added_by" value="<?php echo $_SESSION["LOGIN_USERTYPE"]; ?>" required>
+    <input type="hidden" id="txt_staff_id" name="txt_staff_id" value="<?php echo $helper->getId($_SESSION["LOGIN_USERNAME"], $_SESSION["LOGIN_USERTYPE"]); ?>" required>
+    <input type="hidden" id="date_joined_date" name="date_joined_date" value="<?php echo date('Y-m-d'); ?>" required>
+    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+
+    <!-- Name Section -->
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label for="txt_first_name" class="form-label">First Name</label>
+        <input type="text" class="form-control" id="txt_first_name" name="txt_first_name" onkeypress="return isTextKey(event)" required>
+      </div>
+      <div class="col-md-6">
+        <label for="txt_last_name" class="form-label">Last Name</label>
+        <input type="text" class="form-control" id="txt_last_name" name="txt_last_name" onkeypress="return isTextKey(event)" required>
+      </div>
+    </div>
+
+    <!-- Contact Info -->
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label for="int_mobile" class="form-label">Mobile Number</label>
+        <input type="text" class="form-control check-duplicate" name="int_mobile" id="int_mobile"
+          data-check="mobile" data-feedback="mobileFeedback"
+          onkeypress="return isNumberKey(event)" onblur="validateMobileNumber('int_mobile')" required>
+        <small id="mobileFeedback" class="text-danger"></small>
+      </div>
+      <div class="col-md-6">
+        <label for="txt_nic_number" class="form-label">NIC Number</label>
+        <input type="text" class="form-control check-duplicate" name="txt_nic_number" id="txt_nic_number"
+          data-check="nic" data-feedback="nicFeedback"
+          onblur="validateNIC('txt_nic_number')" required>
+        <small id="nicFeedback" class="text-danger"></small>
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label for="txt_email" class="form-label">Email Address</label>
+        <input type="email" class="form-control check-duplicate" name="txt_email" id="txt_email"
+          data-check="email" data-feedback="emailFeedback"
+          onblur="validateEmail('txt_email')" required>
+        <small id="emailFeedback" class="text-danger"></small>
+      </div>
+      <div class="col-md-6">
+        <label for="txt_address" class="form-label">Address</label>
+        <input type="text" class="form-control" name="txt_address" id="txt_address" required>
+      </div>
+    </div>
+
+    <!-- Additional Info -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <label for="date_date_of_birth" class="form-label">Date of Birth</label>
+        <input type="date" class="form-control" name="date_date_of_birth" id="date_date_of_birth" required>
+      </div>
+      <div class="col-md-6">
+        <label for="select_gender" class="form-label">Gender</label>
+        <select class="form-select" id="select_gender" name="select_gender" required>
+          <option value="" disabled selected hidden>Select Gender</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="d-flex justify-content-end gap-2">
+      <button type="submit" class="btn btn-primary px-4" id="btn_add" name="btn_add">
+        <i class="bi bi-check-circle me-1"></i> Submit
+      </button>
+      <button type="button" class="btn btn-secondary px-4" id="btn_clear" name="btn_clear">
+        <i class="bi bi-x-circle me-1"></i> Clear
+      </button>
+    </div>
+
+  </div>
+</form>
+
 			</div>
 		</div>
 		</div>

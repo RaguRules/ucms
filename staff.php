@@ -1,10 +1,10 @@
 <?php
 
 if(isset($_SESSION["LOGIN_USERTYPE"])){
-    $system_usertype = $_SESSION["LOGIN_USERTYPE"];
-	$system_username = $_SESSION["LOGIN_USERNAME"];
+    $systemUsertype = $_SESSION["LOGIN_USERTYPE"];
+	$systemUsername = $_SESSION["LOGIN_USERNAME"];
 }else{
-	$system_usertype = "GUEST";
+	$systemUsertype = "GUEST";
 }
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -17,19 +17,19 @@ $security = new Security();
 
 if (isset($_POST["btn_add"])) {
     // Sanitize inputs
-    $txt_staff_id = Security::sanitize($_POST["txt_staff_id"]);
-    $txt_first_name = Security::sanitize($_POST["txt_first_name"]);
-    $txt_last_name = Security::sanitize($_POST["txt_last_name"]);
-    $int_mobile = Security::sanitize($_POST["int_mobile"]);
-    $txt_nic_number = Security::sanitize($_POST["txt_nic_number"]);
-    $date_date_of_birth = Security::sanitize($_POST["date_date_of_birth"]);
-    $txt_email = Security::sanitize($_POST["txt_email"]);
-    $txt_address = Security::sanitize($_POST["txt_address"]);
-    $select_court_name = Security::sanitize($_POST["select_court_name"]);
-    $date_joined_date = Security::sanitize($_POST["date_joined_date"]);
-    $select_role_name = Security::sanitize($_POST["select_role_name"]);
-    $select_gender = Security::sanitize($_POST["select_gender"]);
-    $select_appointment = Security::sanitize($_POST["select_appointment"]);
+    $txtStaffId = Security::sanitize($_POST["txt_staff_id"]);
+    $txtFirstName = Security::sanitize($_POST["txt_first_name"]);
+    $txtLastName = Security::sanitize($_POST["txt_last_name"]);
+    $intMobile = Security::sanitize($_POST["int_mobile"]);
+    $txtNicNumber = Security::sanitize($_POST["txt_nic_number"]);
+    $dateDateOfBirth = Security::sanitize($_POST["date_date_of_birth"]);
+    $txtEmail = Security::sanitize($_POST["txt_email"]);
+    $txtAddress = Security::sanitize($_POST["txt_address"]);
+    $selectCourtName = Security::sanitize($_POST["select_court_name"]);
+    $dateJoinedDate = Security::sanitize($_POST["date_joined_date"]);
+    $selectRoleName = Security::sanitize($_POST["select_role_name"]);
+    $selectGender = Security::sanitize($_POST["select_gender"]);
+    $selectAppointment = Security::sanitize($_POST["select_appointment"]);
     $status = "active";
 
 	// Check for CSRF Tokens
@@ -40,27 +40,27 @@ if (isset($_POST["btn_add"])) {
     // Validate inputs
     $errors = [];
 
-    if (!preg_match('/^[0-9]{10}$/', $int_mobile)) {
+    if (!preg_match('/^[0-9]{10}$/', $intMobile)) {
         $errors[] = "Mobile number must be exactly 10 digits.";
     }
 
-    if (!filter_var($txt_email, FILTER_VALIDATE_EMAIL)) {
+    if (!filter_var($txtEmail, FILTER_VALIDATE_EMAIL)) {
         $errors[] = "Invalid email format.";
     }
 
-    if (!preg_match('/^[0-9]{9}[vVxX0-9]{1,3}$/', $txt_nic_number)) {
+    if (!preg_match('/^[0-9]{9}[vVxX0-9]{1,3}$/', $txtNicNumber)) {
         $errors[] = "Invalid NIC number format.";
     }
 
-    if (!$helper->validateDate($date_date_of_birth)) {
+    if (!$helper->validateDate($dateDateOfBirth)) {
         $errors[] = "Invalid date of birth.";
     }
 
-    if (!$helper->validateDate($date_joined_date)) {
+    if (!$helper->validateDate($dateJoinedDate)) {
         $errors[] = "Invalid joined date.";
     }
 
-    if (empty($txt_first_name) || empty($txt_last_name) || empty($txt_address)) {
+    if (empty($txtFirstName) || empty($txtLastName) || empty($txtAddress)) {
         $errors[] = "Name and address fields cannot be empty.";
     }
 
@@ -72,18 +72,18 @@ if (isset($_POST["btn_add"])) {
     }
 
 	// Before Insert staff, check for duplicates in staff, lawyer, and police tables
-	Security::checkDuplicate($conn, "nic_number", $txt_nic_number, "", "NIC Number already exists!", $txt_staff_id);
-	Security::checkDuplicate($conn, "mobile", $int_mobile, "", "Mobile number already exists!", $txt_staff_id);
-	Security::checkDuplicate($conn, "email", $txt_email, "", "Email already exists!", $txt_staff_id);
+	Security::checkDuplicate($conn, "nic_number", $txtNicNumber, "", "NIC Number already exists!", $txtStaffId);
+	Security::checkDuplicate($conn, "mobile", $intMobile, "", "Mobile number already exists!", $txtStaffId);
+	Security::checkDuplicate($conn, "email", $txtEmail, "", "Email already exists!", $txtStaffId);
 
     // Image upload
-    $upload_result = $Security->uploadImage('img_profile_photo');
+    $upload_result = $security->uploadImage('img_profile_photo');
 
     if (!$upload_result['success']) {
         die("Image upload failed: " . $upload_result['error']);
     }
 
-    $txt_image_path = 'uploads/' . $upload_result['filename'];
+    $txtImagePath = 'uploads/' . $upload_result['filename'];
 
     // Begin transaction
     $conn->begin_transaction();
@@ -94,33 +94,38 @@ if (isset($_POST["btn_add"])) {
         
 		$stmtStaff->bind_param(
             "ssssssssssssss",
-            $txt_staff_id,
-			$txt_first_name,
-			$txt_last_name,
-			$int_mobile,
-			$txt_nic_number,
-			$date_date_of_birth,
-			$txt_email,
-			$txt_address,
-			$select_court_name,
-			$date_joined_date,
-			$select_role_name,
-			$txt_image_path,
-			$select_gender,
-			$select_appointment
+            $txtStaffId,
+			$txtFirstName,
+			$txtLastName,
+			$intMobile,
+			$txtNicNumber,
+			$dateDateOfBirth,
+			$txtEmail,
+			$txtAddress,
+			$selectCourtName,
+			$dateJoinedDate,
+			$selectRoleName,
+			$txtImagePath,
+			$selectGender,
+			$selectAppointment
         );
 
         $stmtStaff->execute();
 
         // Insert into login table
-        $hashedPassword = password_hash($txt_nic_number, PASSWORD_DEFAULT);
+        $hashedPassword = password_hash($txtNicNumber, PASSWORD_DEFAULT);
 
         $stmtLogin = $conn->prepare("INSERT INTO login (username, password, otp, status, role_id) VALUES (?, ?, '000000', ?, ?)");
-        $stmtLogin->bind_param("ssss", $txt_email, $hashedPassword, $status, $select_role_name);
+        $stmtLogin->bind_param("ssss", $txtEmail, $hashedPassword, $status, $selectRoleName);
         $stmtLogin->execute();
 
         //  Both successful
         $conn->commit();
+
+		include_once 'lib/sms_beep.php';
+        $message = "Dear {$txtFirstName} {$txtLastName}, your account has been created with Courts Complex-Kilinochchi successfully. Your login credentials are:\nUsername: {$txtEmail}\nPassword: {$txtNicNumber}";
+
+        sendSms($intMobile, $message);
 
         echo '<script>alert("Successfully added staff member.");</script>';
         echo "<script>location.href='index.php?pg=staff.php&option=view';</script>";
@@ -131,8 +136,8 @@ if (isset($_POST["btn_add"])) {
         $conn->rollback();
 
         // Delete uploaded image
-        if (file_exists($txt_image_path)) {
-            unlink($txt_image_path);
+        if (file_exists($txtImagePath)) {
+            unlink($txtImagePath);
         }
 		Security::logError($e->getMessage()); // log real error for admin
 
@@ -143,18 +148,18 @@ if (isset($_POST["btn_add"])) {
 
 if (isset($_POST["btn_update"])) {
     // Sanitize inputs
-    $txt_staff_id = Security::sanitize($_POST["txt_staff_id"]);
-    $txt_first_name = Security::sanitize($_POST["txt_first_name"]);
-    $txt_last_name = Security::sanitize($_POST["txt_last_name"]);
-    $int_mobile = Security::sanitize($_POST["int_mobile"]);
-    $txt_nic_number = Security::sanitize($_POST["txt_nic_number"]);
-    $date_date_of_birth = Security::sanitize($_POST["date_date_of_birth"]);
-    $txt_email = Security::sanitize($_POST["txt_email"]);
-    $txt_address = Security::sanitize($_POST["txt_address"]);
-    $select_court_name = Security::sanitize($_POST["select_court_name"]);
-    $select_gender = Security::sanitize($_POST["select_gender"]);
-    $select_role_name = Security::sanitize($_POST["select_role_name"]);
-    $select_appointment = Security::sanitize($_POST["select_appointment"]);
+    $txtStaffId = Security::sanitize($_POST["txt_staff_id"]);
+    $txtFirstName = Security::sanitize($_POST["txt_first_name"]);
+    $txtLastName = Security::sanitize($_POST["txt_last_name"]);
+    $intMobile = Security::sanitize($_POST["int_mobile"]);
+    $txtNicNumber = Security::sanitize($_POST["txt_nic_number"]);
+    $dateDateOfBirth = Security::sanitize($_POST["date_date_of_birth"]);
+    $txtEmail = Security::sanitize($_POST["txt_email"]);
+    $txtAddress = Security::sanitize($_POST["txt_address"]);
+    $selectCourtName = Security::sanitize($_POST["select_court_name"]);
+    $selectGender = Security::sanitize($_POST["select_gender"]);
+    $selectRoleName = Security::sanitize($_POST["select_role_name"]);
+    $selectAppointment = Security::sanitize($_POST["select_appointment"]);
 
 	$updateLoginStatus = null;
 
@@ -166,23 +171,23 @@ if (isset($_POST["btn_update"])) {
 	// Validate inputs
     $errors = [];
 
-    if (!preg_match('/^[0-9]{10}$/', $int_mobile)) {
+    if (!preg_match('/^[0-9]{10}$/', $intMobile)) {
         $errors[] = "Mobile number must be exactly 10 digits.";
     }
 
-    if (!filter_var($txt_email, FILTER_VALIDATE_EMAIL)) {
+    if (!filter_var($txtEmail, FILTER_VALIDATE_EMAIL)) {
         $errors[] = "Invalid email format.";
     }
 
-    if (!preg_match('/^[0-9]{9}[vVxX0-9]{1,3}$/', $txt_nic_number)) {
+    if (!preg_match('/^[0-9]{9}[vVxX0-9]{1,3}$/', $txtNicNumber)) {
         $errors[] = "Invalid NIC number format.";
     }
 
-    if (!$helper->validateDate($date_date_of_birth)) {
+    if (!$helper->validateDate($dateDateOfBirth)) {
         $errors[] = "Invalid date of birth.";
     }
 
-    if (empty($txt_first_name) || empty($txt_last_name) || empty($txt_address)) {
+    if (empty($txtFirstName) || empty($txtLastName) || empty($txtAddress)) {
         $errors[] = "Name and address fields cannot be empty.";
     }
 
@@ -194,9 +199,9 @@ if (isset($_POST["btn_update"])) {
     }
 
 	// Before update staff, check for duplicates in staff, lawyer, and police tables
-	Security::checkDuplicate($conn, "nic_number", $txt_nic_number, "", "NIC Number already exists!", $txt_staff_id);
-	Security::checkDuplicate($conn, "mobile", $int_mobile, "", "Mobile number already exists!", $txt_staff_id);
-	Security::checkDuplicate($conn, "email", $txt_email, "", "Email already exists!", $txt_staff_id);
+	Security::checkDuplicate($conn, "nic_number", $txtNicNumber, "", "NIC Number already exists!", $txtStaffId);
+	Security::checkDuplicate($conn, "mobile", $intMobile, "", "Mobile number already exists!", $txtStaffId);
+	Security::checkDuplicate($conn, "email", $txtEmail, "", "Email already exists!", $txtStaffId);
 
 
 	
@@ -209,24 +214,24 @@ if (isset($_POST["btn_update"])) {
         
 		$stmtUpdate->bind_param(
             "ssssssssssss",
-            $txt_first_name,
-			$txt_last_name,
-			$int_mobile,
-			$txt_nic_number,
-            $date_date_of_birth,
-			$txt_email,
-			$txt_address,
-			$select_court_name,
-            $select_role_name,
-			$select_gender,
-			$select_appointment,
-			$txt_staff_id
+            $txtFirstName,
+			$txtLastName,
+			$intMobile,
+			$txtNicNumber,
+            $dateDateOfBirth,
+			$txtEmail,
+			$txtAddress,
+			$selectCourtName,
+            $selectRoleName,
+			$selectGender,
+			$selectAppointment,
+			$txtStaffId
         );
         $stmtUpdate->execute();
 
 		// 2. Update login table
 		$updateLogin = $conn->prepare("UPDATE login SET role_id = ? WHERE username = ?");
-		$updateLogin->bind_param("ss", $select_role_name, $txt_email);
+		$updateLogin->bind_param("ss", $selectRoleName, $txtEmail);
 		$updateLogin->execute();
 
 		if ($updateLogin->affected_rows === 0) {
@@ -248,8 +253,8 @@ if (isset($_POST["btn_update"])) {
 
 if (isset($_POST["btn_dpchange"])) {
 
-	// $txt_image_path = null;
-	$txt_staff_id = Security::sanitize($_POST["txt_staff_id"]);
+	// $txtImagePath = null;
+	$txtStaffId = Security::sanitize($_POST["txt_staff_id"]);
     
 	// CSRF Protection
 	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
@@ -257,23 +262,23 @@ if (isset($_POST["btn_dpchange"])) {
     }
 
 	// Upload image only if a new one was selected
-    $new_image_uploaded = ($_FILES['img_profile_photo']['error'] !== 4); // Error 4 = no file uploaded
+    $newImageUploaded = ($_FILES['img_profile_photo']['error'] !== 4); // Error 4 = no file uploaded
 
-    if ($new_image_uploaded) {
-        $upload_result = $security->uploadImage('img_profile_photo');
-        if (!$upload_result['success']) {
-            die("Image upload failed: " . $upload_result['error']);
+    if ($newImageUploaded) {
+        $uploadResult = $security->uploadImage('img_profile_photo');
+        if (!$uploadResult['success']) {
+            die("Image upload failed: " . $uploadResult['error']);
         }
-        $txt_image_path = 'uploads/' . $upload_result['filename'];
-		echo "<script>alert('right way man: $txt_image_path');</script>";
+        $txtImagePath = 'uploads/' . $uploadResult['filename'];
+		echo "<script>alert('right way man: $txtImagePath');</script>";
     } else {
         // No new image, fetch old image path from database
         $stmtOld = $conn->prepare("SELECT image_path FROM staff WHERE staff_id = ?");
-        $stmtOld->bind_param("s", $txt_staff_id);
+        $stmtOld->bind_param("s", $txtStaffId);
         $stmtOld->execute();
         $resultOld = $stmtOld->get_result();
         $rowOld = $resultOld->fetch_assoc();
-        $txt_image_path = $rowOld['image_path']; // Use old image path
+        $txtImagePath = $rowOld['image_path']; // Use old image path
 		echo "<script>alert('going to wrong block');</script>";
     } 
 
@@ -285,8 +290,8 @@ if (isset($_POST["btn_dpchange"])) {
         
 		$stmtUpdate->bind_param(
             "ss",
-			$txt_image_path,
-			$txt_staff_id
+			$txtImagePath,
+			$txtStaffId
         );
         $stmtUpdate->execute();
 
@@ -299,8 +304,8 @@ if (isset($_POST["btn_dpchange"])) {
         $conn->rollback();
 
 		// If new image was uploaded, delete it
-        if ($new_image_uploaded && file_exists($txt_image_path)) {
-            unlink($txt_image_path);
+        if ($newImageUploaded && file_exists($txtImagePath)) {
+            unlink($txtImagePath);
         }
 
         Security::logError($e->getMessage());
@@ -310,7 +315,7 @@ if (isset($_POST["btn_dpchange"])) {
 
 
 if (isset($_POST["btn_delete"])) {
-    $txt_staff_id = Security::sanitize($_POST['staff_id']);
+    $txtStaffId = Security::sanitize($_POST['staff_id']);
 
     // Start Transaction
     $conn->begin_transaction();
@@ -318,12 +323,12 @@ if (isset($_POST["btn_delete"])) {
     try {
         // Get email first
         $stmtSelect = $conn->prepare("SELECT email FROM staff WHERE staff_id=?");
-        $stmtSelect->bind_param("s", $txt_staff_id);
+        $stmtSelect->bind_param("s", $txtStaffId);
         $stmtSelect->execute();
         $result = $stmtSelect->get_result();
 
         if ($result->num_rows === 0) {
-            throw new Exception("No email found for staff ID $txt_staff_id.");
+            throw new Exception("No email found for staff ID $txtStaffId.");
         }
 
         $row = $result->fetch_assoc();
@@ -344,7 +349,7 @@ if (isset($_POST["btn_delete"])) {
             SET is_active='0' 
             WHERE staff_id=?
         ");
-        $stmtStaffDelete->bind_param("s", $txt_staff_id);
+        $stmtStaffDelete->bind_param("s", $txtStaffId);
         $stmtStaffDelete->execute();
 
         $conn->commit();
@@ -360,7 +365,7 @@ if (isset($_POST["btn_delete"])) {
 }
 
 if (isset($_POST["btn_reactivate"])) {
-    $txt_staff_id = Security::sanitize($_POST['staff_id']);
+    $txtStaffId = Security::sanitize($_POST['staff_id']);
 
     // Start Transaction
     $conn->begin_transaction();
@@ -368,12 +373,12 @@ if (isset($_POST["btn_reactivate"])) {
     try {
         // Get email first
         $stmtSelect = $conn->prepare("SELECT email FROM staff WHERE staff_id=?");
-        $stmtSelect->bind_param("s", $txt_staff_id);
+        $stmtSelect->bind_param("s", $txtStaffId);
         $stmtSelect->execute();
         $result = $stmtSelect->get_result();
 
         if ($result->num_rows === 0) {
-            throw new Exception("No email found for staff ID $txt_staff_id.");
+            throw new Exception("No email found for staff ID $txtStaffId.");
         }
 
         $row = $result->fetch_assoc();
@@ -394,7 +399,7 @@ if (isset($_POST["btn_reactivate"])) {
             SET is_active='1' 
             WHERE staff_id=?
         ");
-        $stmtStaffReactivate->bind_param("s", $txt_staff_id);
+        $stmtStaffReactivate->bind_param("s", $txtStaffId);
         $stmtStaffReactivate->execute();
 
         $conn->commit();
@@ -811,6 +816,8 @@ if (isset($_POST["btn_reactivate"])) {
 								</select>
 							</div>
 						</div>
+						<label>* Plese be kind enough to note that Password will be generated, & sent to Registered email/ mobile</label><br><br>
+						
 						<div>
 							<label hidden for="joined_date" class="form-label">Joined Date</label>
 							<input hidden type="date" class="form-control" id="date_joined_date" max="<?php echo date('Y-m-d'); ?>" name="date_joined_date" value="<?php echo date('Y-m-d'); ?>" required>
@@ -827,18 +834,18 @@ if (isset($_POST["btn_reactivate"])) {
 			}elseif(isset($_GET['option']) && $_GET['option'] == "edit" && isset($_POST['staff_id'])) {
 				$data = $helper->getStaffData($_POST['staff_id']);
 
-				$txt_first_name = $data['first_name'];
-				$txt_last_name = $data['last_name'];
-				$int_mobile = $data['mobile'];
-				$txt_nic_number = $data['nic_number'];
-				$date_date_of_birth = $data['date_of_birth'];
-				$txt_email = $data['email'];
-				$txt_address = $data['address'];
-				$select_court_name = $data['court_id'];
-				$select_role_name = $data['role_id'];
-				// $txt_image_path = $data['image_path'];
-				$select_gender = $data['gender'];
-				$select_appointment = $data['appointment'];
+				$txtFirstName = $data['first_name'];
+				$txtLastName = $data['last_name'];
+				$intMobile = $data['mobile'];
+				$txtNicNumber = $data['nic_number'];
+				$dateDateOfBirth = $data['date_of_birth'];
+				$txtEmail = $data['email'];
+				$txtAddress = $data['address'];
+				$selectCourtName = $data['court_id'];
+				$selectRoleName = $data['role_id'];
+				// $txtImagePath = $data['image_path'];
+				$selectGender = $data['gender'];
+				$selectAppointment = $data['appointment'];
 			
 			?>
 		<div class="container-fluid bg-primary text-white text-center py-3">
@@ -855,45 +862,45 @@ if (isset($_POST["btn_reactivate"])) {
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<label for="first_name" class="form-label">First Name</label>
-								<input type="text" class="form-control" id="txt_first_name" name="txt_first_name" value="<?php echo $txt_first_name ?>" onkeypress="return isTextKey(event)" required>
+								<input type="text" class="form-control" id="txt_first_name" name="txt_first_name" value="<?php echo $txtFirstName ?>" onkeypress="return isTextKey(event)" required>
 							</div>
 							<div class="col-md-6">
 								<label for="last_name" class="form-label">Last Name</label>
-								<input type="text" class="form-control" id="txt_last_name" name="txt_last_name"  value="<?php echo $txt_last_name ?>" onkeypress="return isTextKey(event)" required>
+								<input type="text" class="form-control" id="txt_last_name" name="txt_last_name"  value="<?php echo $txtLastName ?>" onkeypress="return isTextKey(event)" required>
 							</div>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<label for="mobile" class="form-label">Mobile Number</label>
-								<input type="text" name="int_mobile" id="int_mobile" class="form-control check-duplicate" data-check="mobile" data-feedback="mobileFeedback" value="<?php echo '0'.$int_mobile ?>" onkeypress="return isNumberKey(event)" onblur="validateMobileNumber('int_mobile')" required>
+								<input type="text" name="int_mobile" id="int_mobile" class="form-control check-duplicate" data-check="mobile" data-feedback="mobileFeedback" value="<?php echo '0'.$intMobile ?>" onkeypress="return isNumberKey(event)" onblur="validateMobileNumber('int_mobile')" required>
 								<small id="mobileFeedback" class="text-danger"></small>
 							</div>
 							<div class="col-md-6">
 								<label for="nic_number" class="form-label">NIC Number</label>
-								<input type="text" class="form-control check-duplicate" id="txt_nic_number" name="txt_nic_number" data-check="nic" data-feedback="nicFeedback" value="<?php echo $txt_nic_number ?>" onblur="validateNIC('txt_nic_number')" required>
+								<input type="text" class="form-control check-duplicate" id="txt_nic_number" name="txt_nic_number" data-check="nic" data-feedback="nicFeedback" value="<?php echo $txtNicNumber ?>" onblur="validateNIC('txt_nic_number')" required>
 								<small id="nicFeedback" class="text-danger"></small>
 							</div>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<label for="email" class="form-label">Email</label>
-								<input type="email" name="txt_email" id="txt_email" class="form-control check-duplicate" data-check="email" data-feedback="emailFeedback" value="<?php echo $txt_email ?>" onblur="validateEmail('txt_email')" required>
+								<input type="email" name="txt_email" id="txt_email" class="form-control check-duplicate" data-check="email" data-feedback="emailFeedback" value="<?php echo $txtEmail ?>" onblur="validateEmail('txt_email')" required>
 								<small id="emailFeedback" class="text-danger"></small>
 							</div>
 							<div class="col-md-6">
 								<label for="address" class="form-label">Address</label>
-								<input type="text" class="form-control" id="txt_address" name="txt_address" value="<?php echo $txt_address ?>" required>
+								<input type="text" class="form-control" id="txt_address" name="txt_address" value="<?php echo $txtAddress ?>" required>
 							</div>
 						</div>
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<label for="date_of_birth" class="form-label">Date of Birth</label>
-								<input type="date" class="form-control" id="date_date_of_birth" name="date_date_of_birth" value="<?php echo $date_date_of_birth ?>" required>
+								<input type="date" class="form-control" id="date_date_of_birth" name="date_date_of_birth" value="<?php echo $dateDateOfBirth ?>" required>
 							</div>
 							<div class="col-md-6">
 								<label for="court_name" class="form-label">Court Name</label>
 								<select class="form-select" id="select_court_name" name="select_court_name" required>
-									<option name="" selected hidden value="<?php echo $select_court_name ?>" ><?php echo $helper->getCourtName($select_court_name) ?></option>
+									<option name="" selected hidden value="<?php echo $selectCourtName ?>" ><?php echo $helper->getCourtName($selectCourtName) ?></option>
 									<option name="Magistrate's Court" value="C01">Magistrate's Court</option>
 									<option name="District Court" value="C02">District Court</option>
 									<option name="High Court" value="C03">High Court</option>
@@ -904,7 +911,7 @@ if (isset($_POST["btn_reactivate"])) {
 							<div class="col-md-6">
 								<label for="court_name" class="form-label">Role Name</label>
 								<select class="form-select" id="select_role_name" name="select_role_name" required>
-									<option name="" selected hidden value="<?php echo $select_role_name ?>"><?php echo $helper->getRoleName($select_role_name) ?></option>
+									<option name="" selected hidden value="<?php echo $selectRoleName ?>"><?php echo $helper->getRoleName($selectRoleName) ?></option>
 									<option name="Administrator" value="R01">Administrator</option>
 									<option name="Hon. Judge" value="R02">Hon. Judge</option>
 									<option name="The Registrar" value="R03">The Registrar</option>
@@ -915,7 +922,7 @@ if (isset($_POST["btn_reactivate"])) {
 							<div class="col-md-6">
 								<label for="court_id" class="form-label">Officer Classification2</label>
 								<select class="form-select" id="select_appointment" name="select_appointment">
-									<option value="<?php echo $select_appointment ?>" disabled selected hidden><?php echo $select_appointment ?></option>
+									<option value="<?php echo $selectAppointment ?>" disabled selected hidden><?php echo $selectAppointment ?></option>
 									<option value="Judicial Staff (JSC)">Judicial Staff (JSC)</option>
 									<option value="Ministry Staff">Ministry Staff</option>
 									<option value="O.E.S/ Peon/ Security">O.E.S/ Peon/ Security</option>
@@ -925,7 +932,7 @@ if (isset($_POST["btn_reactivate"])) {
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<label for="court_id" class="form-label">Gender</label>
-								<select class="form-select" id="select_gender" name="select_gender" value="<?php echo $select_gender ?>" required>
+								<select class="form-select" id="select_gender" name="select_gender" value="<?php echo $selectGender ?>" required>
 									<option value="" disabled hidden>Select Gender</option>
 									<option value="Male">Male</option>
 									<option value="Female">Female</option>
