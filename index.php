@@ -53,6 +53,7 @@ if (isset($_GET['logout']) && $_GET['logout'] === 'true') {
 		<link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
 		<link href="assets/css/main.css" rel="stylesheet">
 		<link href="assets/css/ragu.css" rel="stylesheet">
+		<link href="assets/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 
 	</head>
 	<body>
@@ -66,6 +67,8 @@ if (isset($_GET['logout']) && $_GET['logout'] === 'true') {
 		<script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
 		<script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
 		<script src="assets/js/jsfunctions.js"></script>
+		<script src="assets/js/jquery.dataTables.min.js"></script>
+		<script src="assets/js/dataTables.bootstrap5.min.js"></script>
 		<!-- <script src="assets/js/flatpickr.js"></script> -->
 		<!-- <script src="assets/js/main.js"></script> -->
 

@@ -195,3 +195,27 @@
 [2025-05-12 14:05:53] Unauthorized access attempt to case C0002 by ragu@ragu.com on 2025-05-12 14:05:53
 [2025-05-12 14:07:57] Unauthorized access attempt to case C0002 by ragu@ragu.com on 2025-05-12 14:07:57
 [2025-05-12 14:08:05] Unauthorized access attempt to case C0001 by ragu@ragu.com on 2025-05-12 14:08:05
+[2025-05-13 04:22:22] Unauthorized access attempt to case C0003 by L0005 on 2025-05-13 04:22:22
+[2025-05-13 04:22:24] Unauthorized access attempt to case C0003 by L0005 on 2025-05-13 04:22:24
+[2025-05-13 04:22:39] Unauthorized access attempt to case C0003 by L0005 on 2025-05-13 04:22:39
+[2025-05-13 04:22:58] Unauthorized access attempt to case C0004 by L0005 on 2025-05-13 04:22:58
+[2025-05-13 04:23:03] Unauthorized access attempt to case C0003 by L0005 on 2025-05-13 04:23:03
+[2025-05-13 04:23:06] Unauthorized access attempt to case C0003 by L0005 on 2025-05-13 04:23:06
+[2025-05-13 04:41:00] Unauthorized access attempt to case C0003 by L0005 on 2025-05-13 04:41:00
+[2025-05-13 04:41:12] Unauthorized access attempt to case C0003 by L0005 on 2025-05-13 04:41:12
+[2025-05-13 04:41:30] Unauthorized access attempt to case C0003 by L0005 on 2025-05-13 04:41:30
+[2025-05-13 05:00:59] Unauthorized access attempt to case  by  on 2025-05-13 05:00:59
+[2025-05-13 05:03:36] Unauthorized access attempt to case  by  on 2025-05-13 05:03:36
+[2025-05-13 05:08:47] Unauthorized access attempt to case C0004 by L0005 on 2025-05-13 05:08:47
+[2025-05-13 05:18:52] Unauthorized access attempt to case C0003 by L0005 on 2025-05-13 05:18:52
+[2025-05-13 05:19:03] Unauthorized access attempt to case C0003 by L0005 on 2025-05-13 05:19:03
+[2025-05-13 05:21:24] Unauthorized access attempt to case C0003 by L0005 on 2025-05-13 05:21:24
+[2025-05-13 05:23:38] Unauthorized access attempt to case C0003 by L0005 on 2025-05-13 05:23:38
+[2025-05-13 05:23:47] Unauthorized access attempt to case C0003 by L0005 on 2025-05-13 05:23:47
+[2025-05-13 05:25:42] Unauthorized access attempt to case C0004 by L0005 on 2025-05-13 05:25:42
+[2025-05-13 05:51:51] Unauthorized access attempt to case C0003 by L0005 on 2025-05-13 05:51:51
+[2025-05-13 05:55:51] Unauthorized access attempt to case C0003 by L0005 on 2025-05-13 05:55:51
+[2025-05-13 06:36:44] Unauthorized access attempt to case C0003 by L0005 on 2025-05-13 06:36:44
+[2025-05-13 06:53:15] Unauthorized access attempt to case C0003 by  on 2025-05-13 06:53:15
+[2025-05-13 07:23:58] Unauthorized access attempt to case C0003 by L0005 on 2025-05-13 07:23:58
+[2025-05-13 07:24:02] Unauthorized access attempt to case C0003 by L0005 on 2025-05-13 07:24:02

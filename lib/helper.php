@@ -31,6 +31,14 @@ class Helper {
         return $this->generateNextID('parties', 'party_id', 'P', 4);
     }
 
+    public function generateNextCaseID() {
+        return $this->generateNextID('cases', 'case_id', 'C', 4);
+    }
+
+    public function generateNextCourtID() {
+        return $this->generateNextID('courts', 'court_id', 'C', 2);
+    }
+
     private function generateNextID($table, $column, $prefix, $padLength) {
         $sql = "SELECT MAX($column) AS max_id FROM $table";
         $result = mysqli_query($this->conn, $sql);
@@ -87,11 +95,22 @@ class Helper {
         return ($result && $result->num_rows > 0) ? $result->fetch_assoc() : null;
     }
 
+    public function getCaseData($case_id) {
+        $stmt = $this->conn->prepare("SELECT * FROM cases WHERE case_id = ?");
+        $stmt->bind_param("s", $case_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        return ($result && $result->num_rows > 0) ? $result->fetch_assoc() : null;
+    }
+
     public function getCourtName($court_id) {
         $courts = [
             'C01' => "Magistrate's Court",
             'C02' => "District Court",
-            'C03' => "High Court"
+            'C03' => "High Court",
+            'C04' => "Juvenile Magistrate's Court"
+            
         ];
         return $courts[$court_id] ?? "Unknown";
     }

@@ -586,9 +586,9 @@ if (isset($_POST["btn_reactivate"])) {
 										<i class="fas fa-edit"></i> Edit
 										</button>
 									</form>
-									<form method="GET" action="index.php" class="d-inline">
+									<form method="GET" action="#" class="d-inline">
 										<input type="hidden" name="pg" value="lawyer.php">
-										<input type="hidden" name="option" value="full_view">
+										<input type="hidden" name="option" value="full_view">input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">	
 										<input type="hidden" name="id" value="<?php echo urlencode(Security::sanitize($row['lawyer_id'])); ?>">
 										<button type="submit" class="btn btn-info btn-sm text-white">
 										<i class="fas fa-eye"></i> Full View
