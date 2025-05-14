@@ -1,20 +1,5 @@
 <?php
 
-if(isset($_SESSION["LOGIN_USERTYPE"])){
-    $systemUsertype = $_SESSION["LOGIN_USERTYPE"];
-	$systemUsername = $_SESSION["LOGIN_USERNAME"];
-}else{
-	$systemUsertype = "GUEST";
-}
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-
-$helper = new Helper($conn);
-$security = new Security();
-
-	
-
 if (isset($_POST["btn_add"])) {
     // Sanitize inputs
     $txtStaffId = Security::sanitize($_POST["txt_staff_id"]);

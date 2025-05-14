@@ -39,6 +39,10 @@ class Helper {
         return $this->generateNextID('courts', 'court_id', 'C', 2);
     }
 
+    public function generateNextActivityID() {
+        return $this->generateNextID('dailycaseactivities', 'activity_id', 'A', 4);
+    }
+
     private function generateNextID($table, $column, $prefix, $padLength) {
         $sql = "SELECT MAX($column) AS max_id FROM $table";
         $result = mysqli_query($this->conn, $sql);
@@ -98,6 +102,15 @@ class Helper {
     public function getCaseData($case_id) {
         $stmt = $this->conn->prepare("SELECT * FROM cases WHERE case_id = ?");
         $stmt->bind_param("s", $case_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        return ($result && $result->num_rows > 0) ? $result->fetch_assoc() : null;
+    }
+
+    public function getActivityData($activity_id) {
+        $stmt = $this->conn->prepare("SELECT * FROM dailycaseactivities WHERE activity_id = ?");
+        $stmt->bind_param("s", $activity_id);
         $stmt->execute();
         $result = $stmt->get_result();
 

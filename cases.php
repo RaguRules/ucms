@@ -1,24 +1,9 @@
 <?php
-	if(isset($_SESSION["LOGIN_USERTYPE"])){
-	    $systemUsertype = $_SESSION["LOGIN_USERTYPE"];
-		$systemUsername = $_SESSION["LOGIN_USERNAME"];
-	}else{
-		$systemUsertype = "GUEST";
-	}
-	
-	if (empty($_SESSION['csrf_token'])) {
-	    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-	}
-	
-	$helper = new Helper($conn);
-	$security = new Security();
-	
-	
-	
+
 	$staffId = null;
 	
 	// Pagination Setup
-	$limit = 10;
+	$limit = 1000;
 	$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 	$start = ($page - 1) * $limit;
 	
@@ -215,6 +200,7 @@
         } else {
         Security::logError("Unauthorized access attempt to case $caseId by $staffId on " . date("Y-m-d H:i:s"));
         echo "<script>alert('Access denied: You are not assigned to this case.');</script>";
+		echo "<script>location.href='index.php?pg=cases.php&option=view';</script>";
         }
         
     $stmt->close();
@@ -297,7 +283,7 @@
 <?php
 	}else if(isset($_GET['option']) && $_GET['option'] == "view") {
 	?>
-<div class="container py-5">
+<div class="container-fluid py-5">
 	<h3 class="mb-4">Case Management</h3>
 	<div class="table-responsive">
 		<table id="casesTable" class="table table-striped table-bordered">
@@ -348,7 +334,7 @@
 							<input type="hidden" name="case_id" value="<?= Security::sanitize($row['case_id']) ?>">
 							<input type="hidden" name="btn_delete" value="1">
 							<button type="button" class="btn btn-danger btn-sm" onclick="deleteConfirmModal(() => this.closest('form').submit())">
-							<i class="fas fa-trash-alt"></i> Delete
+							 Delete
 							</button>
 						</form>
 						<?php } else { ?>
@@ -358,7 +344,7 @@
 							<input type="hidden" name="case_id" value="<?= Security::sanitize($row['case_id']) ?>">
 							<input type="hidden" name="btn_reactivate" value="1">
 							<button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" onclick="reactivateConfirmModal(() => this.closest('form').submit())">
-							<i class="fas fa-refresh"></i> Reactive
+							 Reactivate
 							</button>
 						</form>
 						<?php } ?>
@@ -369,22 +355,29 @@
 		</table>
 	</div>
 	<!-- Pagination -->
-	<nav aria-label="Page navigation">
-		<ul class="pagination justify-content-center">
-			<?php if ($page > 1): ?>
-			<li class="page-item"><a class="page-link" href="?page=<?= $page - 1 ?>">&laquo;</a></li>
-			<?php endif; ?>
-			<?php for ($i = 1; $i <= $totalPages; $i++): ?>
-			<li class="page-item <?= $i === $page ? 'active' : '' ?>">
-				<a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
+<!-- Pagination -->
+<nav aria-label="Page navigation">
+	<ul class="pagination justify-content-center">
+		<?php if ($page > 1): ?>
+			<li class="page-item">
+				<a class="page-link" href="index.php?pg=cases.php&option=view&page=<?= $page - 1 ?>">&laquo;</a>
 			</li>
-			<?php endfor; ?>
-			<?php if ($page < $totalPages): ?>
-			<li class="page-item"><a class="page-link" href="?page=<?= $page + 1 ?>">&raquo;</a></li>
-			<?php endif; ?>
-		</ul>
-	</nav>
-</div>
+		<?php endif; ?>
+		
+		<?php for ($i = 1; $i <= $totalPages; $i++): ?>
+			<li class="page-item <?= $i === $page ? 'active' : '' ?>">
+				<a class="page-link" href="index.php?pg=cases.php&option=view&page=<?= $i ?>"><?= $i ?></a>
+			</li>
+		<?php endfor; ?>
+		
+		<?php if ($page < $totalPages): ?>
+			<li class="page-item">
+				<a class="page-link" href="index.php?pg=cases.php&option=view&page=<?= $page + 1 ?>">&raquo;</a>
+			</li>
+		<?php endif; ?>
+	</ul>
+</nav>
+
 <!-- Add Case Modal -->
 <div class="modal fade" id="addCaseModal" tabindex="-1" aria-labelledby="addCaseModalLabel" aria-hidden="true">
 	<div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -695,13 +688,14 @@
 		</div>
 	</div>
 </div>
+
 <!-- DataTable Setup -->
 <script>
 	$(document).ready(function () {
 	  const table = $('#casesTable').DataTable({
 	    responsive: true,
-	    pageLength: 10,
-	    lengthMenu: [5, 10, 25, 50],
+	    pageLength: 1000,
+	    lengthMenu: [5, 10, 25, 50, 100, 500, 1000],
 	    order: [[5, 'desc']],
 	    columnDefs: [
 	      { orderable: false, targets: [-1, 0] },

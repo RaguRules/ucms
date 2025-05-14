@@ -1,19 +1,5 @@
 <?php
 
-if(isset($_SESSION["LOGIN_USERTYPE"])){
-    $systemUsertype = $_SESSION["LOGIN_USERTYPE"];
-	$systemUsername = $_SESSION["LOGIN_USERNAME"];
-}else{
-	$systemUsertype = "GUEST";
-}
-
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-
-$helper = new Helper($conn);
-$security = new Security();
-
 $lawyerId = null;
 
 if ($systemUsertype === "R06") {
@@ -535,8 +521,6 @@ if (isset($_POST["btn_reactivate"])) {
 		<?php
 			if(isset($_GET['option']) && $_GET['option'] == "view") {
 			
-				// $sql_read = "SELECT lawyer_id, first_name, last_name, nic_number, mobile, court_id, lawyer_id, email FROM staff WHERE is_active = 1";
-				
 				$sql_read = "SELECT lawyer_id, first_name, last_name, nic_number, mobile, email, enrolment_number, is_active FROM lawyer";
 				$result = $conn->query($sql_read);
 
@@ -588,7 +572,8 @@ if (isset($_POST["btn_reactivate"])) {
 									</form>
 									<form method="GET" action="#" class="d-inline">
 										<input type="hidden" name="pg" value="lawyer.php">
-										<input type="hidden" name="option" value="full_view">input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">	
+										<input type="hidden" name="option" value="full_view">
+										<input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">	
 										<input type="hidden" name="id" value="<?php echo urlencode(Security::sanitize($row['lawyer_id'])); ?>">
 										<button type="submit" class="btn btn-info btn-sm text-white">
 										<i class="fas fa-eye"></i> Full View

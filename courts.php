@@ -1,18 +1,5 @@
 <?php
-	if(isset($_SESSION["LOGIN_USERTYPE"])){
-	    $system_usertype = $_SESSION["LOGIN_USERTYPE"];
-		$system_username = $_SESSION["LOGIN_USERNAME"];
-	}else{
-		$system_usertype = "GUEST";
-	}
-	if (empty($_SESSION['csrf_token'])) {
-	    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-	}
 
-
-	$helper = new Helper($conn);
-	$security = new Security();
-	
 	// Flash message system
 	$message = $_SESSION['message'] ?? null;
 	unset($_SESSION['message']);

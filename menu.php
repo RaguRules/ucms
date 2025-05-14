@@ -23,12 +23,12 @@
 					<li class="dropdown">
 						<a href="#"><span>Case Management</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
 						<ul>
-							<li><a href="index.php?pg=cases.php">Cases</a></li>
-							<li><a href="index.php?pg=appeals.php">Appeals</a></li>
-							<li><a href="index.php?pg=motions.php">Motions</a></li>
-							<li><a href="index.php?pg=judgements.php">Judgements</a></li>
-							<li><a href="index.php?pg=warrants.php">Warrants</a></li>
-							<li><a href="index.php?pg=parties.php">Parties</a></li>
+							<li><a href="index.php?pg=cases.php?option=view">Cases</a></li>
+							<li><a href="index.php?pg=appeals.php?option=view">Appeals</a></li>
+							<li><a href="index.php?pg=motions.php?option=view">Motions</a></li>
+							<li><a href="index.php?pg=judgements.php?option=view">Judgements</a></li>
+							<li><a href="index.php?pg=warrants.php?option=view">Warrants</a></li>
+							<li><a href="index.php?pg=parties.php?option=view">Parties</a></li>
 						</ul>
 					</li>
 					<li class="dropdown">
@@ -45,8 +45,9 @@
 						<a href="#"><span>Administration</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
 						<ul>
 							<li><a href="index.php?pg=courts.php">Courts</a></li>
-							<li><a href="index.php?pg=lawyer.php&option=view">Lawyers</a></li>
 							<li><a href="index.php?pg=staff.php&option=view">Staff</a></li>
+							<li><a href="index.php?pg=lawyer.php&option=view">Lawyer</a></li>
+							<li><a href="index.php?pg=police.php&option=view">Police</a></li>
 							<li><a href="index.php?pg=roles.php">Roles</a></li>
 						</ul>
 					</li>

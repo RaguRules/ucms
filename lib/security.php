@@ -66,10 +66,11 @@ class Security
         }
     }
 
-    public static function sanitize($data)
-    {
-       return htmlspecialchars(stripslashes(trim($data)));
+    public static function sanitize($data){
+        if (is_null($data)) return '';
+        return htmlspecialchars(stripslashes(trim((string)$data)));
     }
+
 
     public static function logError($message)
     {
@@ -84,6 +85,39 @@ class Security
         $entry = '[' . date('Y-m-d H:i:s') . "] $message\n";
         file_put_contents($logFile, $entry, FILE_APPEND);
     }
+
+    public static function logVisitor($logFile = 'logs/visitors.log'){
+        // Ensure logs directory exists
+        if (!file_exists(dirname($logFile))) {
+            mkdir(dirname($logFile), 0755, true);
+        }
+
+        $ip         = $_SERVER['REMOTE_ADDR'] ?? 'Unknown IP';
+        $agent      = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown Agent';
+        $referrer   = $_SERVER['HTTP_REFERER'] ?? 'Direct or Unknown';
+        $uri        = $_SERVER['REQUEST_URI'] ?? 'Unknown URI';
+        $time       = date('Y-m-d H:i:s');
+        $sessionId  = $_SESSION['user_id'] ?? 'Guest';
+
+        $logEntry = "[{$time}] IP: {$ip} | Session: {$sessionId} | Page: {$uri} | Referrer: {$referrer} | Agent: {$agent}\n";
+
+        file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+    }
+
+    public static function preventClickjacking(){
+        header('X-Frame-Options: DENY');
+    }
+
+
+   public static function blockAccessByIP(array $blockedIps = []){
+       $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+       if (in_array($ip, $blockedIps)) {
+           header('HTTP/1.1 403 Forbidden');
+           echo "Access Denied. Your IP ($ip) has been blocked.";
+           exit;
+       }
+   }
+
 
     public static function addToBlacklist($email, $nic, $phone)
     {
