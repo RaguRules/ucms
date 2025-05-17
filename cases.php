@@ -646,7 +646,7 @@
 	    $stmt->close();
 	}else{
 	    echo "<script> location.href='index.php'; </script>";
-	    // exit; 
+	    exit; 
 	}
 	?>
 <!-- Delete Confirmation Modal 1-->

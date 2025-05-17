@@ -23,12 +23,12 @@
 					<li class="dropdown">
 						<a href="#"><span>Case Management</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
 						<ul>
-							<li><a href="index.php?pg=cases.php?option=view">Cases</a></li>
-							<li><a href="index.php?pg=appeals.php?option=view">Appeals</a></li>
-							<li><a href="index.php?pg=motions.php?option=view">Motions</a></li>
-							<li><a href="index.php?pg=judgements.php?option=view">Judgements</a></li>
-							<li><a href="index.php?pg=warrants.php?option=view">Warrants</a></li>
-							<li><a href="index.php?pg=parties.php?option=view">Parties</a></li>
+							<li><a href="index.php?pg=cases.php&option=view">Cases</a></li>
+							<li><a href="index.php?pg=appeals.php&option=view">Appeals</a></li>
+							<li><a href="index.php?pg=motions.php&option=view">Motions</a></li>
+							<li><a href="index.php?pg=judgements.php&option=view">Judgements</a></li>
+							<li><a href="index.php?pg=warrants.php&option=view">Warrants</a></li>
+							<li><a href="index.php?pg=parties.php&option=view">Parties</a></li>
 						</ul>
 					</li>
 					<li class="dropdown">

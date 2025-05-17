@@ -8,7 +8,7 @@ if(isset($_SESSION["LOGIN_USERTYPE"])){
 	$systemUsertype = $_SESSION["LOGIN_USERTYPE"];
 	$systemUsername = $_SESSION["LOGIN_USERNAME"];
 }else{
-$systemUsertype = "GUEST";
+	$systemUsertype = "GUEST";
 }
 
 if (empty($_SESSION['csrf_token'])) {

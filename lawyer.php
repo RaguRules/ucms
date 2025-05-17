@@ -1104,7 +1104,7 @@ foreach ($cases as $case) {
 							<div class="col-md-6">
 								<label for="court_id" class="form-label">Station</label>
 								<select class="form-select" id="select_station" name="select_station">
-									<option disabled selected hidden value="<?php echo $selectStation ?>"><?php echo $selectStation ?></option>
+									<option selected hidden value="<?php echo $selectStation ?>"><?php echo $selectStation ?></option>
 									<option value="Legal Aid Commission">Legal Aid Commission</option>
                                     <option value="Attorney General Department">Attorney General Department</option>
 									<option value="Private">Private</option>
@@ -1119,7 +1119,7 @@ foreach ($cases as $case) {
 							<div class="col-md-6">
 								<label for="court_id" class="form-label">Gender</label>
 								<select class="form-select" id="select_gender" name="select_gender" value="<?php echo $select_gender ?>" required>
-									<option value="" disabled hidden>Select Gender</option>
+									<option selected hidden value="<?php echo $selectGender ?>"><?php echo $selectGender ?></option>
 									<option value="Male">Male</option>
 									<option value="Female">Female</option>
 									<option value="Other">Other</option>
