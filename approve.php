@@ -15,9 +15,6 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-include_once('lib/db.php'); // Ensure db connection
-include_once('lib/security.php'); // Helper functions like logError
-include_once('lib/helper.php');
 
 ?>
 <!DOCTYPE html>
@@ -64,16 +61,16 @@ if ($result) {
                 <?php $count = 1; foreach ($lawyers as $row): ?>
                 <tr>
                     <td><?= $count++; ?></td>
-                    <td><img src="<?= sanitize_input($row['image_path']); ?>" class="img-thumbnail rounded-circle" style="width:100px;height:100px;object-fit:cover;" alt="Lawyer Image"></td>
-                    <td><strong><?= sanitize_input($row['first_name'] . ' ' . $row['last_name']); ?></strong><br><small class="text-muted"><?= sanitize_input($row['email']); ?></small></td>
-                    <td><?= sanitize_input($row['enrolment_number']); ?></td>
-                    <td><?= sanitize_input($row['station']); ?></td>
-                    <td><?= sanitize_input($row['nic_number']); ?></td>
-                    <td><?= sanitize_input($row['mobile']); ?></td>
+                    <td><img src="<?= Security::sanitize($row['image_path']); ?>" class="img-thumbnail rounded-circle" style="width:100px;height:100px;object-fit:cover;" alt="Lawyer Image"></td>
+                    <td><strong><?= Security::sanitize($row['first_name'] . ' ' . $row['last_name']); ?></strong><br><small class="text-muted"><?= Security::sanitize($row['email']); ?></small></td>
+                    <td><?= Security::sanitize($row['enrolment_number']); ?></td>
+                    <td><?= Security::sanitize($row['station']); ?></td>
+                    <td><?= Security::sanitize($row['nic_number']); ?></td>
+                    <td><?= Security::sanitize($row['mobile']); ?></td>
                     <td>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-success btn-sm btn-approve" data-regid="<?= sanitize_input($row['reg_id']); ?>"><i class="fas fa-check-circle"></i> Approve</button>
-                            <button class="btn btn-danger btn-sm btn-deny" data-regid="<?= sanitize_input($row['reg_id']); ?>"><i class="fas fa-times-circle"></i> Deny</button>
+                            <button class="btn btn-success btn-sm btn-approve" data-regid="<?= Security::sanitize($row['reg_id']); ?>"><i class="fas fa-check-circle"></i> Approve</button>
+                            <button class="btn btn-danger btn-sm btn-deny" data-regid="<?= Security::sanitize($row['reg_id']); ?>"><i class="fas fa-times-circle"></i> Deny</button>
                         </div>
                     </td>
                 </tr>
@@ -101,16 +98,16 @@ if ($result) {
                 <?php $count = 1; foreach ($police as $row): ?>
                 <tr>
                     <td><?= $count++; ?></td>
-                    <td><img src="<?= sanitize_input($row['image_path']); ?>" class="img-thumbnail rounded-circle" style="width:100px;height:100px;object-fit:cover;" alt="Police Image"></td>
-                    <td><strong><?= sanitize_input($row['first_name'] . ' ' . $row['last_name']); ?></strong><br><small class="text-muted"><?= sanitize_input($row['email']); ?></small></td>
-                    <td><?= sanitize_input($row['badge_number']); ?></td>
-                    <td><?= sanitize_input($row['station']); ?></td>
-                    <td><?= sanitize_input($row['nic_number']); ?></td>
-                    <td><?= sanitize_input($row['mobile']); ?></td>
+                    <td><img src="<?= Security::sanitize($row['image_path']); ?>" class="img-thumbnail rounded-circle" style="width:100px;height:100px;object-fit:cover;" alt="Police Image"></td>
+                    <td><strong><?= Security::sanitize($row['first_name'] . ' ' . $row['last_name']); ?></strong><br><small class="text-muted"><?= Security::sanitize($row['email']); ?></small></td>
+                    <td><?= Security::sanitize($row['badge_number']); ?></td>
+                    <td><?= Security::sanitize($row['station']); ?></td>
+                    <td><?= Security::sanitize($row['nic_number']); ?></td>
+                    <td><?= Security::sanitize($row['mobile']); ?></td>
                     <td>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-success btn-sm btn-approve" data-regid="<?= sanitize_input($row['reg_id']); ?>"><i class="fas fa-check-circle"></i> Approve</button>
-                            <button class="btn btn-danger btn-sm btn-deny" data-regid="<?= sanitize_input($row['reg_id']); ?>"><i class="fas fa-times-circle"></i> Deny</button>
+                            <button class="btn btn-success btn-sm btn-approve" data-regid="<?= Security::sanitize($row['reg_id']); ?>"><i class="fas fa-check-circle"></i> Approve</button>
+                            <button class="btn btn-danger btn-sm btn-deny" data-regid="<?= Security::sanitize($row['reg_id']); ?>"><i class="fas fa-times-circle"></i> Deny</button>
                         </div>
                     </td>
                 </tr>

@@ -8,15 +8,15 @@ class Helper {
     }
 
     public function generateNextRegistrationID() {
-        return $this->generateNextID('registration', 'reg_id', 'R', 4);
+        return $this->generateNextID('registration', 'reg_id', 'R', 8);
     }
 
     public function generateNextLawyerID() {
-        return $this->generateNextID('lawyer', 'lawyer_id', 'L', 4);
+        return $this->generateNextID('lawyer', 'lawyer_id', 'L', 8);
     }
 
     public function generateNextPoliceID() {
-        return $this->generateNextID('police', 'police_id', 'P', 4);
+        return $this->generateNextID('police', 'police_id', 'P', 8);
     }
 
     public function generateNextRoleID() {
@@ -24,15 +24,15 @@ class Helper {
     }
 
     public function generateNextStaffID() {
-        return $this->generateNextID('staff', 'staff_id', 'S', 4);
+        return $this->generateNextID('staff', 'staff_id', 'S', 8);
     }
 
     public function generateNextPartyID() {
-        return $this->generateNextID('parties', 'party_id', 'P', 4);
+        return $this->generateNextID('parties', 'party_id', 'P', 8);
     }
 
     public function generateNextCaseID() {
-        return $this->generateNextID('cases', 'case_id', 'C', 4);
+        return $this->generateNextID('cases', 'case_id', 'C', 8);
     }
 
     public function generateNextCourtID() {
@@ -40,32 +40,51 @@ class Helper {
     }
 
     public function generateNextActivityID() {
-        return $this->generateNextID('dailycaseactivities', 'activity_id', 'A', 4);
+        return $this->generateNextID('dailycaseactivities', 'activity_id', 'A', 8);
     }
 
     private function generateNextID($table, $column, $prefix, $padLength) {
-        $sql = "SELECT MAX($column) AS max_id FROM $table";
+        $sql = "SELECT $column FROM $table WHERE $column LIKE '$prefix%' ORDER BY CAST(SUBSTRING($column, 2) AS UNSIGNED) DESC LIMIT 1";
         $result = mysqli_query($this->conn, $sql);
 
         if ($result && mysqli_num_rows($result) > 0) {
             $row = mysqli_fetch_assoc($result);
-            $max_id = $row['max_id'];
+            $max_id = $row[$column];
 
-            if ($max_id === null) {
-                return $prefix . str_pad("1", $padLength, "0", STR_PAD_LEFT);
-            } else {
-                $numeric_part = (int)substr($max_id, 1);
-                $next_numeric_part = $numeric_part + 1;
-                return $prefix . str_pad($next_numeric_part, $padLength, "0", STR_PAD_LEFT);
-            }
+            // Extract numeric part safely
+            $numeric_part = (int)substr($max_id, 1);
+            $next_numeric_part = $numeric_part + 1;
+
+            return $prefix . str_pad($next_numeric_part, $padLength, "0", STR_PAD_LEFT);
         } else {
             return $prefix . str_pad("1", $padLength, "0", STR_PAD_LEFT);
         }
     }
 
-    public function getStaffData($staff_id) {
+
+    // private function generateNextID($table, $column, $prefix, $padLength) {
+    //     $sql = "SELECT MAX($column) AS max_id FROM $table";
+    //     $result = mysqli_query($this->conn, $sql);
+
+    //     if ($result && mysqli_num_rows($result) > 0) {
+    //         $row = mysqli_fetch_assoc($result);
+    //         $max_id = $row['max_id'];
+
+    //         if ($max_id === null) {
+    //             return $prefix . str_pad("1", $padLength, "0", STR_PAD_LEFT);
+    //         } else {
+    //             $numeric_part = (int)substr($max_id, 1);
+    //             $next_numeric_part = $numeric_part + 1;
+    //             return $prefix . str_pad($next_numeric_part, $padLength, "0", STR_PAD_LEFT);
+    //         }
+    //     } else {
+    //         return $prefix . str_pad("1", $padLength, "0", STR_PAD_LEFT);
+    //     }
+    // }
+
+    public function getStaffData($staffId) {
         $stmt = $this->conn->prepare("SELECT * FROM staff WHERE staff_id = ?");
-        $stmt->bind_param("s", $staff_id);
+        $stmt->bind_param("s", $staffId);
         $stmt->execute();
         $result = $stmt->get_result();
 
@@ -116,6 +135,34 @@ class Helper {
 
         return ($result && $result->num_rows > 0) ? $result->fetch_assoc() : null;
     }
+
+    public function getAllStaff() {
+        $stmt = $this->conn->prepare("SELECT * FROM staff");
+        $stmt->execute();
+        return $stmt->get_result(); // Return result set
+    }
+
+
+    public function getAllLawyers() {
+        $stmt = $this->conn->prepare("SELECT * FROM lawyer");
+        $stmt->execute();
+        return $stmt->get_result();
+    }
+
+   
+    public function getAllPolice() {
+        $stmt = $this->conn->prepare("SELECT * FROM police");
+        $stmt->execute();
+        return $stmt->get_result();
+    }
+
+
+    public function getAllParties() {
+    $stmt = $this->conn->prepare("SELECT * FROM parties");
+    $stmt->execute();
+    return $stmt->get_result();
+    }
+
 
     public function getCourtName($court_id) {
         $courts = [

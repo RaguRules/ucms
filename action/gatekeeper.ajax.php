@@ -7,6 +7,9 @@ include_once('../lib/db.php');
 include_once('../lib/security.php');
 include_once('../lib/helper.php');
 
+$helper = new Helper($conn);
+$security = new Security();
+
 // Ensure it's an AJAX POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -31,7 +34,7 @@ if (empty($action) || empty($reg_id)) {
     exit;
 }
 
-if (!preg_match('/^R[0-9]{4}$/', $reg_id)) {
+if (!preg_match('/^R[0-9]{8}$/', $reg_id)) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Invalid registration ID format.']);
     exit;
@@ -56,7 +59,7 @@ try {
         $role_id = $data['role_id'];
 
         if ($role_id === 'R06') { // Lawyer
-            $next_lawyer_id = generateNextLawyerID($conn);
+            $next_lawyer_id = $helper->generateNextLawyerID($conn);
 
             $stmtInsert = $conn->prepare("INSERT INTO lawyer 
                 (lawyer_id, first_name, last_name, mobile, email, address, nic_number, date_of_birth, enrolment_number, joined_date, is_active, role_id, station, image_path, gender) 
@@ -81,7 +84,7 @@ try {
             $stmtInsert->execute();
 
         } elseif ($role_id === 'R07') { // Police
-            $next_police_id = generateNextPoliceID($conn);
+            $next_police_id = $helper->generateNextPoliceID($conn);
 
             $stmtInsert = $conn->prepare("INSERT INTO police 
                 (police_id, first_name, last_name, mobile, email, address, nic_number, date_of_birth, badge_number, joined_date, is_active, role_id, station, image_path, gender) 

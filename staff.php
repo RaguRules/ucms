@@ -65,8 +65,15 @@ if (isset($_POST["btn_add"])) {
     $upload_result = $security->uploadImage('img_profile_photo');
 
     if (!$upload_result['success']) {
-        die("Image upload failed: " . $upload_result['error']);
-    }
+    ?>
+	<!-- Display error message if upload failed -->
+    <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+        <strong>Upload Failed:</strong> <?= Security::sanitize($upload_result['error']) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+	<?php
+	die();
+	}
 
     $txtImagePath = 'uploads/' . $upload_result['filename'];
 

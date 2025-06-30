@@ -224,3 +224,4 @@
 [2025-05-13 12:22:49] Unauthorized access attempt to case C0003 by L0005 on 2025-05-13 12:22:49
 [2025-05-13 12:29:39] Unauthorized access attempt to case C9999 by L0005 on 2025-05-13 12:29:39
 [2025-05-13 12:29:49] Unauthorized access attempt to case C0004 by L0005 on 2025-05-13 12:29:49
+[2025-05-25 07:04:15] Unauthorized access attempt to case C00010000 by L0005 on 2025-05-25 07:04:15

@@ -26,87 +26,110 @@ if ($type === 'lawyer') {
 }
 
 
+
 $next_reg_id = $helper->generateNextRegistrationID();
 
-if(isset($_POST['btn_add'])){
+if (isset($_POST['btn_add'])) {
+    // Sanitize input
+    $txtRegId = Security::sanitize($_POST["txt_reg_id"]);
+    $txtFirstName = Security::sanitize($_POST["txt_first_name"]);
+    $txtLastName = Security::sanitize($_POST["txt_last_name"]);
+    $intMobile = Security::sanitize($_POST["int_mobile"]);
+    $txtEmail = Security::sanitize($_POST["txt_email"]);
+    $txtAddress = Security::sanitize($_POST["txt_address"]);
+    $txtNicNumber = Security::sanitize($_POST["txt_nic_number"]);
+    $txtRoleId = Security::sanitize($_POST["txt_role_id"]);
+    $userType = Security::sanitize($_POST["type"]); // Fixed undefined $type
+    $txtEnrolmentNumber = '';
+    $intBadgeNumber = '';
 
-	$txt_enrolment_number = '';
-	$int_badge_number = '';
-	$txt_reg_id = mysqli_real_escape_string($conn, $_POST["txt_reg_id"]);
-	$txt_first_name = mysqli_real_escape_string($conn, $_POST["txt_first_name"]);
-	$txt_last_name = mysqli_real_escape_string($conn, $_POST["txt_last_name"]);
-	$int_mobile = mysqli_real_escape_string($conn, $_POST["int_mobile"]);
-	$txt_email = mysqli_real_escape_string($conn, $_POST["txt_email"]);
-	$txt_address = mysqli_real_escape_string($conn, $_POST["txt_address"]);
-	$txt_nic_number = mysqli_real_escape_string($conn, $_POST["txt_nic_number"]);
-	$txt_role_id = mysqli_real_escape_string($conn, $_POST["txt_role_id"]);
-	if ($type === 'lawyer') {
-		$txt_enrolment_number = isset($_POST["txt_enrolment_number"]) ? mysqli_real_escape_string($conn, $_POST["txt_enrolment_number"]) : '';
+    if ($userType === 'lawyer') {
+        $txtEnrolmentNumber = isset($_POST["txt_enrolment_number"]) ? Security::sanitize($_POST["txt_enrolment_number"]) : '';
+    } elseif ($userType === 'police') {
+        $intBadgeNumber = isset($_POST["int_badge_number"]) ? Security::sanitize($_POST["int_badge_number"]) : '';
+    }
 
-	} elseif ($type === 'police') {
-		$int_badge_number = isset($_POST["int_badge_number"]) ? mysqli_real_escape_string($conn, $_POST["int_badge_number"]) : '';
-	}
-	
-	$select_station = mysqli_real_escape_string($conn, $_POST["select_station"]);
-	$date_joined_date = mysqli_real_escape_string($conn, $_POST["date_joined_date"]);
-	$date_date_of_birth = mysqli_real_escape_string($conn, $_POST["date_date_of_birth"]);
-	$status = "Pending";
-	$select_gender = mysqli_real_escape_string($conn, $_POST["select_gender"]);
-	$txt_password = mysqli_real_escape_string($conn, $_POST["txt_password"]);
-	$hashedPassword = password_hash($txt_password, PASSWORD_DEFAULT);
-	
+    $selectStation = Security::sanitize($_POST["select_station"]);
+    $dateJoinedDate = Security::sanitize($_POST["date_joined_date"]);
+    $dateDateOfBirth = Security::sanitize($_POST["date_date_of_birth"]);
+    $status = "Pending";
+    $selectGender = Security::sanitize($_POST["select_gender"]);
+    $txtPassword = Security::sanitize($_POST["txt_password"]);
+    $hashedPassword = password_hash($txtPassword, PASSWORD_DEFAULT);
 
-	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-		$upload_result = secure_image_upload('img_profile_photo');
-	
-		if (!$upload_result['success']) {
-			die("Image upload failed: " . $upload_result['error']);
-		}
-	
-		$txt_image_path = 'uploads/' . $upload_result['filename']; // Save in DB
-		$txt_image_path = mysqli_real_escape_string($conn, $txt_image_path);
+    $txtImagePath = '';
 
-	}
-	
-	
-	$sqlInsert = "INSERT INTO registration (reg_id, first_name, last_name, mobile, email, address, nic_number, enrolment_number, badge_number, station, joined_date, date_of_birth, status, role_id, password, image_path, gender) VALUES (
-		'$txt_reg_id',
-		'$txt_first_name', 
-		'$txt_last_name', 
-		'$int_mobile', 
-		'$txt_email',
-		'$txt_address', 
-		'$txt_nic_number', 
-		'$txt_enrolment_number',
-		'$int_badge_number',
-		'$select_station',
-		'$date_joined_date', 
-		'$date_date_of_birth', 	
-		'$status',
-		'$txt_role_id',
-		'$hashedPassword',
-		'$txt_image_path',
-		'$select_gender'
-	)";
-	
-	$resultInsert = mysqli_query($conn, $sqlInsert) or die("Error in sqlInsert: " . mysqli_error($conn));
-	if ($resultInsert) {
-		$sqlInsert = "INSERT INTO `courtsmanagement`.`login` (`username`, `password`, `otp`, `status`, `role_id`) VALUES ('$txt_email', '$hashedPassword', '1329', 'pending', '$txt_role_id');";
-		$resultInsert = mysqli_query($conn, $sqlInsert) or die("Error in sqlInsert: " . mysqli_error($conn));
-		if ($resultInsert) {
-			echo '<script>alert("Successfully submitted your registration request. Wait for the Admin Approval");</script>';
-			echo '<script>window.location.href = "index.php";</script>'; // redirect to avoid resubmission
-			exit;
-		} else {
-			$sqlDelete = "DELETE FROM registration WHERE reg_id = '$txt_reg_id'";
-			mysqli_query($conn, $sqlDelete);
-			echo '<script>alert("Error: " . mysqli_error($conn) . ".");</script>';
-		}	
-	} else {
-		echo '<script>alert("Error: " . mysqli_error($conn) . ".");</script>';
-	}
+    // Validate & upload image
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $uploadResult = $security->uploadImage('img_profile_photo');
+
+        if (!$uploadResult['success']) {
+            echo '<script>alert("Image upload failed: ' . $uploadResult['error'] . '");</script>';
+            exit;
+        }
+
+        $txtImagePath = 'uploads/' . Security::sanitize($uploadResult['filename']);
+    }
+
+    // Begin DB transaction
+    $conn->begin_transaction();
+
+    try {
+        // Insert into registration table
+        $stmtRegister = $conn->prepare("INSERT INTO registration 
+            (reg_id, first_name, last_name, mobile, email, address, nic_number, enrolment_number, badge_number, station, joined_date, date_of_birth, status, role_id, password, image_path, gender) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        
+        $stmtRegister->bind_param("sssssssssssssssss",
+            $txtRegId,
+            $txtFirstName,
+            $txtLastName,
+            $intMobile,
+            $txtEmail,
+            $txtAddress,
+            $txtNicNumber,
+            $txtEnrolmentNumber,
+            $intBadgeNumber,
+            $selectStation,
+            $dateJoinedDate,
+            $dateDateOfBirth,
+            $status,
+            $txtRoleId,
+            $hashedPassword,
+            $txtImagePath,
+            $selectGender
+        );
+
+        if (!$stmtRegister->execute()) {
+            throw new Exception("Registration insert failed: " . $stmtRegister->error);
+        }
+
+		$otp = strval(random_int(10000, 99999)); // 5-digit numeric OTP
+
+        // Insert into login table
+        $stmtLogin = $conn->prepare("INSERT INTO login (username, password, otp, status, role_id) VALUES (?, ?, ?, 'pending', ?)");
+        $stmtLogin->bind_param("sssi", $txtEmail, $hashedPassword, $otp, $txtRoleId);
+
+        if (!$stmtLogin->execute()) {
+            throw new Exception("Login insert failed: " . $stmtLogin->error);
+        }
+
+        // Commit transaction if both succeed
+        $conn->commit();
+        echo '<script>alert("Successfully submitted your registration request. Please wait for Admin approval.");</script>';
+        echo '<script>window.location.href = "index.php";</script>';
+        exit;
+
+    } catch (Exception $e) {
+        // Rollback transaction on failure
+        $conn->rollback();
+
+        // Log the error or alert user
+        echo '<script>alert("Registration failed: ' . htmlspecialchars($e->getMessage()) . '");</script>';
+    }
 }
 ?>
+
 
 
 <!DOCTYPE html>

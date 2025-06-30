@@ -35,8 +35,8 @@
 	    $dateRegisteredDate = Security::sanitize($_POST['registered_date']);
 	    $txtPlaintiff = strtoupper(Security::sanitize($_POST['plaintiff']));
 	    $txtDefendant = strtoupper(Security::sanitize($_POST['defendant']));
-	    $txtPlaintiffLawyer = strtoupper(Security::sanitize($_POST['plaintiff_lawyer']));
-	    $txtDefendantLawyer = strtoupper(Security::sanitize($_POST['defendant_lawyer']));
+	    $txtPlaintiffLawyer = strtoupper(Security::sanitize($_POST['plaintiffLawyer']));
+	    $txtDefendantLawyer = strtoupper(Security::sanitize($_POST['defendantLawyer']));
 	    $selectNature = Security::sanitize($_POST['nature']);
 	    $selectStatus = Security::sanitize($_POST['status']);
 	    $selectIsWarrant = Security::sanitize($_POST['is_warrant']);
@@ -127,11 +127,11 @@
 	
 	
 	        // Fetch daily activities
-	        $query_activities = "SELECT * FROM dailycaseactivities WHERE case_name = ?";
-	        $stmt_activities = $conn->prepare($query_activities);
-	        $stmt_activities->bind_param("s", $caseId);
-	        $stmt_activities->execute();
-	        $activities_result = $stmt_activities->get_result();
+	        $queryActivities = "SELECT * FROM dailycaseactivities WHERE case_name = ?";
+	        $stmtActivities = $conn->prepare($queryActivities);
+	        $stmtActivities->bind_param("s", $caseId);
+	        $stmtActivities->execute();
+	        $activitiesResult = $stmtActivities->get_result();
 	        ?>
             <!-- Modal HTML -->
             <div class="modal fade" id="caseDetailModal" tabindex="-1" aria-labelledby="caseDetailModalLabel" aria-hidden="true">
@@ -168,8 +168,8 @@
                             <hr class="my-4">
                             <div>
                                 <h4 class="text-primary fw-bold mb-3">Quick Journal</h4>
-                                <?php if ($activities_result->num_rows > 0): ?>
-                                <?php while ($activity = $activities_result->fetch_assoc()): ?>
+                                <?php if ($activitiesResult->num_rows > 0): ?>
+                                <?php while ($activity = $activitiesResult->fetch_assoc()): ?>
                                 <div class="mb-4 p-3 shadow-sm rounded" style="background-color: #f9fafb; border-left: 4px solid #0d6efd;">
                                     <h6 class="fw-semibold text-primary mb-2"><?= Security::sanitize($activity['activity_date']) ?></h6>
                                     <p class="mb-1"><strong>Summary:</strong> <?= Security::sanitize($activity['summary']) ?></p>
@@ -196,7 +196,7 @@
                 }
             </script>
         <?php
-        $stmt_activities->close();
+        $stmtActivities->close();
         } else {
         Security::logError("Unauthorized access attempt to case $caseId by $staffId on " . date("Y-m-d H:i:s"));
         echo "<script>alert('Access denied: You are not assigned to this case.');</script>";
@@ -378,7 +378,21 @@
 	</ul>
 </nav>
 
-<!-- Add Case Modal -->
+<!-- ADD SECTION Modal -->
+ <?php
+ $plaintiffPartiesList = $helper->getAllParties();
+ $defendantPartiesList = $helper->getAllParties();
+ $LawyersList = $helper->getAllLawyers();
+ $plaintiffLawyersList = $helper->getAllLawyers(); 
+ $defendantLawyersList = $helper->getAllLawyers();
+ $policeList = $helper->getAllPolice();
+
+$plaintiff = $helper->getPartyData(Security::sanitize($row['plaintiff']), $conn);
+$defendant = $helper->getPartyData(Security::sanitize($row['defendant']), $conn);
+$plaintiffLawyer = $helper->getLawyerData(Security::sanitize($row['plaintiff_lawyer']), $conn);
+$defendantLawyer = $helper->getLawyerData(Security::sanitize($row['defendant_lawyer']), $conn);
+
+ ?>
 <div class="modal fade" id="addCaseModal" tabindex="-1" aria-labelledby="addCaseModalLabel" aria-hidden="true">
 	<div class="modal-dialog modal-lg modal-dialog-scrollable">
 		<div class="modal-content border-0 shadow-lg rounded-4">
@@ -407,24 +421,73 @@
 						</div>
 						<div class="col-md-6">
 							<label>Plaintiff/ Petitioner - if Criminal case enter "Police"</label>
-							<input type="text" name="plaintiff" class="form-control" style="text-transform: uppercase;" required>
+								<select name="plaintiff" class="form-control" required>
+									<option selected disabled value="">-- Select --</option>
+								<?php while ($tempPRow = $plaintiffPartiesList->fetch_assoc()) { ?>
+									<option value="<?php echo Security::sanitize($tempPRow['party_id']); ?>">
+										<?php echo Security::sanitize($tempPRow['first_name'] . ' ' . $tempPRow['last_name']); ?>
+									</option>
+								<?php } ?>
+								<!-- // Police if case is Magistrate's court case -->
+								<?php while ($tempPRow = $policeList->fetch_assoc()) { ?>
+									<option value="<?php echo Security::sanitize($tempPRow['police_id']); ?>">
+										<?php echo Security::sanitize($tempPRow['first_name'] . ' ' . $tempPRow['last_name']); ?>
+									</option>
+								<?php } ?>
+								<!-- // State Counsel if High court case -->
+								<?php while ($tempPRow = $LawyersList->fetch_assoc()) { 
+									if ($tempPRow['station'] == "Attorney General Dept") { ?>
+										<option value="<?php echo Security::sanitize($tempPRow['lawyer_id']); ?>">
+											<?php echo Security::sanitize($tempPRow['first_name'] . ' ' . $tempPRow['last_name']); ?>
+										</option>
+									<?php 
+										}
+									} ?>
+								</select>
 						</div>
-						<div class="col-md-6">
-							<label>Defendant/ Respondant/ Suspect/ Accused</label>
-							<input type="text" name="defendant" class="form-control" style="text-transform: uppercase;" required>
-						</div>
+
 						<div class="col-md-6">
 							<label>Plaintiff Lawyer, if available</label>
-							<input type="text" name="plaintiff_lawyer" class="form-control" style="text-transform: uppercase;">
+							<select name="plaintiffLawyer" class="form-control" required>
+								<option selected disabled value="">-- Select --</option>
+								<?php while ($tempPLRow = $plaintiffLawyersList->fetch_assoc()) { ?>
+									<option value="<?php echo Security::sanitize($tempPLRow['lawyer_id']); ?>">
+										<?php echo Security::sanitize($tempPLRow['first_name'] . ' ' . $tempPLRow['last_name']); ?>
+									</option>
+								<?php } ?>
+								<option value="No AAL">No Lawyer</option>
+							</select>
+						</div>
+
+						<div class="col-md-6">
+							<label>Defendant/ Respondant/ Suspect/ Accused</label>
+								<select name="defendant" class="form-control" required>
+								<option selected disabled value="">-- Select --</option>
+								<?php while ($tempDRow = $defendantPartiesList->fetch_assoc()) { ?>
+									<option value="<?php echo Security::sanitize($tempDRow['party_id']); ?>">
+										<?php echo Security::sanitize($tempDRow['first_name'] . ' ' . $tempDRow['last_name']); ?>
+									</option>
+								<?php } ?>
+							</select>
 						</div>
 						<div class="col-md-6">
 							<label>Defendant Lawyer, if available</label>
-							<input type="text" name="defendant_lawyer" class="form-control" style="text-transform: uppercase;">
+							<select name="defendantLawyer" class="form-control" required>
+							<option selected disabled value="">-- Select --</option>
+							<?php while ($tempDLRow = $defendantLawyersList->fetch_assoc()) { ?>
+							<option value="<?php echo Security::sanitize($tempDLRow['lawyer_id']); ?>">
+								<?php echo Security::sanitize($tempDLRow['first_name'] . ' ' . $tempDLRow['last_name']); ?>
+							</option>
+						<?php } ?>
+						<option value="No AAL">No Lawyer</option>
+							</select>
 						</div>
+
+						
 						<div class="col-md-6">
 							<label>Nature</label>
 							<select name="nature" class="form-select" required>
-								<option value="">-- Select --</option>
+								<option disabled value="">-- Select --</option>
 								<option value="Criminal">Criminal</option>
 								<option value="Civil">Civil</option>
 							</select>
@@ -495,9 +558,24 @@
 	} else if (isset($_GET['option']) && $_GET['option'] === "edit" && $_POST['case_id']) {
 	   //TODO: Only Admin/ Staff can edit.
 	
-	   $staffId = $helper->getId($systemUsertype, $systemUsername); 
-	   $row = $helper->getCaseData($_POST['case_id']);
-	
+	$staffId = $helper->getId($systemUsertype, $systemUsername); 
+	$row = $helper->getCaseData($_POST['case_id']);
+
+	$plaintiffPartiesList = $helper->getAllParties();
+	$defendantPartiesList = $helper->getAllParties();
+	$LawyersList = $helper->getAllLawyers();
+	$plaintiffLawyersList = $helper->getAllLawyers(); 
+	$defendantLawyersList = $helper->getAllLawyers();
+	$policeList = $helper->getAllPolice();
+
+
+	$plaintiff = $helper->getPartyData(Security::sanitize($row['plaintiff']), $conn);
+	$defendant = $helper->getPartyData(Security::sanitize($row['defendant']), $conn);
+	$plaintiffLawyer = $helper->getLawyerData(Security::sanitize($row['plaintiff_lawyer']), $conn);
+	$defendantLawyer = $helper->getLawyerData(Security::sanitize($row['defendant_lawyer']), $conn);
+
+
+
 	   if (!$row) {
 	       echo "<p class='text-danger'>Case not found.</p>";
 	       exit;
@@ -519,20 +597,65 @@
                     <input hidden type="date" name="registered_date" class="form-control" value="<?= Security::sanitize($row['registered_date']) ?>"  required>
                 </div>
                 <div class="col-md-6">
-                    <label>Plaintiff/ enter 'Police' if prosecution</label>
-                    <input type="text" name="plaintiff" class="form-control" required value="<?= Security::sanitize($row['plaintiff']) ?>" style="text-transform: uppercase;">
+                    <label>Plaintiff/ Police/ State Counsel Lawyer</label>
+					<select name="plaintiff" class="form-control" required>
+						<option value="<?= $plaintiff['party_id'] ?>"><?= $plaintiff['first_name']." ".$plaintiff['last_name'] ?></option>
+						<?php while ($tempRow = $plaintiffPartiesList->fetch_assoc()) { ?>
+							<option value="<?php echo Security::sanitize($tempRow['party_id']); ?>">
+								<?php echo Security::sanitize($tempRow['first_name'] . ' ' . $tempRow['last_name']); ?>
+							</option>
+						<?php } ?>
+						<!-- // Police if case is Magistrate's court case -->
+						 <?php while ($tempRow = $policeList->fetch_assoc()) { ?>
+							<option value="<?php echo Security::sanitize($tempRow['police_id']); ?>">
+								<?php echo Security::sanitize($tempRow['first_name'] . ' ' . $tempRow['last_name']); ?>
+							</option>
+						<?php } ?>
+						<!-- // State Counsel if High court case -->
+						 <?php while ($tempRow = $LawyersList->fetch_assoc()) { 
+							if ($tempRow['station'] == "Attorney General Dept") { ?>
+								<option value="<?php echo Security::sanitize($tempRow['lawyer_id']); ?>">
+									<?php echo Security::sanitize($tempRow['first_name'] . ' ' . $tempRow['last_name']); ?>
+								</option>
+						<?php 
+							}
+						} ?>
+					</select>
                 </div>
                 <div class="col-md-6">
                     <label>Defendant/ Respondant/ Accused</label>
-                    <input type="text" name="defendant" class="form-control" required value="<?= Security::sanitize($row['defendant']) ?>" style="text-transform: uppercase;">
-                </div>
+                    <select name="defendant" class="form-control" required>
+						<option value="<?= $defendant['party_id'] ?>"><?= $defendant['first_name']." ".$defendant['last_name'] ?></option>
+						<?php while ($tempRow = $defendantPartiesList->fetch_assoc()) { ?>
+							<option value="<?php echo Security::sanitize($tempRow['party_id']); ?>">
+								<?php echo Security::sanitize($tempRow['first_name'] . ' ' . $tempRow['last_name']); ?>
+							</option>
+						<?php } ?>
+					</select>
+				</div>
                 <div class="col-md-6">
                     <label>Plaintiff Lawyer</label>
-                    <input type="text" name="plaintiff_lawyer" class="form-control" value="<?= Security::sanitize($row['plaintiff_lawyer']) ?>" style="text-transform: uppercase;">
-                </div>
+						<select name="plaintiff_lawyer" class="form-control" required>
+					<option value="<?= $plaintiffLawyer['lawyer_id'] ?>"><?= $plaintiffLawyer['first_name']." ".$plaintiffLawyer['last_name'] ?></option>
+					<?php while ($tempRow = $plaintiffLawyersList->fetch_assoc()) { ?>
+						<option value="<?php echo Security::sanitize($tempRow['lawyer_id']); ?>">
+							<?php echo Security::sanitize($tempRow['first_name'] . ' ' . $tempRow['last_name']); ?>
+						</option>
+					<?php } ?>
+					<option value="No AAL">No Lawyer</option>
+				</select>
+				</div>
                 <div class="col-md-6">
                     <label>Defendant Lawyer</label>
-                    <input type="text" name="defendant_lawyer" class="form-control" value="<?= Security::sanitize($row['defendant_lawyer']) ?>" style="text-transform: uppercase;">
+                    <select name="defendant_lawyer" class="form-control" required>
+						<option value="<?= $defendantLawyer['lawyer_id'] ?>"><?= $defendantLawyer['first_name']." ".$defendantLawyer['last_name'] ?></option>
+						<?php while ($tempRow = $defendantLawyersList->fetch_assoc()) { ?>
+							<option value="<?php echo Security::sanitize($tempRow['lawyer_id']); ?>">
+								<?php echo Security::sanitize($tempRow['first_name'] . ' ' . $tempRow['last_name']); ?>
+							</option>
+						<?php } ?>
+						<option value="No AAL">No Lawyer</option>
+					</select>
                 </div>
                 <div class="col-md-6">
                     <label>Nature</label>
@@ -580,9 +703,9 @@
                 <div class="col-md-6">
                     <label>Court</label>
                     <select name="court_id" class="form-select" required>
-                        <option disabled selected hidden value="<?php echo $helper->getCourtName($row['court_id']) ?>"><?php echo $helper->getCourtName($row['court_id']) ?></option>
+                        <option disabled hidden value="<?php echo $helper->getCourtName($row['court_id']) ?>"><?php echo $helper->getCourtName($row['court_id']) ?></option>
                         <option value="C04">Juvenile Magistrate's court</option>
-                        <option value="C01">Magistrate's court</option>
+                        <option selected value="C01">Magistrate's court</option>
                         <option value="C02">District Court</option>
                         <option value="C03">High Court</option>
                     </select>

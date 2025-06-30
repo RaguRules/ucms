@@ -4,8 +4,8 @@
 	<div class="topbar d-flex align-items-center">
 		<div class="container d-flex justify-content-center justify-content-md-between">
 			<div class="contact-info d-flex align-items-center">
-				<i class="bi bi-envelope d-flex align-items-center"><a href="mailto:info@kilinochchicourts.lk">info@kilinochchicourts.lk</a></i>
-				<i class="bi bi-phone d-flex align-items-center ms-4"><span>+94 XXX XXX XXX</span></i>
+				<i class="bi bi-envelope d-flex align-items-center"><a href="mailto:dcmckilinochchi2015@gmail.com">dcmckilinochchi2015@gmail.com</a></i>
+				<i class="bi bi-phone d-flex align-items-center ms-4"><span>021 228 5303</span></i>
 			</div>
 			<div class="social-links d-none d-md-flex align-items-center">
 			</div>

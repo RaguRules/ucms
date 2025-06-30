@@ -222,7 +222,7 @@ if (isset($_POST["btn_add"])) {
         exit;
     }
 
-	// Before Insert staff, check for duplicates in staff, lawyer, and police tables
+	// Before adding a lawyer, check for duplicates in staff, lawyer, and police tables
 	Security::checkDuplicate($conn, "nic_number", $txtNicNumber, "", "NIC Number already exists!", $txtLawyerId);
 	Security::checkDuplicate($conn, "mobile", $intMobile, "", "Mobile number already exists!", $txtLawyerId);
 	Security::checkDuplicate($conn, "email", $txtEmail, "", "Email already exists!", $txtLawyerId);

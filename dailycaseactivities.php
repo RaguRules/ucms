@@ -83,25 +83,76 @@ if (isset($_POST['btn_update']) && isset($_POST['activity_id'])) {
 }
 
 
+// $casesToShow = [];
+// $today = date('Y-m-d');
+// $datesFromActivities = [];
+
+// // STEP 1: Fetch all cases
+// $allCases = [];
+// $sql_cases = "SELECT case_id, case_name, next_date FROM cases";
+// $result_cases = $conn->query($sql_cases);
+// while ($row = $result_cases->fetch_assoc()) {
+//     $allCases[$row['case_name']] = [
+//         'case_id' => $row['case_id'],
+//         'case_name' => $row['case_name'],
+//         'next_date' => $row['next_date']
+//     ];
+// }
+
+// // STEP 2: Get MAX(next_date) from dailycaseactivities per case_name
+// $sql = "
+//     SELECT case_name, MAX(next_date) AS max_next_date
+//     FROM dailycaseactivities
+//     GROUP BY case_name
+// ";
+// $res = $conn->query($sql);
+
+// $activityNextDates = [];
+// while ($r = $res->fetch_assoc()) {
+//     $activityNextDates[$r['case_name']] = $r['max_next_date'];
+// }
+
+// // STEP 3: Evaluate cases one by one
+// foreach ($allCases as $case_name => $caseData) {
+//     if (isset($activityNextDates[$case_name])) {
+//         // Case has activity records - use MAX(next_date)
+//         if ($activityNextDates[$case_name] <= $today) {
+//             $casesToShow[] = [
+//                 'case_id' => $caseData['case_id'],
+//                 'case_name' => $caseData['case_name'],
+//                 'next_date' => $activityNextDates[$case_name]
+//             ];
+//         }
+//     } else {
+//         // Case has no activity - use case table next_date
+//         if ($caseData['next_date'] <= $today) {
+//             $casesToShow[] = [
+//                 'case_id' => $caseData['case_id'],
+//                 'case_name' => $caseData['case_name'],
+//                 'next_date' => $caseData['next_date']
+//             ];
+//         }
+//     }
+// }
+// 
 $casesToShow = [];
 $today = date('Y-m-d');
-$datesFromActivities = [];
 
-// STEP 1: Fetch all cases
+// STEP 1: Fetch all cases indexed by case_id
 $allCases = [];
 $sql_cases = "SELECT case_id, case_name, next_date FROM cases";
 $result_cases = $conn->query($sql_cases);
 while ($row = $result_cases->fetch_assoc()) {
-    $allCases[$row['case_name']] = [
+    $allCases[$row['case_id']] = [
         'case_id' => $row['case_id'],
         'case_name' => $row['case_name'],
         'next_date' => $row['next_date']
     ];
 }
 
-// STEP 2: Get MAX(next_date) from dailycaseactivities per case_name
+// STEP 2: Get MAX(next_date) from dailycaseactivities per case_name (which is actually case_id)
 $sql = "
-    SELECT case_name, MAX(next_date) AS max_next_date
+    SELECT case_name AS case_id, MAX(next_date) AS max_next_date
     FROM dailycaseactivities
     GROUP BY case_name
 ";
@@ -109,22 +160,22 @@ $res = $conn->query($sql);
 
 $activityNextDates = [];
 while ($r = $res->fetch_assoc()) {
-    $activityNextDates[$r['case_name']] = $r['max_next_date'];
+    $activityNextDates[$r['case_id']] = $r['max_next_date'];
 }
 
-// STEP 3: Evaluate cases one by one
-foreach ($allCases as $case_name => $caseData) {
-    if (isset($activityNextDates[$case_name])) {
-        // Case has activity records - use MAX(next_date)
-        if ($activityNextDates[$case_name] <= $today) {
+// STEP 3: Compare by case_id
+foreach ($allCases as $case_id => $caseData) {
+    if (isset($activityNextDates[$case_id])) {
+        // use max next_date from dailycaseactivities
+        if ($activityNextDates[$case_id] <= $today) {
             $casesToShow[] = [
                 'case_id' => $caseData['case_id'],
                 'case_name' => $caseData['case_name'],
-                'next_date' => $activityNextDates[$case_name]
+                'next_date' => $activityNextDates[$case_id]
             ];
         }
     } else {
-        // Case has no activity - use case table next_date
+        // no activity found, use next_date from cases table
         if ($caseData['next_date'] <= $today) {
             $casesToShow[] = [
                 'case_id' => $caseData['case_id'],
@@ -134,18 +185,22 @@ foreach ($allCases as $case_name => $caseData) {
         }
     }
 }
+
 ?>
 
 <!-- FINAL UI OUTPUT -->
 <div class="container py-4">
+    <a href="index.php?pg=dailycaseactivities.php&view=e-daybook" class="btn btn-outline-secondary d-print-none float-end mb-3">
+            📘 View e-DayBook
+    </a>
+
     <h4 class="text-primary">📅 Pending Hearings (Due Today or Missed)</h4>
 
     <?php if (!empty($casesToShow)): ?>
         <div class="table-responsive">
-            <a href="index.php?pg=dailycaseactivities.php&view=e-daybook" class="btn btn-outline-secondary d-print-none float-end mb-3">
+            <!-- <a href="index.php?pg=dailycaseactivities.php&view=e-daybook" class="btn btn-outline-secondary d-print-none float-end mb-3">
                 📘 View e-DayBook
-            </a>
-
+            </a> -->
             <table class="table table-bordered table-hover shadow-sm">
                 <thead class="table-dark">
                     <tr>
@@ -165,7 +220,7 @@ foreach ($allCases as $case_name => $caseData) {
                             <td>
                                 <form method="POST" action="index.php?pg=dailycaseactivities.php">
                                     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-                                    <input type="hidden" name="case_name" value="<?= Security::sanitize($case['case_name']) ?>">
+                                    <input type="hidden" name="case_name" value="<?= Security::sanitize($case['case_id']) ?>">
                                     <input type="hidden" name="activity_date" value="<?= Security::sanitize($case['next_date']) ?>">
                                     <button type="submit" name="btn_add_form" class="btn btn-success btn-sm">
                                         ➕ Add Activity
@@ -267,7 +322,11 @@ foreach ($allCases as $case_name => $caseData) {
     $row = $helper->getActivityData($_POST['activity_id']);
     ?>
     <div class="container py-4">
-        <h4>Edit Activity for <b><?= Security::sanitize($_POST['case_id']) ?></b> on <i><?= Security::sanitize($row['activity_date']) ?></i></h4>
+        <?php $realCase = $helper->getCaseData($row['case_name']);
+        $caseName = $realCase['case_name'];
+    ?>
+
+        <h4>Edit Activity for <b><?= Security::sanitize($caseName) ?></b> on <i><?= Security::sanitize($row['activity_date']) ?></i></h4>
         <form method="POST" action="index.php?pg=dailycaseactivities.php">
             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
             <input type="hidden" name="case_name" value="<?= $_POST['case_id'] ?>">
@@ -374,7 +433,9 @@ if ($isEdaybook) {
                     <div class="p-3">
                         <?php foreach ($activities as $row): ?>
                             <div class="mb-3 p-3 border-start border-4 border-primary bg-light rounded">
-                                <h6 class="text-primary">Case: <?= Security::sanitize($row['case_name']) ?></h6>
+
+                            <?php $realCase = $helper->getCaseData($row['case_name']); ?>
+                                <h6 class="text-primary">Case: <?= Security::sanitize($realCase['case_name']) ?></h6>
                                 <p><strong>Summary:</strong> <?= nl2br(Security::sanitize($row['summary'])) ?></p>
                                 <p><strong>Current Status:</strong> <?= Security::sanitize($row['current_status']) ?></p>
                                 <p><strong>Next Date:</strong> <?= Security::sanitize($row['next_date']) ?></p>
