@@ -43,6 +43,18 @@ class Helper {
         return $this->generateNextID('dailycaseactivities', 'activity_id', 'A', 8);
     }
 
+    public function generateNextAppealID() {
+        return $this->generateNextID('appeals', 'appeal_id', 'A', 8);
+    }
+
+    public function generateNextJudgementID() {
+        return $this->generateNextID('judgements', 'jud_id', 'J', 8);
+    }
+
+    public function generateNextOrderID() {
+        return $this->generateNextID('orders', 'order_id', 'O', 8);
+    }
+
     private function generateNextID($table, $column, $prefix, $padLength) {
         $sql = "SELECT $column FROM $table WHERE $column LIKE '$prefix%' ORDER BY CAST(SUBSTRING($column, 2) AS UNSIGNED) DESC LIMIT 1";
         $result = mysqli_query($this->conn, $sql);

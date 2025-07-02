@@ -1,1 +1,4 @@
 /vendor/
+/logs/
+/uploads/
+/admin_dashboard/

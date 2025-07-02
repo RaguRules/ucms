@@ -24,10 +24,10 @@
 						<a href="#"><span>Case Management</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
 						<ul>
 							<li><a href="index.php?pg=cases.php&option=view">Cases</a></li>
-							<li><a href="index.php?pg=appeals.php&option=view">Appeals</a></li>
-							<li><a href="index.php?pg=motions.php&option=view">Motions</a></li>
-							<li><a href="index.php?pg=judgements.php&option=view">Judgements</a></li>
-							<li><a href="index.php?pg=warrants.php&option=view">Warrants</a></li>
+							<li><a href="index.php?pg=appeal.php&option=view">Appeals</a></li>
+							<li><a href="index.php?pg=motion.php&option=view">Motions</a></li>
+							<li><a href="index.php?pg=judgement.php&option=view">Judgements</a></li>
+							<li><a href="index.php?pg=warrant.php&option=view">Warrants</a></li>
 							<li><a href="index.php?pg=parties.php&option=view">Parties</a></li>
 						</ul>
 					</li>
@@ -35,7 +35,7 @@
 						<a href="#"><span>Court Operations</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
 						<ul>
 							<li><a href="index.php?pg=dailycaseactivities.php">Daily Case Activities</a></li>
-							<li><a href="index.php?pg=orders.php">Orders</a></li>
+							<li><a href="index.php?pg=order.php">Orders</a></li>
 							<li><a href="index.php?pg=notifications.php">Notifications</a></li>
 							<li><a href="index.php?pg=fines.php">Fines</a></li>
 							<li><a href="index.php?pg=notes.php">Notes</a></li>
