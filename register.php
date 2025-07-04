@@ -116,6 +116,29 @@ if (isset($_POST['btn_add'])) {
 
         // Commit transaction if both succeed
         $conn->commit();
+
+
+
+		// Assuming registration is successful and $newUserId contains the ID of the newly registered lawyer/police
+
+
+// Determine user type and ID
+$type = ($_POST['type'] === 'lawyer') ? 'lawyer' : 'police';
+$recordId = $txtRegId;
+
+$message = ucfirst($type) . " registration pending approval: ID " . $recordId;
+$receiver = "admin"; // change based on your role setup
+
+// Generate unique notification ID
+$notifId = $helper->generateNextNotificationID();
+
+$stmt = $conn->prepare("INSERT INTO notifications (notification_id, record_id, type, status, message, receiver_id) VALUES (?, ?, ?, 'unread', ?, ?)");
+$stmt->bind_param("sssss", $notifId, $recordId, $type, $message, $receiver);
+$stmt->execute();
+
+
+
+
         echo '<script>alert("Successfully submitted your registration request. Please wait for Admin approval.");</script>';
         echo '<script>window.location.href = "index.php";</script>';
         exit;
@@ -306,6 +329,7 @@ if (isset($_POST['btn_add'])) {
 							<div>
 								<label hidden for="join_date" class="form-label">Join Date</label>
 								<input hidden type="date" class="form-control" id="date_joined_date" name="date_joined_date">
+								<input hidden type="type" class="form-control" id="type" name="type" value="<?php echo $type; ?>">
 							</div>
 						</div>
 						<div>
