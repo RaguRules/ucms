@@ -86,26 +86,6 @@ class Helper {
     }
 
 
-    // private function generateNextID($table, $column, $prefix, $padLength) {
-    //     $sql = "SELECT MAX($column) AS max_id FROM $table";
-    //     $result = mysqli_query($this->conn, $sql);
-
-    //     if ($result && mysqli_num_rows($result) > 0) {
-    //         $row = mysqli_fetch_assoc($result);
-    //         $max_id = $row['max_id'];
-
-    //         if ($max_id === null) {
-    //             return $prefix . str_pad("1", $padLength, "0", STR_PAD_LEFT);
-    //         } else {
-    //             $numeric_part = (int)substr($max_id, 1);
-    //             $next_numeric_part = $numeric_part + 1;
-    //             return $prefix . str_pad($next_numeric_part, $padLength, "0", STR_PAD_LEFT);
-    //         }
-    //     } else {
-    //         return $prefix . str_pad("1", $padLength, "0", STR_PAD_LEFT);
-    //     }
-    // }
-
     public function getStaffData($staffId) {
         $stmt = $this->conn->prepare("SELECT * FROM staff WHERE staff_id = ?");
         $stmt->bind_param("s", $staffId);
@@ -268,4 +248,222 @@ class Helper {
         }
         return false; // Case not found or no warrant
     }
+
+
+
+
+    // -----------------------------------------------------
+    // ------- Notification related Helper Functions -------
+    // -----------------------------------------------------
+
+
+    public function insertNotification($record_id, $type, $court_id, $message, $receiver_id) {
+        $sql = "INSERT INTO notifications (notification_id, record_id, type, court_id, status, message, receiver_id) VALUES (?, ?, ?, ?, 'unread', ?, ?)";
+        $notification_id = $this->generateNextNotificationId(); // existing ID generator function
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("ssssss", $notification_id, $record_id, $type, $court_id, $message, $receiver_id);
+        $stmt->execute();
+    }
+
+
+    public function getStaffIdByRoleAndCourt($role_id, $court_id) {
+        $stmt = $this->conn->prepare("SELECT staff_id FROM staff WHERE role_id = ? AND court_id = ? LIMIT 1");
+        $stmt->bind_param("ss", $role_id, $court_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        return $row ? $row['staff_id'] : null;
+    }
+
+
+    public function triggerJudgementNotification($case_id) {
+        $case = $this->getCaseData($case_id);
+        if (!$case) return;
+
+        $court_id = $case['court_id'] ?? null;
+        $message = "Judgement issued for case {$case_id} - {$case['case_name']}.";
+
+        // Assume you have stored or can get Registrar staff ID by querying staff where role_id = 'R03'
+        $registrarId = $this->getStaffIdByRoleAndCourt('R03', $court_id);
+        if ($registrarId) {
+            $this->insertNotification($case_id, 'Judgement', $court_id, $message, $registrarId);
+        }
+
+        $interpreterId = $this->getStaffIdByRoleAndCourt('R04', $court_id);
+        if ($interpreterId) {
+            $this->insertNotification($case_id, 'Judgement', $court_id, $message, $interpreterId);
+        }
+
+        if (!empty($case['plaintiff_lawyer'])) {
+            $lawyer = $this->getLawyerData($case['plaintiff_lawyer']);
+            if ($lawyer) {
+                $this->insertNotification($case_id, 'Judgement', $court_id, $message, $lawyer['lawyer_id']);
+            }
+        }
+
+        if (!empty($case['defendant_lawyer'])) {
+            $lawyer = $this->getLawyerData($case['defendant_lawyer']);
+            if ($lawyer) {
+                $this->insertNotification($case_id, 'Judgement', $court_id, $message, $lawyer['lawyer_id']);
+            }
+        }
+    }
+
+
+    public function triggerOrderNotification($case_id) {
+        $case = $this->getCaseData($case_id);
+        if (!$case){
+            return;
+        }
+
+        if (!is_string($receiver_id)) {
+            error_log("⚠️ insertNotification: receiver_id is not string! " . print_r($receiver_id, true));
+            return;
+        }
+
+        $court_id = $case['court_id'] ?? null;
+        $message = "Order issued for case {$case_id} - {$case['case_name']}.";
+
+        // Notify Registrar (role_id = 'R03')
+        $registrarId = $this->getStaffIdByRoleAndCourt('R03', $court_id);
+        if ($registrarId) {
+            $this->insertNotification($case_id, 'Order', $court_id, $message, $registrarId);
+        }
+
+        // Notify Interpreter (role_id = 'R04')
+        $interpreterId = $this->getStaffIdByRoleAndCourt('R04', $court_id);
+        if ($interpreterId) {
+            $this->insertNotification($case_id, 'Order', $court_id, $message, $interpreterId);
+        }
+
+        // Notify Plaintiff's Lawyer
+        if (!empty($case['plaintiff_lawyer'])) {
+            $lawyer = $this->getLawyerData($case['plaintiff_lawyer']);
+            if ($lawyer) {
+                $this->insertNotification($case_id, 'Order', $court_id, $message, $lawyer['lawyer_id']);
+            }
+        }
+
+        // Notify Defendant's Lawyer
+        if (!empty($case['defendant_lawyer'])) {
+            $lawyer = $this->getLawyerData($case['defendant_lawyer']);
+            if ($lawyer) {
+                $this->insertNotification($case_id, 'Order', $court_id, $message, $lawyer['lawyer_id']);
+            }
+        }
+}
+
+
+    public function getCaseLawyers($caseId) {
+        $lawyers = [];
+
+        $sql = "
+            SELECT l.lawyer_id, l.first_name, l.last_name, l.email, l.mobile, l.staff_id, 
+                'Plaintiff' AS role
+            FROM cases c
+            LEFT JOIN lawyer l ON l.lawyer_id = c.plaintiff_lawyer
+            WHERE c.case_id = ?
+            UNION
+            SELECT l2.lawyer_id, l2.first_name, l2.last_name, l2.email, l2.mobile, l2.staff_id, 
+                'Defendant' AS role
+            FROM cases c2
+            LEFT JOIN lawyer l2 ON l2.lawyer_id = c2.defendant_lawyer
+            WHERE c2.case_id = ?
+        ";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("ss", $caseId, $caseId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        while ($row = $result->fetch_assoc()) {
+            $lawyers[] = $row;
+        }
+
+        return $lawyers; // returns an array of lawyers with their role (Plaintiff or Defendant)
+    }
+
+    public function getInterpreterByCourt($courtId) {
+        $sql = "SELECT * FROM staff WHERE court_id = ? AND appointment = 'Interpreter' AND is_active = 1 LIMIT 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("s", $courtId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        return ($result && $result->num_rows > 0) ? $result->fetch_assoc() : null;
+    }
+
+
+    public function getJudgeByCourt($courtId) {
+        $stmt = $this->conn->prepare("SELECT staff_id FROM staff WHERE court_id = ? AND role_id = 'R02' AND is_active = 1");
+        $stmt->bind_param("s", $courtId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $judges = [];
+        while ($row = $result->fetch_assoc()) {
+            $judges[] = $row['staff_id'];
+        }
+
+        return $judges; // array, even if 1 judge
+    }
+
+
+    public function getRegistrarByCourt($courtId) {
+        $stmt = $this->conn->prepare("SELECT staff_id FROM staff WHERE court_id = ? AND role_id = 'R03' AND is_active = 1");
+        $stmt->bind_param("s", $courtId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $registrars = [];
+        while ($row = $result->fetch_assoc()) {
+            $registrars[] = $row['staff_id'];
+        }
+
+        return $registrars; // array of staff_id(s)
+    }
+
+
+
+    public function triggerNextDateUpdated($caseId) {
+        // Get case details
+        $caseData = $this->getCaseData($caseId);
+        if (!$caseData) return;
+
+        $courtId = $caseData['court_id'];
+        
+        // Get all assigned lawyers for this case (plaintiff and defendant)
+        $lawyers = $this->getCaseLawyers($caseId); // You should have this helper that returns array of lawyer staff_ids
+        
+        // Get Interpreter for this court
+        $interpreters = $this->getInterpreterByCourt($courtId); // Should return staff_id or null
+        
+        // Prepare message
+        $message = "Next hearing date has been updated for case '{$caseData['case_name']}'. Please check the new schedule.";
+        
+        // Insert notifications for lawyers
+      foreach ($lawyers as $lawyer) {
+        if (!empty($lawyer['email'])) {
+            error_log("Inserting notification for lawyer email: " . $lawyer['email']);
+            $this->insertNotification($caseId, 'next_date_updated', $courtId, $message, $lawyer['email']);
+        } else {
+            $this->insertNotification($caseId, 'next_date_updated', $courtId, $message, 'cannot retrieve lawyer email');
+            error_log("Lawyer email is empty for case $caseId");
+        }
+    }
+
+        
+        // Insert notification for interpreter if exists
+        if (!empty($interpreters)) {
+            foreach ($interpreters as $interpreter) {
+                $this->insertNotification($caseId, 'next_date_updated', $courtId, $message, $interpreter['email']);
+            }
+        }
+
+    }
+
+
+
+
 }

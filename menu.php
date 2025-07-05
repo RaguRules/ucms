@@ -57,6 +57,7 @@
                             <li><a href="index.php?pg=lawyer.php&option=view">Lawyer</a></li>
                             <li><a href="index.php?pg=police.php&option=view">Police</a></li>
                             <li><a href="index.php?pg=roles.php">Roles</a></li>
+							<li><a href="index.php?pg=approve.php">Pending Approvals</a></li>
                         </ul>
                     </li>
 

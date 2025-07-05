@@ -27,31 +27,45 @@ if (isset($_POST['btn_add_activity'])) {
     $stmt->bind_param("sssssssss", $activityId, $caseName, $summary, $nextDate, $currentStatus, $nextStatus, $isTaken, $activityDate, $staffId);
     $stmt->execute();
 
-    // Update case details
-    $update = $conn->prepare("UPDATE cases SET status=?, is_warrant=?, next_date=?, for_what=?, staff_id=? WHERE case_name=?");
-    $isWarrant = isset($_POST['is_warrant']) ? 1 : 0;
-    $forWhat = $_POST['next_status'];
-    $update->bind_param("sissis", $nextStatus, $isWarrant, $nextDate, $forWhat, $staffId, $caseName);
-    $update->execute();
 
-    // header("Location: dailycaseactivities.php");
-    echo "<script>location.href='index.php?pg=dailycaseactivities.php';</script>";
-    exit;
+
+    if ($stmt->affected_rows > 0) {
+        // Update case details
+        $update = $conn->prepare("UPDATE cases SET status=?, is_warrant=?, next_date=?, for_what=?, staff_id=? WHERE case_name=?");
+        $isWarrant = isset($_POST['is_warrant']) ? 1 : 0;
+        $forWhat = $_POST['next_status'];
+        $update->bind_param("sissis", $nextStatus, $isWarrant, $nextDate, $forWhat, $staffId, $caseName);
+        $update->execute();
+
+        // Now trigger notifications based on status
+        $caseData = $helper->getCaseData($caseName);
+        $caseId = $caseData['case_id'] ?? null;
+
+        if ($caseId) {
+            // Judgement notification
+            if (in_array($currentStatus, ['Judgement', 'Post Judgement Calling']) || in_array($nextStatus, ['Judgement', 'Post Judgement Calling'])) {
+                $helper->triggerJudgementNotification($caseId);
+            }
+
+            // Order notification
+            if (in_array($currentStatus, ['Order']) || in_array($nextStatus, ['Order'])) {
+                $helper->triggerOrderNotification($caseId);
+            }
+
+            // Next Date Changed notification
+            // Optionally check if next_date differs from previous date for that case before update
+            // For simplicity, just trigger if next_date is set
+            if (!empty($nextDate)) {
+                $helper->triggerNextDateUpdated($caseId);
+            }
+            
+            // header("Location: dailycaseactivities.php");
+            echo "<script>location.href='index.php?pg=dailycaseactivities.php';</script>";
+            exit;
+        }
+    }
 }
 
-// Handle Full View
-// if (isset($_POST['btn_full_view']) && isset($_POST['activity_id'])) {
-//     $activityId = Security::sanitize($_POST['activity_id']);
-//     $stmt = $conn->prepare("SELECT * FROM dailycaseactivities WHERE activity_id = ?");
-//     $stmt->bind_param("i", $activityId);
-//     $stmt->execute();
-//     $result = $stmt->get_result();
-//     $activity = $result->fetch_assoc();
-//     if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-// 	       die("Invalid CSRF token.");
-// 	   }
-//     // Display modal here (excluded for brevity)
-// }
 
 // Handle Edit
 if (isset($_POST['btn_update']) && isset($_POST['activity_id'])) {
@@ -81,60 +95,7 @@ if (isset($_POST['btn_update']) && isset($_POST['activity_id'])) {
     echo "<script>location.href='index.php?pg=dailycaseactivities.php';</script>";
     exit;
 }
-
-
-// $casesToShow = [];
-// $today = date('Y-m-d');
-// $datesFromActivities = [];
-
-// // STEP 1: Fetch all cases
-// $allCases = [];
-// $sql_cases = "SELECT case_id, case_name, next_date FROM cases";
-// $result_cases = $conn->query($sql_cases);
-// while ($row = $result_cases->fetch_assoc()) {
-//     $allCases[$row['case_name']] = [
-//         'case_id' => $row['case_id'],
-//         'case_name' => $row['case_name'],
-//         'next_date' => $row['next_date']
-//     ];
-// }
-
-// // STEP 2: Get MAX(next_date) from dailycaseactivities per case_name
-// $sql = "
-//     SELECT case_name, MAX(next_date) AS max_next_date
-//     FROM dailycaseactivities
-//     GROUP BY case_name
-// ";
-// $res = $conn->query($sql);
-
-// $activityNextDates = [];
-// while ($r = $res->fetch_assoc()) {
-//     $activityNextDates[$r['case_name']] = $r['max_next_date'];
-// }
-
-// // STEP 3: Evaluate cases one by one
-// foreach ($allCases as $case_name => $caseData) {
-//     if (isset($activityNextDates[$case_name])) {
-//         // Case has activity records - use MAX(next_date)
-//         if ($activityNextDates[$case_name] <= $today) {
-//             $casesToShow[] = [
-//                 'case_id' => $caseData['case_id'],
-//                 'case_name' => $caseData['case_name'],
-//                 'next_date' => $activityNextDates[$case_name]
-//             ];
-//         }
-//     } else {
-//         // Case has no activity - use case table next_date
-//         if ($caseData['next_date'] <= $today) {
-//             $casesToShow[] = [
-//                 'case_id' => $caseData['case_id'],
-//                 'case_name' => $caseData['case_name'],
-//                 'next_date' => $caseData['next_date']
-//             ];
-//         }
-//     }
-// }
-// 
+ 
 $casesToShow = [];
 $today = date('Y-m-d');
 
