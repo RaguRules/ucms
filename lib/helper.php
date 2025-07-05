@@ -56,7 +56,7 @@ class Helper {
     }
 
     public function generateNextMotionID() {
-        return $this->generateNextID('orders', 'order_id', 'O', 8);
+        return $this->generateNextID('motions', 'motion_id', 'M', 8);
     }
 
     public function generateNextNotesID() {
@@ -267,49 +267,50 @@ class Helper {
     }
 
 
-    public function getStaffIdByRoleAndCourt($role_id, $court_id) {
-        $stmt = $this->conn->prepare("SELECT staff_id FROM staff WHERE role_id = ? AND court_id = ? LIMIT 1");
+    public function getStaffEmailByRoleAndCourt($role_id, $court_id) {
+        $stmt = $this->conn->prepare("SELECT * FROM staff WHERE role_id = ? AND court_id = ? LIMIT 1");
         $stmt->bind_param("ss", $role_id, $court_id);
         $stmt->execute();
         $result = $stmt->get_result();
         $row = $result->fetch_assoc();
-        return $row ? $row['staff_id'] : null;
+        return $row ? $row['email'] : null;
     }
 
 
     public function triggerJudgementNotification($case_id) {
         $case = $this->getCaseData($case_id);
-        if (!$case) return;
-
-        $court_id = $case['court_id'] ?? null;
-        $message = "Judgement issued for case {$case_id} - {$case['case_name']}.";
-
-        // Assume you have stored or can get Registrar staff ID by querying staff where role_id = 'R03'
-        $registrarId = $this->getStaffIdByRoleAndCourt('R03', $court_id);
-        if ($registrarId) {
-            $this->insertNotification($case_id, 'Judgement', $court_id, $message, $registrarId);
+        if (!$case){
+            return;
         }
 
-        $interpreterId = $this->getStaffIdByRoleAndCourt('R04', $court_id);
-        if ($interpreterId) {
-            $this->insertNotification($case_id, 'Judgement', $court_id, $message, $interpreterId);
+        $court_id = $case['court_id'] ?? null;
+        $message = "Judgement issued for case {$case['case_name']}.";
+
+        // Assume you have stored or can get Registrar staff ID by querying staff where role_id = 'R03'
+        $registrarEmail = $this->getStaffEmailByRoleAndCourt('R03', $court_id);
+        if ($registrarEmail) {
+            $this->insertNotification($case_id, 'Judgement', $court_id, $message, $registrarEmail);
+        }
+
+        $interpreterEmail = $this->getStaffEmailByRoleAndCourt('R04', $court_id);
+        if ($interpreterEmail) {
+            $this->insertNotification($case_id, 'Judgement', $court_id, $message, $interpreterEmail);
         }
 
         if (!empty($case['plaintiff_lawyer'])) {
             $lawyer = $this->getLawyerData($case['plaintiff_lawyer']);
             if ($lawyer) {
-                $this->insertNotification($case_id, 'Judgement', $court_id, $message, $lawyer['lawyer_id']);
+                $this->insertNotification($case_id, 'Judgement', $court_id, $message, $lawyer['email']);
             }
         }
 
         if (!empty($case['defendant_lawyer'])) {
             $lawyer = $this->getLawyerData($case['defendant_lawyer']);
             if ($lawyer) {
-                $this->insertNotification($case_id, 'Judgement', $court_id, $message, $lawyer['lawyer_id']);
+                $this->insertNotification($case_id, 'Judgement', $court_id, $message, $lawyer['email']);
             }
         }
     }
-
 
     public function triggerOrderNotification($case_id) {
         $case = $this->getCaseData($case_id);
@@ -317,42 +318,131 @@ class Helper {
             return;
         }
 
-        if (!is_string($receiver_id)) {
-            error_log("⚠️ insertNotification: receiver_id is not string! " . print_r($receiver_id, true));
+        $court_id = $case['court_id'] ?? null;
+        $message = "Order made for case {$case['case_name']}.";
+
+        // Assume you have stored or can get Registrar staff ID by querying staff where role_id = 'R03'
+        $registrarEmail = $this->getStaffEmailByRoleAndCourt('R03', $court_id);
+        if ($registrarEmail) {
+            $this->insertNotification($case_id, 'Order', $court_id, $message, $registrarEmail);
+        }
+
+        $interpreterEmail = $this->getStaffEmailByRoleAndCourt('R04', $court_id);
+        if ($interpreterEmail) {
+            $this->insertNotification($case_id, 'Order', $court_id, $message, $interpreterEmail);
+        }
+
+        if (!empty($case['plaintiff_lawyer'])) {
+            $lawyer = $this->getLawyerData($case['plaintiff_lawyer']);
+            if ($lawyer) {
+                $this->insertNotification($case_id, 'Judgement', $court_id, $message, $lawyer['email']);
+            }
+        }
+
+        if (!empty($case['defendant_lawyer'])) {
+            $lawyer = $this->getLawyerData($case['defendant_lawyer']);
+            if ($lawyer) {
+                $this->insertNotification($case_id, 'Judgement', $court_id, $message, $lawyer['email']);
+            }
+        }
+    }
+
+    public function triggerMotionFiledNotification($case_id, $motionType, $filedBy) {
+        $case = $this->getCaseData($case_id);
+        if (!$case) {
             return;
         }
 
         $court_id = $case['court_id'] ?? null;
-        $message = "Order issued for case {$case_id} - {$case['case_name']}.";
+        $message = "A motion of type '{$motionType}' has been filed for case '{$case['case_name']}' by {$filedBy}.";
 
-        // Notify Registrar (role_id = 'R03')
-        $registrarId = $this->getStaffIdByRoleAndCourt('R03', $court_id);
-        if ($registrarId) {
-            $this->insertNotification($case_id, 'Order', $court_id, $message, $registrarId);
-        }
-
-        // Notify Interpreter (role_id = 'R04')
-        $interpreterId = $this->getStaffIdByRoleAndCourt('R04', $court_id);
-        if ($interpreterId) {
-            $this->insertNotification($case_id, 'Order', $court_id, $message, $interpreterId);
-        }
-
-        // Notify Plaintiff's Lawyer
+        // Get all assigned lawyers for this case (plaintiff and defendant)
+        // $lawyers = $this->getCaseLawyers($caseId); 
         if (!empty($case['plaintiff_lawyer'])) {
             $lawyer = $this->getLawyerData($case['plaintiff_lawyer']);
             if ($lawyer) {
-                $this->insertNotification($case_id, 'Order', $court_id, $message, $lawyer['lawyer_id']);
+                $this->insertNotification($case_id, 'Motion', $court_id, $message, $lawyer['email']);
             }
         }
 
-        // Notify Defendant's Lawyer
         if (!empty($case['defendant_lawyer'])) {
             $lawyer = $this->getLawyerData($case['defendant_lawyer']);
             if ($lawyer) {
-                $this->insertNotification($case_id, 'Order', $court_id, $message, $lawyer['lawyer_id']);
+                $this->insertNotification($case_id, 'Motion', $court_id, $message, $lawyer['email']);
             }
         }
-}
+        
+        // Get Judge for this court
+        // $judges = $this->getJudgeByCourt($court_id); 
+         $judgeEmail = $this->getStaffEmailByRoleAndCourt('R02', $court_id);
+        if ($judgeEmail) {
+            $this->insertNotification($case_id, 'Motion', $court_id, $message, $judgeEmail);
+        }
+
+
+        // Get Registrar for this court
+        // $Registrars = $this->getRegistrarByCourt($court_id); 
+        $registrarEmail = $this->getStaffEmailByRoleAndCourt('R03', $court_id);
+        if ($registrarEmail) {
+            $this->insertNotification($case_id, 'Motion', $court_id, $message, $registrarEmail);
+        }
+
+        // Get Interpreter for this court
+        // $interpreters = $this->getInterpreterByCourt($court_id); 
+        $interpreterEmail = $this->getStaffEmailByRoleAndCourt('R04', $court_id);
+        if ($interpreterEmail) {
+            $this->insertNotification($case_id, 'Motion', $court_id, $message, $interpreterEmail);
+        }
+    }
+
+    public function triggerMotionStatusChangedNotification($case_id, $motionId, $newStatus) {
+        $case = $this->getCaseData($case_id);
+        if (!$case) {
+            return;
+        }
+
+        $court_id = $case['court_id'] ?? null;
+        $message = "The status of motion '{$motionId}' has been updated to '{$newStatus}' for case '{$case['case_name']}'.";
+
+        // Get all assigned lawyers for this case (plaintiff and defendant)
+        // $lawyers = $this->getCaseLawyers($caseId); 
+        if (!empty($case['plaintiff_lawyer'])) {
+            $lawyer = $this->getLawyerData($case['plaintiff_lawyer']);
+            if ($lawyer) {
+                $this->insertNotification($case_id, 'Motion', $court_id, $message, $lawyer['email']);
+            }
+        }
+
+        if (!empty($case['defendant_lawyer'])) {
+            $lawyer = $this->getLawyerData($case['defendant_lawyer']);
+            if ($lawyer) {
+                $this->insertNotification($case_id, 'Motion', $court_id, $message, $lawyer['email']);
+            }
+        }
+        
+        // Get Judge for this court
+        // $judges = $this->getJudgeByCourt($court_id); 
+         $judgeEmail = $this->getStaffEmailByRoleAndCourt('R02', $court_id);
+        if ($judgeEmail) {
+            $this->insertNotification($case_id, 'Motion', $court_id, $message, $judgeEmail);
+        }
+
+
+        // Get Registrar for this court
+        // $Registrars = $this->getRegistrarByCourt($court_id); 
+        $registrarEmail = $this->getStaffEmailByRoleAndCourt('R03', $court_id);
+        if ($registrarEmail) {
+            $this->insertNotification($case_id, 'Motion', $court_id, $message, $registrarEmail);
+        }
+
+        // Get Interpreter for this court
+        // $interpreters = $this->getInterpreterByCourt($court_id); 
+        $interpreterEmail = $this->getStaffEmailByRoleAndCourt('R04', $court_id);
+        if ($interpreterEmail) {
+            $this->insertNotification($case_id, 'Motion', $court_id, $message, $interpreterEmail);
+        }
+    }
+
 
 
     public function getCaseLawyers($caseId) {
@@ -396,14 +486,14 @@ class Helper {
 
 
     public function getJudgeByCourt($courtId) {
-        $stmt = $this->conn->prepare("SELECT staff_id FROM staff WHERE court_id = ? AND role_id = 'R02' AND is_active = 1");
+        $stmt = $this->conn->prepare("SELECT * FROM staff WHERE court_id = ? AND role_id = 'R02' AND is_active = 1");
         $stmt->bind_param("s", $courtId);
         $stmt->execute();
         $result = $stmt->get_result();
 
         $judges = [];
         while ($row = $result->fetch_assoc()) {
-            $judges[] = $row['staff_id'];
+            $judges[] = $row['email'];
         }
 
         return $judges; // array, even if 1 judge
@@ -411,14 +501,14 @@ class Helper {
 
 
     public function getRegistrarByCourt($courtId) {
-        $stmt = $this->conn->prepare("SELECT staff_id FROM staff WHERE court_id = ? AND role_id = 'R03' AND is_active = 1");
+        $stmt = $this->conn->prepare("SELECT * FROM staff WHERE court_id = ? AND role_id = 'R03' AND is_active = 1");
         $stmt->bind_param("s", $courtId);
         $stmt->execute();
         $result = $stmt->get_result();
 
         $registrars = [];
         while ($row = $result->fetch_assoc()) {
-            $registrars[] = $row['staff_id'];
+            $registrars[] = $row['email'];
         }
 
         return $registrars; // array of staff_id(s)
@@ -429,7 +519,9 @@ class Helper {
     public function triggerNextDateUpdated($caseId) {
         // Get case details
         $caseData = $this->getCaseData($caseId);
-        if (!$caseData) return;
+        if (!$caseData){
+            return;
+        }
 
         $courtId = $caseData['court_id'];
         
@@ -444,16 +536,15 @@ class Helper {
         
         // Insert notifications for lawyers
       foreach ($lawyers as $lawyer) {
-        if (!empty($lawyer['email'])) {
-            error_log("Inserting notification for lawyer email: " . $lawyer['email']);
-            $this->insertNotification($caseId, 'next_date_updated', $courtId, $message, $lawyer['email']);
-        } else {
-            $this->insertNotification($caseId, 'next_date_updated', $courtId, $message, 'cannot retrieve lawyer email');
-            error_log("Lawyer email is empty for case $caseId");
+            if (!empty($lawyer['email'])) {
+                error_log("Inserting notification for lawyer email: " . $lawyer['email']);
+                $this->insertNotification($caseId, 'next_date_updated', $courtId, $message, $lawyer['email']);
+            } else {
+                $this->insertNotification($caseId, 'next_date_updated', $courtId, $message, 'cannot retrieve lawyer email');
+                error_log("Lawyer email is empty for case $caseId");
+            }
         }
-    }
 
-        
         // Insert notification for interpreter if exists
         if (!empty($interpreters)) {
             foreach ($interpreters as $interpreter) {

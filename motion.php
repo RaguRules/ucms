@@ -16,6 +16,9 @@ if (isset($_POST['add_motion'])) {
     $stmt->bind_param("sssss", $motionId, $caseId, $filedBy, $motionType, $filedDate);
     $stmt->execute();
 
+    // Trigger Motion Filed Notification
+    $helper->triggerMotionFiledNotification($caseId, $motionType, $filedBy);
+
     // Log to dailycaseactivities
     $activityId = $helper->generateNextActivityID();
     $summary = 'Motion Filed: ' . $motionType;
@@ -35,12 +38,21 @@ if (isset($_POST['update_status'], $_POST['motion_id'], $_POST['new_status'])) {
     $motionId = $_POST['motion_id'];
     $newStatus = $_POST['new_status'];
     $remarks = $_POST['remarks'] ?? '';
+    $caseId = $_POST['case_id'];
     $rescheduleDate = !empty($_POST['reschedule_date']) ? $_POST['reschedule_date'] : NULL;
 
     // Update motion
     $stmt = $conn->prepare("UPDATE motions SET status = ?, remarks = ? WHERE motion_id = ?");
     $stmt->bind_param("sss", $newStatus, $remarks, $motionId);
     $stmt->execute();
+
+    // $motionInfo = $conn->query("SELECT case_id FROM motions WHERE motion_id = '$motionId'")->fetch_assoc();
+    // $caseId = $motionInfo['case_id'];
+
+    // Trigger Motion Status Change Notification
+    $helper->triggerMotionStatusChangedNotification($caseId, $motionId, $newStatus);
+
+    echo "<script>alert('Case ID id: $caseId.');</script>";
 
     // Log to dailycaseactivities if approved with date
     if ($newStatus === 'Approved' && $rescheduleDate) {
@@ -179,6 +191,7 @@ $motions = $conn->query("SELECT m.*, c.case_name, CONCAT(l.first_name, ' ', l.la
                 </div>
                 <div class="col-md-12 mt-1">
                   <input type="date" name="reschedule_date" class="form-control form-control-sm" placeholder="Next Date (if approved)">
+                  <input hidden type="text" name="case_id" class="form-control form-control-sm" value="<?= Security::sanitize($m['case_id']) ?>">
                 </div>
                 <div class="col-md-12 mt-1">
                   <button type="submit" name="update_status" class="btn btn-sm btn-outline-success w-100">Update</button>

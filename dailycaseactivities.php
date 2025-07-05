@@ -43,7 +43,7 @@ if (isset($_POST['btn_add_activity'])) {
 
         if ($caseId) {
             // Judgement notification
-            if (in_array($currentStatus, ['Judgement', 'Post Judgement Calling']) || in_array($nextStatus, ['Judgement', 'Post Judgement Calling'])) {
+            if (in_array($currentStatus, ['Judgement']) || in_array($nextStatus, ['Judgement'])) {
                 $helper->triggerJudgementNotification($caseId);
             }
 
@@ -53,11 +53,10 @@ if (isset($_POST['btn_add_activity'])) {
             }
 
             // Next Date Changed notification
-            // Optionally check if next_date differs from previous date for that case before update
-            // For simplicity, just trigger if next_date is set
-            if (!empty($nextDate)) {
+            if (!empty($nextDate) && !in_array($nextStatus, ['Order', 'Judgement'])) {
                 $helper->triggerNextDateUpdated($caseId);
             }
+
             
             // header("Location: dailycaseactivities.php");
             echo "<script>location.href='index.php?pg=dailycaseactivities.php';</script>";
