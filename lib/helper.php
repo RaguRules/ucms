@@ -515,7 +515,7 @@ class Helper {
     }
 
 
-
+    // In Dailycaseactivities.php
     public function triggerNextDateUpdated($caseId) {
         // Get case details
         $caseData = $this->getCaseData($caseId);

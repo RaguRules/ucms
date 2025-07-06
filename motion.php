@@ -52,7 +52,7 @@ if (isset($_POST['update_status'], $_POST['motion_id'], $_POST['new_status'])) {
     // Trigger Motion Status Change Notification
     $helper->triggerMotionStatusChangedNotification($caseId, $motionId, $newStatus);
 
-    echo "<script>alert('Case ID id: $caseId.');</script>";
+    // echo "<script>alert('Case ID id: $caseId.');</script>";
 
     // Log to dailycaseactivities if approved with date
     if ($newStatus === 'Approved' && $rescheduleDate) {
