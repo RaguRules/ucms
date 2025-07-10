@@ -8,14 +8,13 @@ if (isset($_POST["btn_add"])) {
 	$intMobile = Security::sanitize($_POST["int_mobile"]);
 	$txtNicNumber = Security::sanitize($_POST["txt_nic_number"]);
 	$dateDateOfBirth = Security::sanitize($_POST["date_date_of_birth"]);
+	$dateJoinedDate = date('Y-m-d');
 	$txtEmail = Security::sanitize($_POST["txt_email"]);
 	$txtAddress = Security::sanitize($_POST["txt_address"]);
 	$selectGender = Security::sanitize($_POST["select_gender"]);
 	$intIsActive = 1;
 	$txtAddedBy = $_SESSION["LOGIN_USERTYPE"];
 	$txtWrittenId = $helper->getId($_SESSION["LOGIN_USERNAME"], $_SESSION["LOGIN_USERTYPE"]);
-	// $txtAddedBy = "R03";
-	// $txtWrittenId = "S0001";
 
 	// Check for CSRF Tokens
 	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
@@ -42,7 +41,7 @@ if (isset($_POST["btn_add"])) {
 	}
 
 	if (!$helper->validateDate($dateJoinedDate)) {
-		$errors[] = "Invalid joined date.";
+		$errors[] = "Invalid joined date2.";
 	}
 
 	if (empty($txtFirstName) || empty($txtLastName) || empty($txtAddress)) {
@@ -65,7 +64,7 @@ if (isset($_POST["btn_add"])) {
 		$stmtParty = $conn->prepare("INSERT INTO parties (party_id, first_name, last_name, mobile, nic_number, email, joined_date, address, date_of_birth, gender, is_active, added_by, staff_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
 		$stmtParty->bind_param(
-			"sssissdsssiss",
+			"sssissssssiss",
 			$txtPartyId,
 			$txtFirstName,
 			$txtLastName,
@@ -86,14 +85,14 @@ if (isset($_POST["btn_add"])) {
 		$conn->commit();
 
 		echo '<script>alert("Successfully added a Party.");</script>';
-		echo "<script>location.href='index.php?pg=party.php&option=view';</script>";
+		echo "<script>location.href='index.php?pg=parties.php&option=view';</script>";
 		exit;
 
 	} catch (Exception $e) {
 		// Rollback on error
 		$conn->rollback();
 
-		echo '<script>alert("An error occurred while saving. Please try again.");</script>';
+		echo '<script>alert("An error occurred. Please try again.");</script>';
 	}
 }
 
@@ -112,9 +111,6 @@ if (isset($_POST["btn_update"])) {
 	$intIsActive = 1;
 	$txtAddedBy = $_SESSION["LOGIN_USERTYPE"];
 	$txtWrittenId = $helper->getId($_SESSION["LOGIN_USERNAME"], $_SESSION["LOGIN_USERTYPE"]);
-	// $txtAddedBy = "R03";
-	// $txtWrittenId = "S0001";
-
 
 	// CSRF Protection
 	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
@@ -151,12 +147,6 @@ if (isset($_POST["btn_update"])) {
 		exit;
 	}
 
-	// Before update party, check for duplicates in staff, lawyer, and police tables
-	// Security::checkDuplicate($conn, "nic_number", $txtNicNumber, "", "NIC Number already exists!", $txtPartyId);
-	// Security::checkDuplicate($conn, "mobile", $intMobile, "", "Mobile number already exists!", $txtPartyId);
-	// Security::checkDuplicate($conn, "email", $txtEmail, "", "Email already exists!", $txtPartyId);
-	
-
 	// Start Transaction
 	$conn->begin_transaction();
 
@@ -187,13 +177,14 @@ if (isset($_POST["btn_update"])) {
 		echo '<script>alert("Successfully updated party details.");</script>';        
 		echo "<script>location.href='index.php?pg=parties.php&option=view';</script>";
 
-} catch (Exception $e) {
-	$conn->rollback();
+	} catch (Exception $e) {
+		$conn->rollback();
 
-	Security::logError($e->getMessage());
-	echo "<div class='alert alert-danger'>Error updating party details: " . $conn->error . "</div>";
-	echo '<script>alert("An error occurred while updating. Please try again.");</script>';
-}
+		Security::logError($e->getMessage());
+		echo '<script>alert("An error occurred: ' . $e->getMessage() . '. Please try again.");</script>';
+
+		echo "<div class='alert alert-danger'>Error updating party details: " . $conn->error . "</div>";
+	}
 }
 
 
@@ -410,7 +401,7 @@ if (isset($_POST["btn_reactivate"])) {
 	<div class="container mt-4">
 		<div class="row justify-content-center">
 			<div class="col-md-8 col-lg-6">
-				<form action="#" method="POST" id="staffForm" name="staffForm" enctype="multipart/form-data">
+				<form action="#" method="POST" id="partyForm" name="partyForm">
 <div class="container p-4 bg-light border rounded shadow-sm">
 
 <h4 class="mb-4 text-primary">Client Registration Form</h4>

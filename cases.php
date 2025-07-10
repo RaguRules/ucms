@@ -387,10 +387,10 @@
  $defendantLawyersList = $helper->getAllLawyers();
  $policeList = $helper->getAllPolice();
 
-$plaintiff = $helper->getPartyData(Security::sanitize($row['plaintiff']), $conn);
-$defendant = $helper->getPartyData(Security::sanitize($row['defendant']), $conn);
-$plaintiffLawyer = $helper->getLawyerData(Security::sanitize($row['plaintiff_lawyer']), $conn);
-$defendantLawyer = $helper->getLawyerData(Security::sanitize($row['defendant_lawyer']), $conn);
+// $plaintiff = $helper->getPartyData(Security::sanitize($row['plaintiff']), $conn);
+// $defendant = $helper->getPartyData(Security::sanitize($row['defendant']), $conn);
+// $plaintiffLawyer = $helper->getLawyerData(Security::sanitize($row['plaintiff_lawyer']), $conn);
+// $defendantLawyer = $helper->getLawyerData(Security::sanitize($row['defendant_lawyer']), $conn);
 
  ?>
 <div class="modal fade" id="addCaseModal" tabindex="-1" aria-labelledby="addCaseModalLabel" aria-hidden="true">

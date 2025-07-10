@@ -3,7 +3,6 @@
 $lawyerId = null;
 
 if ($systemUsertype === "R06") {
-    // Only lawyers have a lawyer_id in the lawyer table
     $stmt = $conn->prepare("SELECT lawyer_id FROM lawyer WHERE email = ?");
     $stmt->bind_param("s", $systemUsername);
     $stmt->execute();
@@ -18,17 +17,6 @@ if ($systemUsertype === "R06") {
         exit;
     }
 }
-
-
-// Get all cases related to this lawyer
-// $query = "SELECT * FROM cases WHERE plaintiff_lawyer = ? OR defendant_lawyer = ?";
-// $stmt = $conn->prepare($query);
-// $stmt->bind_param("ss", $lawyerId, $lawyerId);
-// $stmt->execute();
-// $cases = $stmt->get_result();
-
-
-
 
 if (isset($_POST['case_id'])) {
 
@@ -176,12 +164,6 @@ if (isset($_POST["btn_add"])) {
     $isActive = "1";
     $txtAddedBy = $_SESSION["LOGIN_USERTYPE"];
     $txtWrittenId = $helper->getId($_SESSION["LOGIN_USERNAME"], $_SESSION["LOGIN_USERTYPE"]);
-    // $txtAddedBy = "R03";
-    // $txtStaffId = "S0001";
-
-    // echo "<script>alert('Added by: $txtAddedBy');</script>";
-    // echo "<script>alert('Entered by: $txtWrittenId');</script>";
-
 
     // Check for CSRF Tokens
 	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
@@ -315,8 +297,6 @@ if (isset($_POST["btn_update"])) {
     $txtEnrolmentNumber = Security::sanitize($_POST["txt_enrolment_number"]);
     $txtAddedBy = $_SESSION["LOGIN_USERTYPE"];
     $txtWrittenId = $helper->getId($_SESSION["LOGIN_USERNAME"], $_SESSION["LOGIN_USERTYPE"]);
-    // $txtAddedBy = "R03";
-    // $txtStaffId = "S0001";
 
     // Check for CSRF Tokens
 	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
@@ -352,11 +332,6 @@ if (isset($_POST["btn_update"])) {
         }
         exit;
     }
-
-	// Before update staff, check for duplicates in staff, lawyer, and police tables
-	// Security::checkDuplicate($conn, "nic_number", $txtNicNumber, "", "NIC Number already exists!", $txtLawyerId);
-	// Security::checkDuplicate($conn, "mobile", $intMobile, "", "Mobile number already exists!", $txtLawyerId);
-	// Security::checkDuplicate($conn, "email", $txtEmail, "", "Email already exists!", $txtLawyerId);
 
     // Start Transaction
     $conn->begin_transaction();
@@ -504,10 +479,7 @@ if (isset($_POST["btn_reactivate"])) {
         echo '<script>alert("An error occurred while reactivating. Please try again.");</script>';
     }
 }
-
-
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -518,14 +490,6 @@ if (isset($_POST["btn_reactivate"])) {
 	</head>
 	<body class="light-mode">
 		<!-- VIEW Section-->
-		<?php
-			if(isset($_GET['option']) && $_GET['option'] == "view") {
-			
-				$sql_read = "SELECT lawyer_id, first_name, last_name, nic_number, mobile, email, enrolment_number, is_active FROM lawyer";
-				$result = $conn->query($sql_read);
-
-				if ($result && $result->num_rows > 0) {
-			?>
 		<div class="container mt-4">
 			<!-- For bigger list  <div class="container-fluid mt-4"> -->
 			<div class="d-flex justify-content-start mb-3">
@@ -533,6 +497,14 @@ if (isset($_POST["btn_reactivate"])) {
 				<i class="fas fa-plus"></i> Add Lawyer
 				</a>
 			</div>
+			<?php
+			if(isset($_GET['option']) && $_GET['option'] == "view") {
+			
+				$sql_read = "SELECT lawyer_id, first_name, last_name, nic_number, mobile, email, enrolment_number, is_active FROM lawyer";
+				$result = $conn->query($sql_read);
+
+				if ($result && $result->num_rows > 0) {
+			?>
 			<div class="table-responsive">
 				<table class="table table-striped attractive-table w-100">
 					<thead>
@@ -1303,6 +1275,6 @@ foreach ($cases as $case) {
   </div>
 </div>
 
-
-
 </html>
+
+<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

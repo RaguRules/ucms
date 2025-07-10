@@ -104,40 +104,22 @@ if (isset($_POST['btn_add'])) {
             throw new Exception("Registration insert failed: " . $stmtRegister->error);
         }
 
-		$otp = strval(random_int(10000, 99999)); // 5-digit numeric OTP
+		// $otp = strval(random_int(10000, 99999));
 
         // Insert into login table
-        $stmtLogin = $conn->prepare("INSERT INTO login (username, password, otp, status, role_id) VALUES (?, ?, ?, 'pending', ?)");
-        $stmtLogin->bind_param("sssi", $txtEmail, $hashedPassword, $otp, $txtRoleId);
+        $stmtLogin = $conn->prepare("INSERT INTO login (username, password, status, role_id) VALUES (?, ?, 'pending', ?)");
+        $stmtLogin->bind_param("sss", $txtEmail, $hashedPassword, $txtRoleId);
 
         if (!$stmtLogin->execute()) {
             throw new Exception("Login insert failed: " . $stmtLogin->error);
         }
 
-        // Commit transaction if both succeed
         $conn->commit();
 
+		// Determine user type and ID
+		$type = ($_POST['type'] === 'lawyer') ? 'lawyer' : 'police';
 
-
-		// Assuming registration is successful and $newUserId contains the ID of the newly registered lawyer/police
-
-
-// Determine user type and ID
-$type = ($_POST['type'] === 'lawyer') ? 'lawyer' : 'police';
-$recordId = $txtRegId;
-
-$message = ucfirst($type) . " registration pending approval: ID " . $recordId;
-$receiver = "admin"; // change based on your role setup
-
-// Generate unique notification ID
-$notifId = $helper->generateNextNotificationID();
-
-$stmt = $conn->prepare("INSERT INTO notifications (notification_id, record_id, type, status, message, receiver_id) VALUES (?, ?, ?, 'unread', ?, ?)");
-$stmt->bind_param("sssss", $notifId, $recordId, $type, $message, $receiver);
-$stmt->execute();
-
-
-
+		$helper->triggerPendingRequests($type, $txtRegId);
 
         echo '<script>alert("Successfully submitted your registration request. Please wait for Admin approval.");</script>';
         echo '<script>window.location.href = "index.php";</script>';

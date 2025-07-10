@@ -40,9 +40,9 @@ $security = new Security();
 $allowed_pages = [
     'cases.php', 'appeal.php', 'motion.php', 'judgement.php',
     'warrant.php', 'parties.php', 'dailycaseactivities.php',
-    'order.php', 'notifications.php', 'notes.php', 'courts.php',
+    'order.php', 'notification.php', 'notes.php', 'courts.php',
     'staff.php', 'lawyer.php', 'police.php', 'roles.php',
-    'about.php', 'contact.php', 'approve.php'
+    'about.php', 'contact.php', 'approve.php', 'caselist.php'
 ];
 ?>
 
@@ -74,14 +74,9 @@ $allowed_pages = [
 
 <body>
 
-<?php include_once('menu.php'); ?>
-
-<a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center">
-    <i class="bi bi-arrow-up-short"></i>
-</a>
-
-<main class="container-fluid py-4">
 <?php
+include_once('menu.php');
+
 if (isset($_GET['pg']) && in_array($_GET['pg'], $allowed_pages)) {
     echo "<div id='dynamic-content'>";
     include_once($_GET['pg']);
@@ -91,7 +86,6 @@ if (isset($_GET['pg']) && in_array($_GET['pg'], $allowed_pages)) {
     include_once("footer.php");
 }
 ?>
-</main>
 
 <!-- JS Scripts -->
 <script src="assets/vendor/jquery3.7/jquery.min.js"></script>
@@ -104,9 +98,6 @@ if (isset($_GET['pg']) && in_array($_GET['pg'], $allowed_pages)) {
 <script src="assets/js/jsfunctions.js"></script>
 <script src="assets/js/jquery.dataTables.min.js"></script>
 <script src="assets/js/dataTables.bootstrap5.min.js"></script>
-
-
-
 
 </body>
 </html>

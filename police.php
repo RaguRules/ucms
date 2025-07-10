@@ -209,13 +209,7 @@ if (isset($_POST["btn_add"])) {
     $isActive = "1";
     $txtAddedBy = $_SESSION["LOGIN_USERTYPE"];
     $txtWrittenId = $helper->getId($_SESSION["LOGIN_USERNAME"], $_SESSION["LOGIN_USERTYPE"]);
-    // $txtAddedBy = "R03";
-    // $txtStaffId = "S0001";
-
-    // echo "<script>alert('Added by: $txtAddedBy');</script>";
-    // echo "<script>alert('Entered by: $txtWrittenId');</script>";
-
-
+   
     // Check for CSRF Tokens
 	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
 		die("Invalid CSRF token.");
@@ -313,6 +307,8 @@ if (isset($_POST["btn_add"])) {
         $message = "Dear {$txtFirstName} {$txtLastName}, your account has been created with Courts Complex-Kilinochchi successfully. Your login credentials are:\nUsername: {$txtEmail}\nPassword: {$txtNicNumber}";
 
         sendSms($intMobile, $message);
+
+        
 
         echo '<script>alert("Successfully added a police.");</script>';
         echo "<script>location.href='index.php?pg=police.php&option=view';</script>";
@@ -551,7 +547,14 @@ if (isset($_POST["btn_reactivate"])) {
 	</head>
 	<body class="light-mode">
 		<!-- VIEW Section-->
-		<?php
+		<div class="container mt-4">
+			<!-- For bigger list  <div class="container-fluid mt-4"> -->
+			<div class="d-flex justify-content-start mb-3">
+				<a href="index.php?pg=police.php&option=add" class="btn btn-success btn-sm me-1">
+				<i class="fas fa-plus"></i> Add police
+				</a>
+			</div>
+            <?php
 			if(isset($_GET['option']) && $_GET['option'] == "view") {
 			
 				// $sql_read = "SELECT police_id, first_name, last_name, nic_number, mobile, court_id, police_id, email FROM staff WHERE is_active = 1";
@@ -561,13 +564,6 @@ if (isset($_POST["btn_reactivate"])) {
 
 				if ($result && $result->num_rows > 0) {
 			?>
-		<div class="container mt-4">
-			<!-- For bigger list  <div class="container-fluid mt-4"> -->
-			<div class="d-flex justify-content-start mb-3">
-				<a href="index.php?pg=police.php&option=add" class="btn btn-success btn-sm me-1">
-				<i class="fas fa-plus"></i> Add police
-				</a>
-			</div>
 			<div class="table-responsive">
 				<table class="table table-striped attractive-table w-100">
 					<thead>
@@ -1065,7 +1061,7 @@ foreach ($cases as $case) {
 							</div>
 						</div>
                         <div class="mb-3">
-                            <label for="police_id" class="form-label">police Badge Number</label>
+                            <label for="police_id" class="form-label">Police Badge Number</label>
                             <input type="text" class="form-control" id="txt_badge_number" name="txt_badge_number" required>
                         </div>
                         <label>* Plese be kind enough to note that Password will be generated, & sent to Registered email/ mobile</label><br><br>
@@ -1421,6 +1417,6 @@ document.getElementById('caseSearchForm').addEventListener('submit', function(e)
 });
 </script>
 
-
-
 </html>
+
+<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

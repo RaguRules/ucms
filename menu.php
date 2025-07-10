@@ -81,7 +81,7 @@
                         $firstLetter = strtoupper($username[0]);
                     ?>
 
-                  <?php
+                <?php
 $notifCount = 0;
 if (isset($_SESSION['LOGIN_USERNAME'])) {
     $username = $_SESSION['LOGIN_USERNAME'];
@@ -178,10 +178,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (notifDropdown) {
         notifDropdown.addEventListener('click', function () {
-            fetch('notification.php')
+            fetch('notification.php')  // Fetch notifications from notification.php
                 .then(response => response.text())
                 .then(html => {
-                    notifList.innerHTML = html;
+                    notifList.innerHTML = html;  // Replace the "Loading..." message with actual notifications
                 })
                 .catch(error => {
                     notifList.innerHTML = '<li class="p-3 text-danger">Failed to load notifications</li>';
@@ -190,4 +190,5 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+
 </script>

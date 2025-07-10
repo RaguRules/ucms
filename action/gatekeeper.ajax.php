@@ -3,12 +3,23 @@ if (!isset($_SESSION)) {
     session_start();
 }
 
+if (isset($_SESSION["LOGIN_USERTYPE"])) {
+    $system_usertype = $_SESSION["LOGIN_USERTYPE"];
+    $system_username = $_SESSION["LOGIN_USERNAME"];
+    
+} else {
+    $system_usertype = "GUEST";
+    $system_username = "GUEST";
+}
+
 include_once('../lib/db.php');
 include_once('../lib/security.php');
 include_once('../lib/helper.php');
 
 $helper = new Helper($conn);
 $security = new Security();
+
+$staff_id = $helper->getId($_SESSION["LOGIN_USERNAME"], $_SESSION["LOGIN_USERTYPE"]);
 
 // Ensure it's an AJAX POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -59,14 +70,14 @@ try {
         $role_id = $data['role_id'];
 
         if ($role_id === 'R06') { // Lawyer
-            $next_lawyer_id = $helper->generateNextLawyerID($conn);
+            $next_lawyer_id = $helper->generateNextLawyerID();
 
             $stmtInsert = $conn->prepare("INSERT INTO lawyer 
-                (lawyer_id, first_name, last_name, mobile, email, address, nic_number, date_of_birth, enrolment_number, joined_date, is_active, role_id, station, image_path, gender) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), '1', ?, ?, ?, ?)");
-			
+                (lawyer_id, first_name, last_name, mobile, email, address, nic_number, date_of_birth, enrolment_number, joined_date, is_active, role_id, station, image_path, gender, added_by, staff_id) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), '1', ?, ?, ?, ?, ?, ?)");
+            
             $stmtInsert->bind_param(
-                "sssisssdsssss",
+                "sssisssssssssss",
                 $next_lawyer_id,
                 $data['first_name'],
                 $data['last_name'],
@@ -79,32 +90,39 @@ try {
                 $data['role_id'],
                 $data['station'],
                 $data['image_path'],
-                $data['gender']
+                $data['gender'],
+                $system_usertype,
+                $staff_id
             );
             $stmtInsert->execute();
+            //  echo json_encode(['success' => true, 'message' => 'going2']);
 
         } elseif ($role_id === 'R07') { // Police
             $next_police_id = $helper->generateNextPoliceID($conn);
 
             $stmtInsert = $conn->prepare("INSERT INTO police 
-                (police_id, first_name, last_name, mobile, email, address, nic_number, date_of_birth, badge_number, joined_date, is_active, role_id, station, image_path, gender) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), '1', ?, ?, ?, ?)");
-				$stmtInsert->bind_param(
-					"sssisssdsssss",
-					$next_police_id,
-					$data['first_name'],
-					$data['last_name'],
-					$data['mobile'],
-					$data['email'],
-					$data['address'],
-					$data['nic_number'],
-					$data['date_of_birth'],
-					$data['badge_number'],
-					$data['role_id'],
-					$data['station'],
-					$data['image_path'],
-					$data['gender']
-				);
+                (police_id, first_name, last_name, mobile, email, address, nic_number, date_of_birth, badge_number, joined_date, is_active, role_id, station, image_path, gender, added_by, staff_id) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), '1', ?, ?, ?, ?, ?, ?)");
+                
+            $stmtInsert->bind_param(
+                "sssisssssssssss",
+                $next_police_id,
+                $data['first_name'],
+                $data['last_name'],
+                $data['mobile'],
+                $data['email'],
+                $data['address'],
+                $data['nic_number'],
+                $data['date_of_birth'],
+                $data['badge_number'],
+                $data['role_id'],
+                $data['station'],
+                $data['image_path'],
+                $data['gender'],
+                $system_usertype,
+                $staff_id
+                
+            );
             $stmtInsert->execute();
         } else {
             throw new Exception('Invalid user role.');
@@ -158,10 +176,39 @@ try {
     }
 
 } catch (Exception $e) {
+    // Rollback the transaction if any error occurs
     mysqli_rollback($conn);
-    logError('Gatekeeper error: ' . $e->getMessage());
+
+    // Get detailed error information
+    $errorMessage = $e->getMessage();  // Exception message
+    $errorCode = $e->getCode();  // Exception code (if available)
+    $errorFile = $e->getFile();  // File where the exception was thrown
+    $errorLine = $e->getLine();  // Line number where the exception was thrown
+
+    // Log the error with detailed information
+    error_log("Gatekeeper error: Message: $errorMessage | Code: $errorCode | File: $errorFile | Line: $errorLine");
+
+    // Optionally, log the last executed query if needed
+    if (isset($stmtInsert)) {
+        error_log("Last executed query: " . $stmtInsert->sqlstate);
+    }
+
+    // Send HTTP 500 status code to the client
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Server error occurred.']);
+
+    // Send JSON response with a generic message for the client
+   // Send detailed JSON response with error information
+    echo json_encode([
+        'success' => false,
+        'message' => 'Server error occurred.',
+        'error_details' => [
+            'message' => $errorMessage,
+            'code' => $errorCode,
+            'file' => $errorFile,
+            'line' => $errorLine
+        ]
+    ]);
     exit;
 }
+
 ?>

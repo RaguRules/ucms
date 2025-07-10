@@ -419,7 +419,14 @@ if (isset($_POST["btn_reactivate"])) {
 	</head>
 	<body class="light-mode">
 		<!-- VIEW Section-->
-		<?php
+		<div class="container mt-4">
+			<!-- For bigger list  <div class="container-fluid mt-4"> -->
+			<div class="d-flex justify-content-start mb-3">
+				<a href="index.php?pg=staff.php&option=add" class="btn btn-success btn-sm me-1">
+				<i class="fas fa-plus"></i> Add Staff
+				</a>
+			</div>
+			<?php
 			if(isset($_GET['option']) && $_GET['option'] == "view") {
 			
 				// $sql_read = "SELECT staff_id, first_name, last_name, nic_number, mobile, court_id, staff_id, email FROM staff WHERE is_active = 1";
@@ -430,13 +437,6 @@ if (isset($_POST["btn_reactivate"])) {
 			
 				if ($result && $result->num_rows > 0) {
 			?>
-		<div class="container mt-4">
-			<!-- For bigger list  <div class="container-fluid mt-4"> -->
-			<div class="d-flex justify-content-start mb-3">
-				<a href="index.php?pg=staff.php&option=add" class="btn btn-success btn-sm me-1">
-				<i class="fas fa-plus"></i> Add Staff
-				</a>
-			</div>
 			<div class="table-responsive">
 				<table class="table table-striped attractive-table w-100">
 					<thead>

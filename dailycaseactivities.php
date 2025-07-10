@@ -42,19 +42,37 @@ if (isset($_POST['btn_add_activity'])) {
         $caseId = $caseData['case_id'] ?? null;
 
         if ($caseId) {
-            // Judgement notification
-            if (in_array($currentStatus, ['Judgement']) || in_array($nextStatus, ['Judgement'])) {
-                $helper->triggerJudgementNotification($caseId);
+            // Fixed for Judgement notification
+            if (in_array($nextStatus, ['Judgement'])) {
+                $message="'{$caseData['case_name']}' has been fixed for Judgement on {$nextDate}.";
+                $helper->triggerNextDateUpdated($caseId, $message);
             }
 
-            // Order notification
+
+            // Judgement Delivered notification
+            if (in_array($currentStatus, ['Completed - Judgement Delivered'])) {
+                $message="'{$caseData['case_name']}' has been fixed for Judgement on {$nextDate}.";
+                $helper->triggerJudgementNotification($caseId, $message);
+            }
+
+            // Fixed for Order notification
+            if (in_array($nextStatus, ['Order'])) {
+                $message="'{$caseData['case_name']}' has been fixed for Order on {$nextDate}.";
+                $helper->triggerNextDateUpdated($caseId, $message);
+            }
+
+
+            // Order Made notification
             if (in_array($currentStatus, ['Order']) || in_array($nextStatus, ['Order'])) {
-                $helper->triggerOrderNotification($caseId);
+                $message="'{$caseData['case_name']}' has been fixed for Order on {$nextDate}.";
+                $helper->triggerOrderNotification($caseId, $message);
             }
 
             // Next Date Changed notification
             if (!empty($nextDate) && !in_array($nextStatus, ['Order', 'Judgement'])) {
-                $helper->triggerNextDateUpdated($caseId);
+                $message="'{$caseData['case_name']}' has been fixed for Order on {$nextDate}.";
+                $message="Next hearing date has been updated for case '{$caseData['case_name']}' to {$nextDate}.";
+                $helper->triggerNextDateUpdated($caseId, $message);
             }
 
             
@@ -202,7 +220,10 @@ foreach ($allCases as $case_id => $caseData) {
 <!-- ADD FORM (Displayed only when btn_add_form is clicked) -->
 <?php if (isset($_POST['btn_add_form'], $_POST['case_name'], $_POST['activity_date'])): ?>
     <div class="container py-4">
-        <h4>Add Activity for <b><?= Security::sanitize($realCase['case_name']) ?> </b> on <i><?= Security::sanitize($_POST['activity_date']) ?></i></h4>
+        <?php
+        $realCaseForAdd = $helper->getCaseData($_POST['case_name']); 
+        ?>
+        <h4>Add Activity for <b><?= Security::sanitize($realCaseForAdd['case_name']) ?> </b> on <i><?= Security::sanitize($_POST['activity_date']) ?></i></h4>
         <form method="POST" action="index.php?pg=dailycaseactivities.php">
             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
             <input type="hidden" name="case_name" value="<?= $_POST['case_name'] ?>">
@@ -214,10 +235,6 @@ foreach ($allCases as $case_id => $caseData) {
             </div>
 
             <div class="row">
-                <div class="col-md-6">
-                    <label>Next Date</label>
-                    <input type="date" name="next_date" class="form-control" min="<?= date('Y-m-d') ?>" required>
-                </div>
                 <div class="col-md-6">
                     <label>Current Status</label>
                     <select name="current_status" class="form-select" required>
@@ -249,6 +266,11 @@ foreach ($allCases as $case_id => $caseData) {
                         <option value="Appeal">Appeal</option>
                         <option value="Completed/ Closed">Completed/ Closed</option>
                     </select>
+                </div>
+
+                <div class="col-md-6" id="next-date-container">
+                    <label>Next Date</label>
+                    <input type="date" name="next_date" class="form-control" min="<?= date('Y-m-d') ?>" required>
                 </div>
 
                 <div class="col-md-6">
@@ -426,3 +448,29 @@ if ($isEdaybook) {
     </div>
 
     <?php exit; } ?>
+
+
+    <script src="assets/vendor/jquery3.7/jquery.min.js"></script>
+    
+<!-- Hide Next Date if case is Completed/ Closed -->
+    <script>
+    $(document).ready(function () {
+        // Function to handle the show/hide logic for the Next Date field
+        function toggleNextDateField() {
+            var nextStatus = $('select[name="next_status"]').val();
+            if (nextStatus === 'Completed/ Closed') {
+                $('#next-date-container').hide();  // Hide the Next Date field
+            } else {
+                $('#next-date-container').show();  // Show the Next Date field
+            }
+        }
+
+        // Initial check when the page loads
+        toggleNextDateField();
+
+        // Event listener for when the Next Status field changes
+        $('select[name="next_status"]').on('change', function () {
+            toggleNextDateField();  // Recheck on change
+        });
+    });
+</script>

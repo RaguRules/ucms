@@ -3,34 +3,27 @@
 
 <body class="index-page">
 
-
   <main class="main">
 
     <!-- Hero Section -->
     <section id="hero" class="hero section light-background">
-
       <img src="assets/img/hero-bg.jpg" alt="" data-aos="fade-in">
-
       <div class="container position-relative">
-
         <div class="welcome position-relative" data-aos="fade-down" data-aos-delay="100">
-          <h2>WELCOME</h2>
-        </div><!-- End Welcome -->
+        </div>
 
         <div class="content row gy-4">
           <div class="col-lg-4 d-flex align-items-stretch">
             <div class="why-box" data-aos="zoom-out" data-aos-delay="200">
               <h3>Sri Lankan Judicial System</h3>
               <p>
-              Courts of Law are fundamental to a society, ensuring that laws are upheld, disputes are resolved peacefully, and individual rights are protected. They serve as the final arbiters of justice, interpreting and applying laws to specific cases, ensuring fairness and equality for all.
-              The Sri Lankan Judicial System, a blend of Roman-Dutch, English, and customary laws, operates under the principle of an independent judiciary. This independence is crucial as it safeguards against undue influence from other branches of government, ensuring that justice is administered impartially. The courts play a vital role in upholding the rule of law, protecting citizens' rights, and maintaining social order.
+                The Courts play a fundamental role in ensuring the rule of law in a society. In Sri Lanka, the Judicial System, a combination of Roman-Dutch law, English law, and customary laws, upholds justice and equality. Courts ensure the proper application of laws, offering fairness to citizens while interpreting legal matters for civil, criminal, and other cases.
               </p>
               <div class="text-center">
                 <a href="#about" class="more-btn"><span>Learn More</span> <i class="bi bi-chevron-right"></i></a>
               </div>
             </div>
-          </div><!-- End Why Box -->
-
+          </div>
           <div class="col-lg-8 d-flex align-items-stretch">
             <div class="d-flex flex-column justify-content-center">
               <div class="row gy-4">
@@ -39,813 +32,226 @@
                   <div class="icon-box" data-aos="zoom-out" data-aos-delay="300">
                     <i class="bi bi-clipboard-data"></i>
                     <h4>Magistrate's Court</h4>
-                    <p>Handles Minor Criminal Cases such as traffic violations, petty theft, and minor assaults. They also conduct preliminary hearings for more serious offenses. Located on the ground floor of the Courts Complex.</p>
+                    <p>The Magistrate's Court handles minor criminal cases such as traffic violations, petty thefts, and minor assaults. It also conducts preliminary hearings for serious offenses.</p>
+                    <a href="index.php?pg=caselist.php&list=mc" target="_blank" class="btn btn-primary">View Today's Case List</a>
                   </div>
-                </div><!-- End Icon Box -->
+                </div>
 
                 <div class="col-xl-4 d-flex align-items-stretch">
                   <div class="icon-box" data-aos="zoom-out" data-aos-delay="400">
                     <i class="bi bi-gem"></i>
                     <h4>District Court</h4>
-                    <p>Handles a wide range of civil cases, including property disputes, contract matters, and family law issues. Located on the 1st floor of the Courts Complex.</p>
-                  </div>
-                </div><!-- End Icon Box -->
+                    <p>Handles a broad range of civil cases such as property disputes, contracts, and family law matters. It is located on the first floor of the Courts Complex.</p>
+                  <a href="index.php?pg=caselist.php&list=dc" target="_blank" class="btn btn-primary">View Today's Case List</a>
+                </div>
+                </div>
 
                 <div class="col-xl-4 d-flex align-items-stretch">
                   <div class="icon-box" data-aos="zoom-out" data-aos-delay="500">
                     <i class="bi bi-inboxes"></i>
                     <h4>High Court</h4>
-                    <p>Handles serious criminal cases such as murder, rape, and drug trafficking. It also hears appeals from Magistrate's courts. Located on the 2nd floor of the Courts Complex.</p>
-                  </div>
-                </div><!-- End Icon Box -->
+                    <p>The High Court handles serious criminal cases, including murder, rape, and drug trafficking. It also hears appeals from Magistrate's courts.</p>
+                  <a href="index.php?pg=caselist.php&list=hc" target="_blank" class="btn btn-primary">View Today's Case List</a>
+                </div>
+                </div>
 
               </div>
             </div>
           </div>
-        </div><!-- End  Content-->
+        </div>
 
       </div>
+    </section>
 
-    </section><!-- /Hero Section -->
+    <!-- Stats Section -->
+<section id="stats" class="section infor-background">
+  <div class="container" data-aos="fade-up" data-aos-delay="100">
+    <div class="row gy-4">
+      <!-- Text Section - Left Side -->
+      <div class="col-lg-6 content" data-aos="fade-left" data-aos-delay="100">
+        <h3 style="font-size: 1.8rem; font-weight: 600; color: #333;">"The Role of Law and Enforcement in Society"</h3>
+        <p style="text-align: justify; line-height: 1.8;">Laws are rules created by the government to maintain order and protect citizens. Governments create and enforce laws to ensure people behave in a way that is safe, fair, and just. People follow laws because they help prevent chaos, protect rights, and ensure that everyone is treated equally. If laws were not followed, society would become unsafe, and individuals might harm each other without facing consequences.</p>
+        <p style="text-align: justify; line-height: 1.8;">The philosophy of law is built on ideas about justice, fairness, and the protection of individual rights. Throughout history, societies have developed legal systems to ensure peace and order. In Sri Lanka, laws are based on a mix of traditional customs and modern legal principles, including Roman-Dutch law, which was brought during colonial times. The legal system in Sri Lanka continues to evolve, ensuring the rights of citizens are protected and justice is served.</p>
+       <p style="text-align: justify; line-height: 1.8;">"As an individual, it is important to obey the rules because following the law ensures a safe, just, and orderly society. Disregarding laws can lead to chaos, and it is our collective responsibility to respect and adhere to them for the well-being of all."</p>
+    </div>
+
+      <!-- Photo Section - Right Side -->
+      <div class="col-lg-6 position-relative" data-aos="fade-right" data-aos-delay="200">
+        <img src="assets/img/logo.png" class="img-fluid rounded-3 shadow-lg" alt="Legal Aid Commission">
+      </div>
+    </div>
+  </div>
+</section><!-- /Stats Section -->
 
     <!-- About Section -->
     <section id="about" class="about section">
-
       <div class="container">
-
         <div class="row gy-4 gx-5">
-
           <div class="col-lg-6 position-relative align-self-start" data-aos="fade-up" data-aos-delay="200">
-            <img src="assets/img/about.jpg" class="img-fluid" alt="">
-            <a href="https://www.youtube.com/watch?v=Y7f98aduVJ8" class="glightbox pulsating-play-btn"></a>
+            <img src="assets/img/about.png" class="img-fluid" alt="">
           </div>
-
           <div class="col-lg-6 content" data-aos="fade-up" data-aos-delay="100">
-            <h3>About Us</h3>
-            <p>
-              Dolor iure expedita id fuga asperiores qui sunt consequatur minima. Quidem voluptas deleniti. Sit quia molestiae quia quas qui magnam itaque veritatis dolores. Corrupti totam ut eius incidunt reiciendis veritatis asperiores placeat.
-            </p>
-            <ul>
-              <li>
-                <i class="fa-solid fa-vial-circle-check"></i>
-                <div>
-                  <h5>Ullamco laboris nisi ut aliquip consequat</h5>
-                  <p>Magni facilis facilis repellendus cum excepturi quaerat praesentium libre trade</p>
-                </div>
-              </li>
-              <li>
-                <i class="fa-solid fa-pump-medical"></i>
-                <div>
-                  <h5>Magnam soluta odio exercitationem reprehenderi</h5>
-                  <p>Quo totam dolorum at pariatur aut distinctio dolorum laudantium illo direna pasata redi</p>
-                </div>
-              </li>
-              <li>
-                <i class="fa-solid fa-heart-circle-xmark"></i>
-                <div>
-                  <h5>Voluptatem et qui exercitationem</h5>
-                  <p>Et velit et eos maiores est tempora et quos dolorem autem tempora incidunt maxime veniam</p>
-                </div>
-              </li>
-            </ul>
+    <h3>WELCOME TO THE UNIFIED COURTS MANAGEMENT SYSTEM</h3>
+    <p style="text-align: justify;">Our mission is to provide an efficient and accessible court management system that facilitates transparency, accountability, and justice within the judicial process. We strive to modernize the legal framework by offering a streamlined, user-friendly platform for the management of cases, documents, and legal processes. Through this system, we envision a judicial environment where every step of the case process, from registration to final judgment, is transparent, easy to track, and accessible to all relevant parties.</p>
+    <p style="text-align: justify;">Our goal is to foster a legal environment where justice is served promptly and effectively, ensuring that no citizen is deprived of their rights due to inefficiency or delay.</p>
+    <ul>
+        <li>
+            <i class="fa-solid fa-gavel"></i>
+            <div>
+                <h5>Reliable Court Case Tracking</h5>
+                <p>Real-time tracking of court cases for all stakeholders involved.</p>
+            </div>
+        </li>
+        <li>
+            <i class="fa-solid fa-balance-scale"></i>
+            <div>
+                <h5>Fair Hearing Procedures</h5>
+                <p>Ensure that all cases are heard fairly, with transparent judgments.</p>
+            </div>
+        </li>
+        <li>
+            <i class="fa-solid fa-file-contract"></i>
+            <div>
+                <h5>Comprehensive Case Management</h5>
+                <p>Manage all types of cases from initiation to resolution.</p>
+            </div>
+        </li>
+    </ul>
+</div>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- Legal Aid Commission Section -->
+<section id="legal-aid" class="legal-aid section light-background">
+  <div class="container" data-aos="fade-up" data-aos-delay="100">
+    <div class="row gy-4">
+      <!-- Left Column: Image Section -->
+      <div class="col-lg-6 col-md-12 d-flex align-items-center justify-content-center">
+        <div class="image-box" data-aos="zoom-in" data-aos-delay="200">
+          <img src="assets/img/LAC.png" alt="Legal Aid Commission" class="img-fluid rounded-3 shadow-lg" style="max-width: 70%; height: auto";>
+        </div>
+      </div>
+      
+      <!-- Right Column: Text Content -->
+      <div class="col-lg-6 col-md-12">
+        <div class="content-box" data-aos="fade-left" data-aos-delay="300">
+          <h3>The Legal Aid Commission of Sri Lanka</h3>
+          <p style="text-align: justify; line-height: 1.8;">
+            The Legal Aid Commission of Sri Lanka provides free legal assistance to individuals who cannot afford to hire a lawyer. Although it is not part of the court system, it operates within the courts complex and plays a crucial role in ensuring that all citizens have access to justice, irrespective of their financial status. Through this commission, people can receive legal representation for both civil and criminal matters, aiming to promote fairness and equality.
+          </p>
+          <p style="text-align: justify; line-height: 1.8;">
+            By offering legal aid through a network of professional lawyers, the commission ensures that no one is denied justice due to financial constraints, helping to navigate the judicial system effectively. The Legal Aid Commission fosters a fair and transparent legal environment for all citizens in Sri Lanka.
+          </p>
+          <div class="text-center">
+            <a href="https://www.moj.gov.lk/index.php?option=com_content&view=article&id=31&lang=en" target="_blank" class="btn btn-primary">Learn More About Legal Aid Commission</a>
           </div>
-
         </div>
-
       </div>
+    </div>
+  </div>
+</section>
+<!-- /Legal Aid Commission Section -->
 
-    </section><!-- /About Section -->
 
-    <!-- Stats Section -->
-    <section id="stats" class="stats section light-background">
-
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
-
-        <div class="row gy-4">
-
-          <div class="col-lg-3 col-md-6 d-flex flex-column align-items-center">
-            <i class="fa-solid fa-user-doctor"></i>
-            <div class="stats-item">
-              <span data-purecounter-start="0" data-purecounter-end="85" data-purecounter-duration="1" class="purecounter"></span>
-              <p>Doctors</p>
-            </div>
-          </div><!-- End Stats Item -->
-
-          <div class="col-lg-3 col-md-6 d-flex flex-column align-items-center">
-            <i class="fa-regular fa-hospital"></i>
-            <div class="stats-item">
-              <span data-purecounter-start="0" data-purecounter-end="18" data-purecounter-duration="1" class="purecounter"></span>
-              <p>Departments</p>
-            </div>
-          </div><!-- End Stats Item -->
-
-          <div class="col-lg-3 col-md-6 d-flex flex-column align-items-center">
-            <i class="fas fa-flask"></i>
-            <div class="stats-item">
-              <span data-purecounter-start="0" data-purecounter-end="12" data-purecounter-duration="1" class="purecounter"></span>
-              <p>Research Labs</p>
-            </div>
-          </div><!-- End Stats Item -->
-
-          <div class="col-lg-3 col-md-6 d-flex flex-column align-items-center">
-            <i class="fas fa-award"></i>
-            <div class="stats-item">
-              <span data-purecounter-start="0" data-purecounter-end="150" data-purecounter-duration="1" class="purecounter"></span>
-              <p>Awards</p>
-            </div>
-          </div><!-- End Stats Item -->
-
-        </div>
-
-      </div>
-
-    </section><!-- /Stats Section -->
 
     <!-- Services Section -->
     <section id="services" class="services section">
-
-      <!-- Section Title -->
       <div class="container section-title" data-aos="fade-up">
-        <h2>Services</h2>
-        <p>Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit</p>
+        <h2>Online Complaint Registration Systems in Sri Lanka</h2>
+        <p>We also suggest checking with the Ombudsman, as they provide faster relief through various procedures, such as in the areas of insurance, public administration, and more. While the court is the final route for resolution, it is important to first seek proper administrative remedies, with the legal remedy being the final solution.</p>
       </div><!-- End Section Title -->
 
       <div class="container">
-
         <div class="row gy-4">
+          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+    <div class="service-item position-relative">
+        <div class="icon">
+            <i class="fas fa-police"></i> <!-- Updated icon to reflect a police-related service -->
+        </div>
+        <a href="https://118.pubsec.gov.lk/en" class="stretched-link" target="_blank">
+            <h3>File Police Complaint Online</h3>
+        </a>
+        <p>Make Complaint to police via police's online portal.</p>
+    </div>
+</div><!-- End Service Item -->
+
 
           <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
-            <div class="service-item  position-relative">
-              <div class="icon">
-                <i class="fas fa-heartbeat"></i>
-              </div>
-              <a href="#" class="stretched-link">
-                <h3>Nesciunt Mete</h3>
-              </a>
-              <p>Provident nihil minus qui consequatur non omnis maiores. Eos accusantium minus dolores iure perferendis tempore et consequatur.</p>
-            </div>
-          </div><!-- End Service Item -->
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="fas fa-pills"></i>
-              </div>
-              <a href="#" class="stretched-link">
-                <h3>Eosle Commodi</h3>
-              </a>
-              <p>Ut autem aut autem non a. Sint sint sit facilis nam iusto sint. Libero corrupti neque eum hic non ut nesciunt dolorem.</p>
-            </div>
-          </div><!-- End Service Item -->
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="fas fa-hospital-user"></i>
-              </div>
-              <a href="#" class="stretched-link">
-                <h3>Ledo Markt</h3>
-              </a>
-              <p>Ut excepturi voluptatem nisi sed. Quidem fuga consequatur. Minus ea aut. Vel qui id voluptas adipisci eos earum corrupti.</p>
-            </div>
-          </div><!-- End Service Item -->
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="400">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="fas fa-dna"></i>
-              </div>
-              <a href="#" class="stretched-link">
-                <h3>Asperiores Commodit</h3>
-              </a>
-              <p>Non et temporibus minus omnis sed dolor esse consequatur. Cupiditate sed error ea fuga sit provident adipisci neque.</p>
-              <a href="#" class="stretched-link"></a>
-            </div>
-          </div><!-- End Service Item -->
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="500">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="fas fa-wheelchair"></i>
-              </div>
-              <a href="#" class="stretched-link">
-                <h3>Velit Doloremque</h3>
-              </a>
-              <p>Cumque et suscipit saepe. Est maiores autem enim facilis ut aut ipsam corporis aut. Sed animi at autem alias eius labore.</p>
-              <a href="#" class="stretched-link"></a>
-            </div>
-          </div><!-- End Service Item -->
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="600">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="fas fa-notes-medical"></i>
-              </div>
-              <a href="#" class="stretched-link">
-                <h3>Dolori Architecto</h3>
-              </a>
-              <p>Hic molestias ea quibusdam eos. Fugiat enim doloremque aut neque non et debitis iure. Corrupti recusandae ducimus enim.</p>
-              <a href="#" class="stretched-link"></a>
-            </div>
-          </div><!-- End Service Item -->
-
+    <div class="service-item position-relative">
+        <div class="icon">
+            <i class="fas fa-gavel"></i> <!-- Retained the 'gavel' icon for the complaint service -->
         </div>
+        <a href="https://ciaboc.gov.lk/contact/complaints" class="stretched-link" target="_blank">
+            <h3>File a Complaint to CIABOC</h3>
+        </a>
+        <p>Make a complaint to the Commission to Investigate Allegations of Bribery or Corruption.</p>
+    </div>
+</div><!-- End Service Item -->
 
-      </div>
 
-    </section><!-- /Services Section -->
-
-    <!-- Appointment Section -->
-    <section id="appointment" class="appointment section">
-
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Appointment</h2>
-        <p>Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit</p>
-      </div><!-- End Section Title -->
-
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
-
-  
-
-      </div>
-
-    </section><!-- /Appointment Section -->
-
-    <!-- Departments Section -->
-    <section id="departments" class="departments section">
-
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Departments</h2>
-        <p>Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit</p>
-      </div><!-- End Section Title -->
-
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
-
-        <div class="row">
-          <div class="col-lg-3">
-            <ul class="nav nav-tabs flex-column">
-              <li class="nav-item">
-                <a class="nav-link active show" data-bs-toggle="tab" href="#departments-tab-1">Cardiology</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#departments-tab-2">Neurology</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#departments-tab-3">Hepatology</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#departments-tab-4">Pediatrics</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#departments-tab-5">Eye Care</a>
-              </li>
-            </ul>
-          </div>
-          <div class="col-lg-9 mt-4 mt-lg-0">
-            <div class="tab-content">
-              <div class="tab-pane active show" id="departments-tab-1">
-                <div class="row">
-                  <div class="col-lg-8 details order-2 order-lg-1">
-                    <h3>Cardiology</h3>
-                    <p class="fst-italic">Qui laudantium consequatur laborum sit qui ad sapiente dila parde sonata raqer a videna mareta paulona marka</p>
-                    <p>Et nobis maiores eius. Voluptatibus ut enim blanditiis atque harum sint. Laborum eos ipsum ipsa odit magni. Incidunt hic ut molestiae aut qui. Est repellat minima eveniet eius et quis magni nihil. Consequatur dolorem quaerat quos qui similique accusamus nostrum rem vero</p>
-                  </div>
-                  <div class="col-lg-4 text-center order-1 order-lg-2">
-                    <img src="assets/img/departments-1.jpg" alt="" class="img-fluid">
-                  </div>
-                </div>
-              </div>
-              <div class="tab-pane" id="departments-tab-2">
-                <div class="row">
-                  <div class="col-lg-8 details order-2 order-lg-1">
-                    <h3>Et blanditiis nemo veritatis excepturi</h3>
-                    <p class="fst-italic">Qui laudantium consequatur laborum sit qui ad sapiente dila parde sonata raqer a videna mareta paulona marka</p>
-                    <p>Ea ipsum voluptatem consequatur quis est. Illum error ullam omnis quia et reiciendis sunt sunt est. Non aliquid repellendus itaque accusamus eius et velit ipsa voluptates. Optio nesciunt eaque beatae accusamus lerode pakto madirna desera vafle de nideran pal</p>
-                  </div>
-                  <div class="col-lg-4 text-center order-1 order-lg-2">
-                    <img src="assets/img/departments-2.jpg" alt="" class="img-fluid">
-                  </div>
-                </div>
-              </div>
-              <div class="tab-pane" id="departments-tab-3">
-                <div class="row">
-                  <div class="col-lg-8 details order-2 order-lg-1">
-                    <h3>Impedit facilis occaecati odio neque aperiam sit</h3>
-                    <p class="fst-italic">Eos voluptatibus quo. Odio similique illum id quidem non enim fuga. Qui natus non sunt dicta dolor et. In asperiores velit quaerat perferendis aut</p>
-                    <p>Iure officiis odit rerum. Harum sequi eum illum corrupti culpa veritatis quisquam. Neque necessitatibus illo rerum eum ut. Commodi ipsam minima molestiae sed laboriosam a iste odio. Earum odit nesciunt fugiat sit ullam. Soluta et harum voluptatem optio quae</p>
-                  </div>
-                  <div class="col-lg-4 text-center order-1 order-lg-2">
-                    <img src="assets/img/departments-3.jpg" alt="" class="img-fluid">
-                  </div>
-                </div>
-              </div>
-              <div class="tab-pane" id="departments-tab-4">
-                <div class="row">
-                  <div class="col-lg-8 details order-2 order-lg-1">
-                    <h3>Fuga dolores inventore laboriosam ut est accusamus laboriosam dolore</h3>
-                    <p class="fst-italic">Totam aperiam accusamus. Repellat consequuntur iure voluptas iure porro quis delectus</p>
-                    <p>Eaque consequuntur consequuntur libero expedita in voluptas. Nostrum ipsam necessitatibus aliquam fugiat debitis quis velit. Eum ex maxime error in consequatur corporis atque. Eligendi asperiores sed qui veritatis aperiam quia a laborum inventore</p>
-                  </div>
-                  <div class="col-lg-4 text-center order-1 order-lg-2">
-                    <img src="assets/img/departments-4.jpg" alt="" class="img-fluid">
-                  </div>
-                </div>
-              </div>
-              <div class="tab-pane" id="departments-tab-5">
-                <div class="row">
-                  <div class="col-lg-8 details order-2 order-lg-1">
-                    <h3>Est eveniet ipsam sindera pad rone matrelat sando reda</h3>
-                    <p class="fst-italic">Omnis blanditiis saepe eos autem qui sunt debitis porro quia.</p>
-                    <p>Exercitationem nostrum omnis. Ut reiciendis repudiandae minus. Omnis recusandae ut non quam ut quod eius qui. Ipsum quia odit vero atque qui quibusdam amet. Occaecati sed est sint aut vitae molestiae voluptate vel</p>
-                  </div>
-                  <div class="col-lg-4 text-center order-1 order-lg-2">
-                    <img src="assets/img/departments-5.jpg" alt="" class="img-fluid">
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+         <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+    <div class="service-item position-relative">
+        <div class="icon">
+            <i class="fas fa-hand-paper"></i> <!-- Icon related to human rights or complaint -->
         </div>
+        <a href="https://www.hrcsl.lk/make-a-complaint/complaint-form" class="stretched-link" target="_blank">
+            <h3>File a Complaint to Human Rights Commission</h3>
+        </a>
+        <p>Submit your complaint regarding human rights violations to the Human Rights Commission of Sri Lanka.</p>
+    </div>
+</div><!-- End Service Item -->
 
-      </div>
-
-    </section><!-- /Departments Section -->
-
-    <!-- Doctors Section -->
-    <section id="doctors" class="doctors section">
-
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Doctors</h2>
-        <p>Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit</p>
-      </div><!-- End Section Title -->
-
-      <div class="container">
-
-        <div class="row gy-4">
-
-          <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
-            <div class="team-member d-flex align-items-start">
-              <div class="pic"><img src="assets/img/doctors/doctors-1.jpg" class="img-fluid" alt=""></div>
-              <div class="member-info">
-                <h4>Walter White</h4>
-                <span>Chief Medical Officer</span>
-                <p>Explicabo voluptatem mollitia et repellat qui dolorum quasi</p>
-                <div class="social">
-                  <a href=""><i class="bi bi-twitter-x"></i></a>
-                  <a href=""><i class="bi bi-facebook"></i></a>
-                  <a href=""><i class="bi bi-instagram"></i></a>
-                  <a href=""> <i class="bi bi-linkedin"></i> </a>
-                </div>
-              </div>
-            </div>
-          </div><!-- End Team Member -->
-
-          <div class="col-lg-6" data-aos="fade-up" data-aos-delay="200">
-            <div class="team-member d-flex align-items-start">
-              <div class="pic"><img src="assets/img/doctors/doctors-2.jpg" class="img-fluid" alt=""></div>
-              <div class="member-info">
-                <h4>Sarah Jhonson</h4>
-                <span>Anesthesiologist</span>
-                <p>Aut maiores voluptates amet et quis praesentium qui senda para</p>
-                <div class="social">
-                  <a href=""><i class="bi bi-twitter-x"></i></a>
-                  <a href=""><i class="bi bi-facebook"></i></a>
-                  <a href=""><i class="bi bi-instagram"></i></a>
-                  <a href=""> <i class="bi bi-linkedin"></i> </a>
-                </div>
-              </div>
-            </div>
-          </div><!-- End Team Member -->
-
-          <div class="col-lg-6" data-aos="fade-up" data-aos-delay="300">
-            <div class="team-member d-flex align-items-start">
-              <div class="pic"><img src="assets/img/doctors/doctors-3.jpg" class="img-fluid" alt=""></div>
-              <div class="member-info">
-                <h4>William Anderson</h4>
-                <span>Cardiology</span>
-                <p>Quisquam facilis cum velit laborum corrupti fuga rerum quia</p>
-                <div class="social">
-                  <a href=""><i class="bi bi-twitter-x"></i></a>
-                  <a href=""><i class="bi bi-facebook"></i></a>
-                  <a href=""><i class="bi bi-instagram"></i></a>
-                  <a href=""> <i class="bi bi-linkedin"></i> </a>
-                </div>
-              </div>
-            </div>
-          </div><!-- End Team Member -->
-
-          <div class="col-lg-6" data-aos="fade-up" data-aos-delay="400">
-            <div class="team-member d-flex align-items-start">
-              <div class="pic"><img src="assets/img/doctors/doctors-4.jpg" class="img-fluid" alt=""></div>
-              <div class="member-info">
-                <h4>Amanda Jepson</h4>
-                <span>Neurosurgeon</span>
-                <p>Dolorum tempora officiis odit laborum officiis et et accusamus</p>
-                <div class="social">
-                  <a href=""><i class="bi bi-twitter-x"></i></a>
-                  <a href=""><i class="bi bi-facebook"></i></a>
-                  <a href=""><i class="bi bi-instagram"></i></a>
-                  <a href=""> <i class="bi bi-linkedin"></i> </a>
-                </div>
-              </div>
-            </div>
-          </div><!-- End Team Member -->
-
-        </div>
-
-      </div>
-
-    </section><!-- /Doctors Section -->
-
-    <!-- Faq Section -->
-    <section id="faq" class="faq section light-background">
-
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Frequently Asked Questions</h2>
-        <p>Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit</p>
-      </div><!-- End Section Title -->
-
-      <div class="container">
-
-        <div class="row justify-content-center">
-
-          <div class="col-lg-10" data-aos="fade-up" data-aos-delay="100">
-
-            <div class="faq-container">
-
-              <div class="faq-item faq-active">
-                <h3>Non consectetur a erat nam at lectus urna duis?</h3>
-                <div class="faq-content">
-                  <p>Feugiat pretium nibh ipsum consequat. Tempus iaculis urna id volutpat lacus laoreet non curabitur gravida. Venenatis lectus magna fringilla urna porttitor rhoncus dolor purus non.</p>
-                </div>
-                <i class="faq-toggle bi bi-chevron-right"></i>
-              </div><!-- End Faq item-->
-
-              <div class="faq-item">
-                <h3>Feugiat scelerisque varius morbi enim nunc faucibus?</h3>
-                <div class="faq-content">
-                  <p>Dolor sit amet consectetur adipiscing elit pellentesque habitant morbi. Id interdum velit laoreet id donec ultrices. Fringilla phasellus faucibus scelerisque eleifend donec pretium. Est pellentesque elit ullamcorper dignissim. Mauris ultrices eros in cursus turpis massa tincidunt dui.</p>
-                </div>
-                <i class="faq-toggle bi bi-chevron-right"></i>
-              </div><!-- End Faq item-->
-
-              <div class="faq-item">
-                <h3>Dolor sit amet consectetur adipiscing elit pellentesque?</h3>
-                <div class="faq-content">
-                  <p>Eleifend mi in nulla posuere sollicitudin aliquam ultrices sagittis orci. Faucibus pulvinar elementum integer enim. Sem nulla pharetra diam sit amet nisl suscipit. Rutrum tellus pellentesque eu tincidunt. Lectus urna duis convallis convallis tellus. Urna molestie at elementum eu facilisis sed odio morbi quis</p>
-                </div>
-                <i class="faq-toggle bi bi-chevron-right"></i>
-              </div><!-- End Faq item-->
-
-              <div class="faq-item">
-                <h3>Ac odio tempor orci dapibus. Aliquam eleifend mi in nulla?</h3>
-                <div class="faq-content">
-                  <p>Dolor sit amet consectetur adipiscing elit pellentesque habitant morbi. Id interdum velit laoreet id donec ultrices. Fringilla phasellus faucibus scelerisque eleifend donec pretium. Est pellentesque elit ullamcorper dignissim. Mauris ultrices eros in cursus turpis massa tincidunt dui.</p>
-                </div>
-                <i class="faq-toggle bi bi-chevron-right"></i>
-              </div><!-- End Faq item-->
-
-              <div class="faq-item">
-                <h3>Tempus quam pellentesque nec nam aliquam sem et tortor?</h3>
-                <div class="faq-content">
-                  <p>Molestie a iaculis at erat pellentesque adipiscing commodo. Dignissim suspendisse in est ante in. Nunc vel risus commodo viverra maecenas accumsan. Sit amet nisl suscipit adipiscing bibendum est. Purus gravida quis blandit turpis cursus in</p>
-                </div>
-                <i class="faq-toggle bi bi-chevron-right"></i>
-              </div><!-- End Faq item-->
-
-              <div class="faq-item">
-                <h3>Perspiciatis quod quo quos nulla quo illum ullam?</h3>
-                <div class="faq-content">
-                  <p>Enim ea facilis quaerat voluptas quidem et dolorem. Quis et consequatur non sed in suscipit sequi. Distinctio ipsam dolore et.</p>
-                </div>
-                <i class="faq-toggle bi bi-chevron-right"></i>
-              </div><!-- End Faq item-->
-
-            </div>
-
-          </div><!-- End Faq Column-->
-
-        </div>
-
-      </div>
-
-    </section><!-- /Faq Section -->
-
-    <!-- Testimonials Section -->
-    <section id="testimonials" class="testimonials section">
-
-      <div class="container">
-
-        <div class="row align-items-center">
-
-          <div class="col-lg-5 info" data-aos="fade-up" data-aos-delay="100">
-            <h3>Testimonials</h3>
-            <p>
-              Ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
-              velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.
-            </p>
-          </div>
-
-          <div class="col-lg-7" data-aos="fade-up" data-aos-delay="200">
-
-            <div class="swiper init-swiper">
-              <script type="application/json" class="swiper-config">
-                {
-                  "loop": true,
-                  "speed": 600,
-                  "autoplay": {
-                    "delay": 5000
-                  },
-                  "slidesPerView": "auto",
-                  "pagination": {
-                    "el": ".swiper-pagination",
-                    "type": "bullets",
-                    "clickable": true
-                  }
-                }
-              </script>
-              <div class="swiper-wrapper">
-
-                <div class="swiper-slide">
-                  <div class="testimonial-item">
-                    <div class="d-flex">
-                      <img src="assets/img/testimonials/testimonials-1.jpg" class="testimonial-img flex-shrink-0" alt="">
-                      <div>
-                        <h3>Saul Goodman</h3>
-                        <h4>Ceo &amp; Founder</h4>
-                        <div class="stars">
-                          <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                        </div>
-                      </div>
-                    </div>
-                    <p>
-                      <i class="bi bi-quote quote-icon-left"></i>
-                      <span>Proin iaculis purus consequat sem cure digni ssim donec porttitora entum suscipit rhoncus. Accusantium quam, ultricies eget id, aliquam eget nibh et. Maecen aliquam, risus at semper.</span>
-                      <i class="bi bi-quote quote-icon-right"></i>
-                    </p>
-                  </div>
-                </div><!-- End testimonial item -->
-
-                <div class="swiper-slide">
-                  <div class="testimonial-item">
-                    <div class="d-flex">
-                      <img src="assets/img/testimonials/testimonials-2.jpg" class="testimonial-img flex-shrink-0" alt="">
-                      <div>
-                        <h3>Sara Wilsson</h3>
-                        <h4>Designer</h4>
-                        <div class="stars">
-                          <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                        </div>
-                      </div>
-                    </div>
-                    <p>
-                      <i class="bi bi-quote quote-icon-left"></i>
-                      <span>Export tempor illum tamen malis malis eram quae irure esse labore quem cillum quid cillum eram malis quorum velit fore eram velit sunt aliqua noster fugiat irure amet legam anim culpa.</span>
-                      <i class="bi bi-quote quote-icon-right"></i>
-                    </p>
-                  </div>
-                </div><!-- End testimonial item -->
-
-                <div class="swiper-slide">
-                  <div class="testimonial-item">
-                    <div class="d-flex">
-                      <img src="assets/img/testimonials/testimonials-3.jpg" class="testimonial-img flex-shrink-0" alt="">
-                      <div>
-                        <h3>Jena Karlis</h3>
-                        <h4>Store Owner</h4>
-                        <div class="stars">
-                          <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                        </div>
-                      </div>
-                    </div>
-                    <p>
-                      <i class="bi bi-quote quote-icon-left"></i>
-                      <span>Enim nisi quem export duis labore cillum quae magna enim sint quorum nulla quem veniam duis minim tempor labore quem eram duis noster aute amet eram fore quis sint minim.</span>
-                      <i class="bi bi-quote quote-icon-right"></i>
-                    </p>
-                  </div>
-                </div><!-- End testimonial item -->
-
-                <div class="swiper-slide">
-                  <div class="testimonial-item">
-                    <div class="d-flex">
-                      <img src="assets/img/testimonials/testimonials-4.jpg" class="testimonial-img flex-shrink-0" alt="">
-                      <div>
-                        <h3>Matt Brandon</h3>
-                        <h4>Freelancer</h4>
-                        <div class="stars">
-                          <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                        </div>
-                      </div>
-                    </div>
-                    <p>
-                      <i class="bi bi-quote quote-icon-left"></i>
-                      <span>Fugiat enim eram quae cillum dolore dolor amet nulla culpa multos export minim fugiat minim velit minim dolor enim duis veniam ipsum anim magna sunt elit fore quem dolore labore illum veniam.</span>
-                      <i class="bi bi-quote quote-icon-right"></i>
-                    </p>
-                  </div>
-                </div><!-- End testimonial item -->
-
-                <div class="swiper-slide">
-                  <div class="testimonial-item">
-                    <div class="d-flex">
-                      <img src="assets/img/testimonials/testimonials-5.jpg" class="testimonial-img flex-shrink-0" alt="">
-                      <div>
-                        <h3>John Larson</h3>
-                        <h4>Entrepreneur</h4>
-                        <div class="stars">
-                          <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                        </div>
-                      </div>
-                    </div>
-                    <p>
-                      <i class="bi bi-quote quote-icon-left"></i>
-                      <span>Quis quorum aliqua sint quem legam fore sunt eram irure aliqua veniam tempor noster veniam enim culpa labore duis sunt culpa nulla illum cillum fugiat legam esse veniam culpa fore nisi cillum quid.</span>
-                      <i class="bi bi-quote quote-icon-right"></i>
-                    </p>
-                  </div>
-                </div><!-- End testimonial item -->
-
-              </div>
-              <div class="swiper-pagination"></div>
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-    </section><!-- /Testimonials Section -->
-
-    <!-- Gallery Section -->
-    <section id="gallery" class="gallery section">
-
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Gallery</h2>
-        <p>Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit</p>
-      </div><!-- End Section Title -->
-
-      <div class="container-fluid" data-aos="fade-up" data-aos-delay="100">
-
-        <div class="row g-0">
-
-          <div class="col-lg-3 col-md-4">
-            <div class="gallery-item">
-              <a href="assets/img/gallery/gallery-1.jpg" class="glightbox" data-gallery="images-gallery">
-                <img src="assets/img/gallery/gallery-1.jpg" alt="" class="img-fluid">
-              </a>
-            </div>
-          </div><!-- End Gallery Item -->
-
-          <div class="col-lg-3 col-md-4">
-            <div class="gallery-item">
-              <a href="assets/img/gallery/gallery-2.jpg" class="glightbox" data-gallery="images-gallery">
-                <img src="assets/img/gallery/gallery-2.jpg" alt="" class="img-fluid">
-              </a>
-            </div>
-          </div><!-- End Gallery Item -->
-
-          <div class="col-lg-3 col-md-4">
-            <div class="gallery-item">
-              <a href="assets/img/gallery/gallery-3.jpg" class="glightbox" data-gallery="images-gallery">
-                <img src="assets/img/gallery/gallery-3.jpg" alt="" class="img-fluid">
-              </a>
-            </div>
-          </div><!-- End Gallery Item -->
-
-          <div class="col-lg-3 col-md-4">
-            <div class="gallery-item">
-              <a href="assets/img/gallery/gallery-4.jpg" class="glightbox" data-gallery="images-gallery">
-                <img src="assets/img/gallery/gallery-4.jpg" alt="" class="img-fluid">
-              </a>
-            </div>
-          </div><!-- End Gallery Item -->
-
-          <div class="col-lg-3 col-md-4">
-            <div class="gallery-item">
-              <a href="assets/img/gallery/gallery-5.jpg" class="glightbox" data-gallery="images-gallery">
-                <img src="assets/img/gallery/gallery-5.jpg" alt="" class="img-fluid">
-              </a>
-            </div>
-          </div><!-- End Gallery Item -->
-
-          <div class="col-lg-3 col-md-4">
-            <div class="gallery-item">
-              <a href="assets/img/gallery/gallery-6.jpg" class="glightbox" data-gallery="images-gallery">
-                <img src="assets/img/gallery/gallery-6.jpg" alt="" class="img-fluid">
-              </a>
-            </div>
-          </div><!-- End Gallery Item -->
-
-          <div class="col-lg-3 col-md-4">
-            <div class="gallery-item">
-              <a href="assets/img/gallery/gallery-7.jpg" class="glightbox" data-gallery="images-gallery">
-                <img src="assets/img/gallery/gallery-7.jpg" alt="" class="img-fluid">
-              </a>
-            </div>
-          </div><!-- End Gallery Item -->
-
-          <div class="col-lg-3 col-md-4">
-            <div class="gallery-item">
-              <a href="assets/img/gallery/gallery-8.jpg" class="glightbox" data-gallery="images-gallery">
-                <img src="assets/img/gallery/gallery-8.jpg" alt="" class="img-fluid">
-              </a>
-            </div>
-          </div><!-- End Gallery Item -->
-
-        </div>
-
-      </div>
-
-    </section><!-- /Gallery Section -->
 
     <!-- Contact Section -->
-    <section id="contact" class="contact section">
+<section id="contact" class="contact section light-background">
+  <div class="container section-title" data-aos="fade-up">
+    <h2>Contact Us</h2>
+  </div><!-- End Section Title -->
 
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Contact</h2>
-        <p>Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit</p>
-      </div><!-- End Section Title -->
-
-      <div class="mb-5" data-aos="fade-up" data-aos-delay="200">
-        <iframe style="border:0; width: 100%; height: 270px;" src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d48389.78314118045!2d-74.006138!3d40.710059!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25a22a3bda30d%3A0xb89d1fe6bc499443!2sDowntown%20Conference%20Center!5e0!3m2!1sen!2sus!4v1676961268712!5m2!1sen!2sus" frameborder="0" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-      </div><!-- End Google Maps -->
-
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
-
+  <div class="container" data-aos="fade-up" data-aos-delay="100">
+    <div class="row gy-4">
+      <!-- Contact Information Section - Horizontal Layout -->
+      <div class="col-lg-12">
         <div class="row gy-4">
-
-          <div class="col-lg-4">
-            <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="300">
+          <div class="col-md-4">
+            <div class="info-item d-flex align-items-center" data-aos="fade-up" data-aos-delay="300">
               <i class="bi bi-geo-alt flex-shrink-0"></i>
               <div>
                 <h3>Location</h3>
-                <p>A108 Adam Street, New York, NY 535022</p>
+                <p>A9 Road, Court Complex, Kilinochchi</p>
               </div>
             </div><!-- End Info Item -->
+          </div>
 
-            <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="400">
+          <div class="col-md-4">
+            <div class="info-item d-flex align-items-center" data-aos="fade-up" data-aos-delay="400">
               <i class="bi bi-telephone flex-shrink-0"></i>
               <div>
                 <h3>Call Us</h3>
-                <p>+1 5589 55488 55</p>
+                <p>021 228 5303</p>
               </div>
             </div><!-- End Info Item -->
+          </div>
 
-            <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="500">
+          <div class="col-md-4">
+            <div class="info-item d-flex align-items-center" data-aos="fade-up" data-aos-delay="500">
               <i class="bi bi-envelope flex-shrink-0"></i>
               <div>
                 <h3>Email Us</h3>
-                <p>info@example.com</p>
+                <p>dcmckilinochchi2015@gmail.com</p>
               </div>
             </div><!-- End Info Item -->
-
           </div>
-
-          <div class="col-lg-8">
-            <form action="forms/contact.php" method="post" class="php-email-form" data-aos="fade-up" data-aos-delay="200">
-              <div class="row gy-4">
-
-                <div class="col-md-6">
-                  <input type="text" name="name" class="form-control" placeholder="Your Name" required="">
-                </div>
-
-                <div class="col-md-6 ">
-                  <input type="email" class="form-control" name="email" placeholder="Your Email" required="">
-                </div>
-
-                <div class="col-md-12">
-                  <input type="text" class="form-control" name="subject" placeholder="Subject" required="">
-                </div>
-
-                <div class="col-md-12">
-                  <textarea class="form-control" name="message" rows="6" placeholder="Message" required=""></textarea>
-                </div>
-
-                <div class="col-md-12 text-center">
-                  <div class="loading">Loading</div>
-                  <div class="error-message"></div>
-                  <div class="sent-message">Your message has been sent. Thank you!</div>
-
-                  <button type="submit">Send Message</button>
-                </div>
-
-              </div>
-            </form>
-          </div><!-- End Contact Form -->
-
         </div>
-
       </div>
+    </div>
+  </div>
 
-    </section><!-- /Contact Section -->
+</section><!-- /Contact Section -->
+
 
   </main>
 
@@ -867,5 +273,4 @@
   <script src="assets/js/main.js"></script>
 
 </body>
-
 </html>
