@@ -21,7 +21,7 @@
 					<li><a href="https://supremecourt.lk">Supreme Court of Sri Lanka</a></li>
 					<li><a href="https://courtofappeal.lk">Court of Appeal</a></li>
                     <li><a href="https://jsc.gov.lk/web/index.php?option=com_content&view=frontpage&Itemid=1&lang=en">Judicial Service Commission</a></li>
-                    <li><a href="https://www.moj.gov.lk/index.php?lang=en">Ministry of Justice and Natioanl Integration</a></li>            
+                    <li><a href="https://www.moj.gov.lk/index.php?lang=en">Ministry of Justice and National Integration</a></li>            
                 </ul>
             </div>
 

@@ -1,5 +1,4 @@
 <?php
-//send verification code
 
 function sendSms($to, $message){
 	$verify_code=rand(1000,9999);

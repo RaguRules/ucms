@@ -95,7 +95,6 @@ try {
                 $staff_id
             );
             $stmtInsert->execute();
-            //  echo json_encode(['success' => true, 'message' => 'going2']);
 
         } elseif ($role_id === 'R07') { // Police
             $next_police_id = $helper->generateNextPoliceID($conn);

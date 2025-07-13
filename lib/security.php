@@ -1,21 +1,17 @@
 <?php
-// OOP-based security module (formerly procedural security.php)
 
-class Security
-{
+class Security{
     private $uploadDir;
     private $allowedExtensions;
     private $maxFileSize;
 
-    public function __construct($uploadDir = 'uploads/', $allowedExtensions = ['jpg', 'jpeg', 'png', 'heic', 'heif'], $maxFileSize = 6291456)
-    {
+    public function __construct($uploadDir = 'uploads/', $allowedExtensions = ['jpg', 'jpeg', 'png', 'heic', 'heif'], $maxFileSize = 6291456){
         $this->uploadDir = rtrim($uploadDir, '/') . '/';
         $this->allowedExtensions = $allowedExtensions;
         $this->maxFileSize = $maxFileSize;
     }
 
-    public function uploadImage($fileInput = 'image')
-    {
+    public function uploadImage($fileInput = 'image'){
         if (!isset($_FILES[$fileInput]) || $_FILES[$fileInput]['error'] !== UPLOAD_ERR_OK) {
             return ['success' => false, 'error' => 'No valid image uploaded.'];
         }
@@ -43,7 +39,7 @@ class Security
             return ['success' => false, 'error' => 'File too large. Max 6 MB allowed.'];
         }
 
-        // Remove metadata (JPEG only)
+        // Remove metadata
         if (in_array($ext, ['jpg', 'jpeg'])) {
             $img = imagecreatefromjpeg($fileTmp);
             if ($img) {
@@ -71,9 +67,7 @@ class Security
         return htmlspecialchars(stripslashes(trim((string)$data)));
     }
 
-
-    public static function logError($message)
-    {
+    public static function logError($message){
         $root = dirname(__DIR__);
         $logDir = $root . '/logs';
         $logFile = $logDir . '/error_log.txt';
@@ -108,7 +102,6 @@ class Security
         header('X-Frame-Options: DENY');
     }
 
-
    public static function blockAccessByIP(array $blockedIps = []){
        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
        if (in_array($ip, $blockedIps)) {
@@ -118,16 +111,13 @@ class Security
        }
    }
 
-
-    public static function addToBlacklist($email, $nic, $phone)
-    {
+    public static function addToBlacklist($email, $nic, $phone){
         $blacklistFile = 'blacklist.dat';
         $newEntry = hash('sha256', $email) . ',' . hash('sha256', $nic) . ',' . hash('sha256', $phone) . "\n";
         file_put_contents($blacklistFile, $newEntry, FILE_APPEND);
     }
 
-    public static function isBlocked($email, $nic, $phone)
-    {
+    public static function isBlocked($email, $nic, $phone){
         $blacklistFile = 'blacklist.dat';
         if (!file_exists($blacklistFile)) return false;
 
@@ -145,8 +135,7 @@ class Security
         return false;
     }
 
-    public static function checkDuplicate($conn, $column, $value, $redirect = '', $message = '', $ignoreStaffId = null)
-    {
+    public static function checkDuplicate($conn, $column, $value, $redirect = '', $message = '', $ignoreStaffId = null){
         $tables = ['staff', 'lawyer', 'police'];
 
         foreach ($tables as $table) {

@@ -233,6 +233,15 @@ class Helper {
         return null; // No matching user found
     }
 
+    public function getStaffEmailByRoleAndCourt($role_id, $court_id) {
+        $stmt = $this->conn->prepare("SELECT * FROM staff WHERE role_id = ? AND court_id = ? LIMIT 1");
+        $stmt->bind_param("ss", $role_id, $court_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        return $row ? $row['email'] : null;
+    }
+
     public function hasArrestWarrant($caseId) {
         $stmt = $this->conn->prepare("SELECT is_warrant FROM cases WHERE case_id = ?");
         $stmt->bind_param("s", $caseId);
@@ -244,71 +253,9 @@ class Helper {
         return false; // Case not found or no warrant
     }
 
-    // Function to replace the old file with the new one (keeps only one PDF per day)
-    // function replaceOldFile($court_name) {
-    //     global $upload_dir;
-
-    //     $court_dir = $upload_dir . $court_name . "/";
-    //     $files = scandir($court_dir);
-
-    //     // Keep only the latest uploaded PDF file
-    //     foreach ($files as $file) {
-    //         if ($file != "." && $file != "..") {
-    //             // Remove all files except the latest one
-    //             unlink($court_dir . $file);
-    //         }
-    //     }
-    // }
-
-    // Function to upload the case list PDF
-    // function uploadCaseList($court_name) {
-    //     global $upload_dir;
-
-    //     // Check if the court directory exists, if not, create it
-    //     $court_dir = $upload_dir . $court_name . "/";
-    //     if (!is_dir($court_dir)) {
-    //         mkdir($court_dir, 0777, true);
-    //     }
-
-    //     // Check if a file has been uploaded
-    //     if (isset($_FILES['case_list']['name'])) {
-    //         $file_name = $_FILES['case_list']['name'];
-    //         $file_tmp = $_FILES['case_list']['tmp_name'];
-    //         $file_size = $_FILES['case_list']['size'];
-    //         $file_error = $_FILES['case_list']['error'];
-
-    //         // Check for upload errors
-    //         if ($file_error === 0) {
-    //             // Get file extension and ensure it's a PDF
-    //             $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-    //             if ($file_ext != 'pdf') {
-    //                 echo "Error: Only PDF files are allowed.";
-    //                 return;
-    //             }
-
-    //             // Generate a unique file name based on the current date
-    //             $new_file_name = $court_name . "_case_list_" . date("Y-m-d") . ".pdf";
-    //             $destination = $court_dir . $new_file_name;
-
-    //             // Move the uploaded file to the appropriate directory
-    //             if (move_uploaded_file($file_tmp, $destination)) {
-    //                 echo "File uploaded successfully.";
-    //                 // Replace the previous PDF if a new one is uploaded
-    //                 replaceOldFile($court_name);
-    //             } else {
-    //                 echo "Error uploading the file.";
-    //             }
-    //         } else {
-    //             echo "There was an error with the file upload.";
-    //         }
-    //     }
-    // }
-
-
     // -----------------------------------------------------
     // ------- Notification related Helper Functions --------
     // -----------------------------------------------------
-
 
     public function insertNotification($record_id, $type, $court_id, $message, $receiver_id) {
         if ($court_id === NULL) {
@@ -321,15 +268,6 @@ class Helper {
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("ssssss", $notification_id, $record_id, $type, $court_id, $message, $receiver_id);
         $stmt->execute();
-    }
-
-    public function getStaffEmailByRoleAndCourt($role_id, $court_id) {
-        $stmt = $this->conn->prepare("SELECT * FROM staff WHERE role_id = ? AND court_id = ? LIMIT 1");
-        $stmt->bind_param("ss", $role_id, $court_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $row = $result->fetch_assoc();
-        return $row ? $row['email'] : null;
     }
 
     public function triggerJudgementNotification($case_id) {

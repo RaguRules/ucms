@@ -305,13 +305,22 @@
 				</tr>
 			</thead>
 			<tbody>
-				<?php while ($row = $result->fetch_assoc()): ?>
+				<?php while ($row = $result->fetch_assoc()):
+					$plaintiffData = $helper->getPartyData($row['plaintiff']);
+                    $plaintiff = $plaintiffData ? $plaintiffData['first_name'] . ' ' . $plaintiffData['last_name'] : 'Unknown';
+                    $defendantData = $helper->getPartyData($row['defendant']);
+                    $defendant = $defendantData ? $defendantData['first_name'] . ' ' . $defendantData['last_name'] : 'Unknown';
+					$plaintiffLawyerData = $helper->getLawyerData($row['plaintiff_lawyer']);
+                    $plaintiffLawyer = $plaintiffLawyerData ? $plaintiffLawyerData['first_name'] . ' ' . $plaintiffLawyerData['last_name'] : 'Unknown';
+                    $defendantLawyerData = $helper->getLawyerData($row['defendant_lawyer']);
+                    $defendantLawyer = $defendantLawyerData ? $defendantLawyerData['first_name'] . ' ' . $defendantLawyerData['last_name'] : 'Unknown';
+					?>
 				<tr>
 					<td></td>
 					<td><?= Security::sanitize($row['case_name']) ?></td>
-					<td><?= Security::sanitize($row['plaintiff']) ?></td>
-					<td><?= Security::sanitize($row['defendant']) ?></td>
-					<td><?= Security::sanitize($row['plaintiff_lawyer']) ?> / <?= Security::sanitize($row['defendant_lawyer']) ?></td>
+					<td><?= Security::sanitize($plaintiff) ?></td>
+					<td><?= Security::sanitize($defendant) ?></td>
+					<td><?= Security::sanitize($plaintiffLawyer) ?> / <?= Security::sanitize($defendantLawyer) ?></td>
 					<td><?= Security::sanitize($row['registered_date']) ?></td>
 					<td><span class="badge <?= $row['is_active'] ? 'bg-success' : 'bg-danger' ?>"><?= $row['is_active'] ? 'Active' : 'Inactive' ?></span></td>
 					<td><span class="badge <?= $row['is_warrant'] ? 'bg-danger' : 'bg-secondary' ?>"><?= $row['is_warrant'] ? 'Issued' : 'Not Issued' ?></span></td>

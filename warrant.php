@@ -1,5 +1,10 @@
 <?php
 
+if($systemUsertype == 'GUEST'){
+// if($systemUsertype != 'R02'){
+    echo "<script>location.href='index.php?pg=404.php';</script>";
+}
+
 // Toggle Warrant
 if (isset($_POST['toggle_warrant']) && isset($_POST['case_id'])) {
     $caseId = $_POST['case_id'];
@@ -57,11 +62,16 @@ if ($searchTerm) {
                 </tr>
             </thead>
             <tbody>
-                <?php while ($row = $result->fetch_assoc()): ?>
-                    <tr>
+                <?php while ($row = $result->fetch_assoc()): 
+                    $plaintiffData = $helper->getPartyData($row['plaintiff']);
+                    $plaintiff = $plaintiffData ? $plaintiffData['first_name'] . ' ' . $plaintiffData['last_name'] : 'Unknown';
+                    $defendantData = $helper->getPartyData($row['defendant']);
+                    $defendant = $defendantData ? $defendantData['first_name'] . ' ' . $defendantData['last_name'] : 'Unknown';
+                ?>
+
                         <td><?= Security::sanitize($row['case_name']) ?></td>
-                        <td><?= Security::sanitize($row['plaintiff']) ?></td>
-                        <td><?= Security::sanitize($row['defendant']) ?></td>
+                        <td><?= Security::sanitize($plaintiff) ?></td>
+                        <td><?= Security::sanitize($defendant) ?></td>
                         <td><?= Security::sanitize($row['status']) ?></td>
                         <td>
                             <span class="badge <?= $row['is_warrant'] ? 'bg-danger' : 'bg-success' ?>">

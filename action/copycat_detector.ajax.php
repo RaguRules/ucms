@@ -3,44 +3,6 @@ include_once('../lib/db.php');
 
 header('Content-Type: application/json');
 
-// if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-//     $check = $_POST['check'] ?? '';
-//     $value = $_POST['value'] ?? '';
-//     $staffId = $_POST['staff_id'] ?? null; // Might be empty if adding
-
-//     $response = ['exists' => false];
-
-//     if ($check && $value) {
-//         $column = '';
-//         if ($check === 'email') $column = 'email';
-//         elseif ($check === 'nic') $column = 'nic_number';
-//         elseif ($check === 'phone') $column = 'mobile';
-
-//         if ($column) {
-//             if ($staffId) {
-//                 // Editing — exclude the current staff ID
-//                 $stmt = $conn->prepare("SELECT 1 FROM staff WHERE $column = ? AND staff_id != ? AND is_active = 1 LIMIT 1");
-//                 $stmt->bind_param("ss", $value, $staffId);
-//             } else {
-//                 // Adding — normal duplicate check
-//                 $stmt = $conn->prepare("SELECT 1 FROM staff WHERE $column = ? AND is_active = 1 LIMIT 1");
-//                 $stmt->bind_param("s", $value);
-//             }
-            
-//             $stmt->execute();
-//             $stmt->store_result();
-
-//             if ($stmt->num_rows > 0) {
-//                 $response['exists'] = true;
-//                 $response['message'] = ucfirst($check) . " already exists.";
-//             }
-//             $stmt->close();
-//         }
-//     }
-
-//     echo json_encode($response);
-// }
-
 
 if (isset($_POST['check']) && isset($_POST['value'])) {
     $check = $_POST['check'];

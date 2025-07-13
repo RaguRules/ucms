@@ -9,32 +9,33 @@ if (!is_dir($upload_dir)) {
 if (isset($_SESSION["LOGIN_USERTYPE"])) {
     $systemUsertype = $_SESSION["LOGIN_USERTYPE"];
     $systemUsername = $_SESSION["LOGIN_USERNAME"];
-} else {
-    $systemUsertype = "GUEST";
-}
 
-$court = isset($_GET['list']) ? $_GET['list'] : 'mc';
+    $court = isset($_GET['list']) ? $_GET['list'] : 'mc';
 
-$staffId = $helper->getId($systemUsername, $systemUsertype);
-$staffDetail = $helper->getStaffData($staffId);
-$staffCourt = $staffDetail['court_id'];
-$staffRole = $staffDetail['role_id'];
+    $staffId = $helper->getId($systemUsername, $systemUsertype);
+    $staffDetail = $helper->getStaffData($staffId);
+    $staffCourt = $staffDetail['court_id'];
+    $staffRole = $staffDetail['role_id'];
 
-// echo "$staffRole $staffCourt <br>";
+    // echo "$staffRole $staffCourt <br>";
 
-// Access Control
-if($staffRole != 'R01'){
-    if($staffCourt=='C01'){
-        $staffCourt = 'mc' ;
-    } elseif($staffCourt=='C02') {
-        $staffCourt = 'dc' ;
-    } elseif($staffCourt=='C03') {
-        $staffCourt = 'hc' ;
+    // Access Control
+    if($staffRole != 'R01'){
+        if($staffCourt=='C01'){
+            $staffCourt = 'mc' ;
+        } elseif($staffCourt=='C02') {
+            $staffCourt = 'dc' ;
+        } elseif($staffCourt=='C03') {
+            $staffCourt = 'hc' ;
+        }
+        if($staffCourt != $court) {
+            echo "<div class='alert alert-warning' role='alert'>You are only authorized to update your court's case list only.</div>";
+            exit;
+        }  
     }
-    if($staffCourt != $court) {
-        echo "<div class='alert alert-warning' role='alert'>You are only authorized to update your court's case list only.</div>";
-        exit;
-    }  
+} else {
+    $systemUsername = "GUEST";
+    $systemUsertype = "GUEST";
 }
 
 
@@ -129,7 +130,7 @@ if (in_array($systemUsertype, ['R01', 'R02', 'R03', 'R04', 'R05'])) {
 
     if (file_exists($file_path)) {
 
-        $baseUrl = 'http://localhost/';  // it will be replaced when move to online.
+        $baseUrl = 'http://localhost/';  // it will be replaced by me when move to online.
         $fullUrl = $baseUrl . $file_path;
 
         echo "<script>window.location.href = '$fullUrl';</script>";

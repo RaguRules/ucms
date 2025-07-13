@@ -92,53 +92,6 @@ function showGenericModal({ title, message, buttonText = "OK", buttonAction = nu
 
 
 // 5. AJAX duplicate check
-// function DuplicateCheck(staffId = null) {
-//     document.querySelectorAll('.check-duplicate').forEach(input => {
-//         input.addEventListener('blur', function () {
-//             const value = input.value.trim();
-//             const checkKey = input.dataset.check;
-//             const feedback = document.getElementById(input.dataset.feedback);
-
-//             if (!value) return;
-
-//             const data = {
-//                 check: checkKey,
-//                 value: value,
-//                 staff_id: staffId // Only pass staffId in Edit mode
-//             };
-
-//             fetch('action/copycat_detector.ajax.php', {
-//                 method: 'POST',
-//                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-//                 body: new URLSearchParams(data)
-//             })
-//             .then(res => res.json())
-//             .then(data => {
-//                 if (data.exists) {
-//                     feedback.textContent = data.message || "This value is already taken.";
-//                     input.classList.add("is-invalid");
-//                 } else {
-//                     feedback.textContent = "";
-//                     input.classList.remove("is-invalid");
-//                 }
-//             })
-//             .catch(() => {
-//                 feedback.textContent = "Error checking for duplicates.";
-//                 input.classList.add("is-invalid");
-//             });
-//         });
-//     });
-
-//     // Block form submission if any field is invalid
-//     document.querySelector('form').addEventListener('submit', function (e) {
-//         const invalidInputs = document.querySelectorAll('.check-duplicate.is-invalid');
-//         if (invalidInputs.length > 0) {
-//             e.preventDefault();
-//             showGenericModal({ title: "Errors Found!", message: "Please fix the issues before submitting.", buttonText: "OK", buttonAction: null });
-//         }
-//     });
-// }
-
 function DuplicateCheck() {
     // Duplicate check on blur
     document.querySelectorAll('.check-duplicate').forEach(input => {
@@ -433,6 +386,7 @@ function setupTermsModal() {
     }
 }
 
+
 // 13. Function to show Delete Confirmation Modal and trigger form submission on confirmation
 function deleteConfirmModal(callback) {
     const deleteModalElement = document.getElementById('deleteConfirmModal');
@@ -452,6 +406,7 @@ function deleteConfirmModal(callback) {
         callback();
     };
 }
+
 
 // 14. Function to show Reactive Confirmation Modal and trigger form submission on confirmation
 function reactivateConfirmModal(callback) {
@@ -498,9 +453,6 @@ function setupPasswordToggle() {
 }
 
 
-// document.addEventListener("DOMContentLoaded", setupPasswordToggle);
-
-
 function initializeFormScripts() {
     const clearButton = document.getElementById("btn_clear");
     if (clearButton) clearButton.addEventListener("click", clearFormInputs);
@@ -508,15 +460,8 @@ function initializeFormScripts() {
     setTodayDate("date_joined_date");
     setupNICListenerWithGender("txt_nic_number", "date_date_of_birth", "select_gender");
     DuplicateCheck();
-    //  DuplicateCheck(staffId);
-    // if (staffId) {
-    //     DuplicateCheck(staffId); // For Edit: pass the staffId
-    // } else {
-    //     DuplicateCheck(); // For Add: don't pass staffId
-    // }
     handlePasswordFeatures();
     setupTermsModal();
-    // setupPasswordToggle();  // Remove this line as it's now handled on DOMContentLoaded
 }
 
 

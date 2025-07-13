@@ -6,6 +6,7 @@ if (!isset($_SESSION)) {
 if (isset($_SESSION["LOGIN_USERTYPE"])) {
     $systemUsertype = $_SESSION["LOGIN_USERTYPE"];
     $systemUsername = $_SESSION["LOGIN_USERNAME"];
+
 } else {
     $systemUsertype = "GUEST";
 }
@@ -28,6 +29,7 @@ require_once('lib/security.php');
 require_once('lib/helper.php');
 
 Security::logVisitor();
+
 Security::blockAccessByIP([
     '123.456.789.000',
     '192.168.1.25',
@@ -42,7 +44,7 @@ $allowed_pages = [
     'warrant.php', 'parties.php', 'dailycaseactivities.php',
     'order.php', 'notification.php', 'notes.php', 'courts.php',
     'staff.php', 'lawyer.php', 'police.php', 'roles.php',
-    'about.php', 'contact.php', 'approve.php', 'caselist.php'
+    'about.php', 'contact.php', 'approve.php', 'caselist.php', '404.php'
 ];
 ?>
 

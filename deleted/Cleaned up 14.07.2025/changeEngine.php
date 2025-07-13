@@ -1,7 +1,7 @@
 <?php
 $host = "localhost";
 $user = "root";
-$pass = ""; // use your actual password
+$pass = "";
 $dbname = "courtsmanagement"; // ← change this
 
 $conn = new mysqli($host, $user, $pass, $dbname);
