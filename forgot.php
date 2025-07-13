@@ -25,7 +25,7 @@ if(isset($_POST["btn_forgot"])){
     $result = mysqli_query($conn, $query);
     
     if(mysqli_num_rows($result) > 0){
-        $db_mobile ='';
+        $dbMobile ='';
         $row = mysqli_fetch_assoc($result);
         $db_role = $row['role_id'];
         switch($db_role){
@@ -50,16 +50,16 @@ if(isset($_POST["btn_forgot"])){
         $result = mysqli_query($conn, $query);
         $row = mysqli_fetch_assoc($result); 
 
-        $db_mobile = $row['mobile'];
+        $dbMobile = $row['mobile'];
 
         if (mysqli_num_rows($result) > 0) {
         
-            if($mobile == $db_mobile){
+            if($mobile == $dbMobile){
                 $otp = rand(100000, 999999); // Generate a random 6-digit OTP
                 $sqlUpdate = "UPDATE login SET otp = '$otp' WHERE username = '$username'";
                 mysqli_query($conn, $sqlUpdate);
                 echo "<script> alert('OTP has been Generated'); </script>";
-                $to = "94".$db_mobile;
+                $to = "94".$dbMobile;
                 $message = "If you've requested to reset your password, your verification code is $otp. - Kilinochchi Courts";
 
                 $response = sendSms($to, $message);

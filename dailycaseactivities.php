@@ -31,10 +31,9 @@ if (isset($_POST['btn_add_activity'])) {
 
     if ($stmt->affected_rows > 0) {
         // Update case details
-        $update = $conn->prepare("UPDATE cases SET status=?, is_warrant=?, next_date=?, for_what=?, staff_id=? WHERE case_name=?");
+        $update = $conn->prepare("UPDATE cases SET status=?, is_warrant=?, next_date=?, for_what=?, staff_id=? WHERE case_id=?");
         $isWarrant = isset($_POST['is_warrant']) ? 1 : 0;
-        $forWhat = $_POST['next_status'];
-        $update->bind_param("sissis", $nextStatus, $isWarrant, $nextDate, $forWhat, $staffId, $caseName);
+        $update->bind_param("sissss", $currentStatus, $isWarrant, $nextDate, $nextStatus, $staffId, $caseName);
         $update->execute();
 
         // Now trigger notifications based on status
@@ -46,33 +45,37 @@ if (isset($_POST['btn_add_activity'])) {
             if (in_array($nextStatus, ['Judgement'])) {
                 $message="'{$caseData['case_name']}' has been fixed for Judgement on {$nextDate}.";
                 $helper->triggerNextDateUpdated($caseId, $message);
+                $helper->sendHearingDateSMS($caseId, $nextDate, $message);
             }
 
 
             // Judgement Delivered notification
             if (in_array($currentStatus, ['Completed - Judgement Delivered'])) {
-                $message="'{$caseData['case_name']}' has been fixed for Judgement on {$nextDate}.";
+                $message="Judgement has been delivered to '{$caseData['case_name']}' on {$nextDate}.";
                 $helper->triggerJudgementNotification($caseId, $message);
+                $helper->sendHearingDateSMS($caseId, $nextDate, $message);
             }
 
             // Fixed for Order notification
             if (in_array($nextStatus, ['Order'])) {
                 $message="'{$caseData['case_name']}' has been fixed for Order on {$nextDate}.";
                 $helper->triggerNextDateUpdated($caseId, $message);
+                $helper->sendHearingDateSMS($caseId, $nextDate, $message);
             }
 
 
             // Order Made notification
             if (in_array($currentStatus, ['Order']) || in_array($nextStatus, ['Order'])) {
-                $message="'{$caseData['case_name']}' has been fixed for Order on {$nextDate}.";
+                $message="Order has been given to '{$caseData['case_name']}' on {$nextDate}.";
                 $helper->triggerOrderNotification($caseId, $message);
+                $helper->sendHearingDateSMS($caseId, $nextDate, $message);
             }
 
             // Next Date Changed notification
             if (!empty($nextDate) && !in_array($nextStatus, ['Order', 'Judgement'])) {
-                $message="'{$caseData['case_name']}' has been fixed for Order on {$nextDate}.";
                 $message="Next hearing date has been updated for case '{$caseData['case_name']}' to {$nextDate}.";
                 $helper->triggerNextDateUpdated($caseId, $message);
+                $helper->sendHearingDateSMS($caseId, $nextDate, $message);
             }
 
             
@@ -91,6 +94,8 @@ if (isset($_POST['btn_update']) && isset($_POST['activity_id'])) {
     $currentStatus = Security::sanitize($_POST['current_status']);
     $nextStatus = Security::sanitize($_POST['next_status']);
     $isTaken = Security::sanitize($_POST['is_taken']);
+    $caseName = Security::sanitize($_POST['case_name']);
+
 
     if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
 	       die("Invalid CSRF token.");
@@ -108,7 +113,74 @@ if (isset($_POST['btn_update']) && isset($_POST['activity_id'])) {
         $activityId
     );
     $stmt->execute();
-    // header("Location: dailycaseactivities.php");
+
+
+    if ($stmt->affected_rows > 0) {
+        // Update case details
+        $update = $conn->prepare("UPDATE cases SET status=?, is_warrant=?, next_date=?, for_what=?, staff_id=? WHERE case_id=?");
+        $isWarrant = isset($_POST['is_warrant']) ? 1 : 0;
+        $nextStatus = $_POST['next_status'];
+        $update->bind_param("sissss", $currentStatus, $isWarrant, $nextDate, $nextStatus, $staffId, $caseName);
+        $update->execute();
+
+        if ($update === false) {
+            // If preparing the query failed
+            echo "<script>alert('Error updating case details: " . $conn->error . "');</script>";
+            exit;
+        }else{
+            echo "<script>alert('Success updating case details in cases table');</script>";
+        }
+
+        // Now trigger notifications based on status
+        $caseData = $helper->getCaseData($caseName);
+        $caseId = $caseData['case_id'] ?? null;
+
+        if ($caseId) {
+            // Fixed for Judgement notification
+            if (in_array($nextStatus, ['Judgement'])) {
+                $message="'{$caseData['case_name']}' has been fixed for Judgement on {$nextDate}.";
+                $helper->triggerNextDateUpdated($caseId, $message);
+                $helper->sendHearingDateSMS($caseId, $nextDate, $message);
+            }
+
+
+            // Judgement Delivered notification
+            if (in_array($currentStatus, ['Completed - Judgement Delivered'])) {
+                $message="Judgement has been delivered to '{$caseData['case_name']}' on {$nextDate}.";
+                $helper->triggerJudgementNotification($caseId, $message);
+                $helper->sendHearingDateSMS($caseId, $nextDate, $message);
+            }
+
+            // Fixed for Order notification
+            if (in_array($nextStatus, ['Order'])) {
+                $message="'{$caseData['case_name']}' has been fixed for Order on {$nextDate}.";
+                $helper->triggerNextDateUpdated($caseId, $message);
+                $helper->sendHearingDateSMS($caseId, $nextDate, $message);
+            }
+
+
+            // Order Made notification
+            if (in_array($currentStatus, ['Order']) || in_array($nextStatus, ['Order'])) {
+                $message="Order has been given to '{$caseData['case_name']}' on {$nextDate}.";
+                $helper->triggerOrderNotification($caseId, $message);
+                $helper->sendHearingDateSMS($caseId, $nextDate, $message);
+            }
+
+            // Next Date Changed notification
+            if (!empty($nextDate) && !in_array($nextStatus, ['Order', 'Judgement'])) {
+                $message="Next hearing date has been updated for case '{$caseData['case_name']}' to {$nextDate}.";
+                $helper->triggerNextDateUpdated($caseId, $message);
+                $helper->sendHearingDateSMS($caseId, $nextDate, $message);
+            }
+
+            echo "<scipt>alert('$currentStatus, $isWarrant, $nextDate, $nextStatus, $staffId, $caseName');</script>";
+            // echo "<script>location.href='index.php?pg=dailycaseactivities.php';</script>";
+            exit;
+        }
+    }else {
+        // No rows were affected
+        echo "<script>alert('as not intended :- No rows were affected');</script>";
+    }
     echo "<script>location.href='index.php?pg=dailycaseactivities.php';</script>";
     exit;
 }
@@ -247,14 +319,17 @@ foreach ($allCases as $case_id => $caseData) {
                         <option value="Judgement">Judgement</option>
                         <option value="Post Judgement Calling">Post Judgement Calling</option>
                         <option value="Laid By">Laid By</option>
+                        <option value="Motion">Motion</option>
+                        <option value="Dismissed">Dismissed</option>
+                        <option value="Completed - Judgement Delivered">Completed - Judgement Delivered</option>
                         <option value="Appeal">Appeal</option>
-                        <option value="Completed/ Closed">Completed/ Closed</option>
+                        <option value="Completed - Order Made">Completed - Order Made</option>
                     </select>
                 </div>
                 <div class="col-md-6">
                     <label>Next Status</label>
                     <select name="next_status" class="form-select" required>
-                        <option value="">-- Select Next Status --</option>
+                        <option value="">-- Select Current Status --</option>
                         <option value="Calling">Calling</option>
                         <option value="Pre Trial Conference">Pre Trial Conference</option>
                         <option value="Trial">Trial</option>
@@ -263,8 +338,11 @@ foreach ($allCases as $case_id => $caseData) {
                         <option value="Judgement">Judgement</option>
                         <option value="Post Judgement Calling">Post Judgement Calling</option>
                         <option value="Laid By">Laid By</option>
+                        <option value="Motion">Motion</option>
+                        <option value="Dismissed">Dismissed</option>
+                        <option value="Completed - Judgement Delivered">Completed - Judgement Delivered</option>
                         <option value="Appeal">Appeal</option>
-                        <option value="Completed/ Closed">Completed/ Closed</option>
+                        <option value="Completed - Order Made">Completed - Order Made</option>
                     </select>
                 </div>
 
@@ -300,7 +378,6 @@ foreach ($allCases as $case_id => $caseData) {
 <!-- EDIT SECTION FORM (Displayed only when btn_edit is clicked) -->
 <?php if (isset($_POST['btn_edit'], $_POST['activity_id'], $_POST['case_id'])): ?>
     <?php
-    $staffId = $helper->getId($systemUsertype, $systemUsername);
     $row = $helper->getActivityData($_POST['activity_id']);
     ?>
     <div class="container py-4">
@@ -327,7 +404,7 @@ foreach ($allCases as $case_id => $caseData) {
                 <div class="col-md-6">
                     <label>Current Status</label>
                     <select name="current_status" class="form-select" required>
-                        <option selected value="<?php echo $row['current_status'] ?>"><?php echo $row['current_status'] ?></option>
+                       <option value="">-- Select Current Status --</option>
                         <option value="Calling">Calling</option>
                         <option value="Pre Trial Conference">Pre Trial Conference</option>
                         <option value="Trial">Trial</option>
@@ -336,15 +413,18 @@ foreach ($allCases as $case_id => $caseData) {
                         <option value="Judgement">Judgement</option>
                         <option value="Post Judgement Calling">Post Judgement Calling</option>
                         <option value="Laid By">Laid By</option>
+                        <option value="Motion">Motion</option>
+                        <option value="Dismissed">Dismissed</option>
+                        <option value="Completed - Judgement Delivered">Completed - Judgement Delivered</option>
                         <option value="Appeal">Appeal</option>
-                        <option value="Completed/ Closed">Completed/ Closed</option>
+                        <option value="Completed - Order Made">Completed - Order Made</option>
                     </select>
                 </div>
 
                 <div class="col-md-6">
                     <label>Next Status</label>
                     <select name="next_status" class="form-select" required>
-                        <option selected value="<?php echo $row['next_status'] ?>"><?php echo $row['next_status'] ?></option>
+                       <option value="">-- Select Next Status --</option>
                         <option value="Calling">Calling</option>
                         <option value="Pre Trial Conference">Pre Trial Conference</option>
                         <option value="Trial">Trial</option>
@@ -353,8 +433,11 @@ foreach ($allCases as $case_id => $caseData) {
                         <option value="Judgement">Judgement</option>
                         <option value="Post Judgement Calling">Post Judgement Calling</option>
                         <option value="Laid By">Laid By</option>
+                        <option value="Motion">Motion</option>
+                        <option value="Dismissed">Dismissed</option>
+                        <option value="Completed - Judgement Delivered">Completed - Judgement Delivered</option>
                         <option value="Appeal">Appeal</option>
-                        <option value="Completed/ Closed">Completed/ Closed</option>
+                        <option value="Completed - Order Made">Completed - Order Made</option>
                     </select>
                 </div>
 

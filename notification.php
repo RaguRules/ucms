@@ -29,7 +29,7 @@ $offset = ($page - 1) * $limit;
 // General Info Notifications - Mark notification as read when clicked
 if (isset($_GET['read']) && isset($_GET['id'])) {
     $notifId = $_GET['id'];
-    $stmt = $conn->prepare("UPDATE notifications SET status = 'read' WHERE notification_id = ?");
+    $stmt = $conn->prepare("UPDATE notifications SET status = 'read' WHERE notification_id = ? AND type = 'Self-Registration Approval'");
     $stmt->bind_param("s", $notifId);
     $stmt->execute();
     // echo "<script>location.href='index.php?pg=notification.php';</script>";

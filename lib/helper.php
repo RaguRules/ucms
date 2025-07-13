@@ -525,4 +525,63 @@ class Helper {
             $this->insertNotification($recordId, 'Self-Registration Approval', NULL, $message, $admin);
         }
     }
+
+
+    // Get case data
+    public function sendHearingDateSMS($caseId, $nextDate=null, $message = null) {
+        $caseData = $this->getCaseData($caseId);
+        if ($caseData) {
+            $plaintiffId = $caseData['plaintiff'];
+            $defendantId = $caseData['defendant'];
+            $caseName = $caseData['case_name'];
+        } else {
+            echo "Case not found.";
+            return;
+        }
+
+        // Fetch mobile numbers of plaintiff and defendant
+        $plaintiffData = $this->getPartyData($plaintiffId);
+        $defendantData = $this->getPartyData($defendantId);
+
+        $mobiles = [];
+        if ($plaintiffData) {
+            $mobiles[] = '94' . $plaintiffData['mobile'];
+        }
+        if ($defendantData) {
+            $mobiles[] = '94' . $defendantData['mobile'];
+        }
+
+        // Prepare message
+        if(!$message) {
+            $message = "Your next hearing date is $nextDate for the case number: $caseName at Kilinochchi Courts";
+        }
+
+        // Send SMS
+        foreach ($mobiles as $to) {
+            $response = $this->sendSms($to, $message);
+            if (!$response['status']) {
+                error_log("SMS failed to $to: {$response['message']}");
+            }
+        }
+    }
+
+    function sendSms($to, $message){
+        $user = "94769669804";
+        $password = "3100";
+        $text = urlencode($message);
+            
+        $baseurl ="http://www.textit.biz/sendmsg";
+        $url = "$baseurl/?id=$user&pw=$password&to=$to&text=$text";
+        $ret = file($url);
+            
+        $res= explode(":",$ret[0]);
+
+        if (trim($res[0]) === "OK") {
+            // Success
+            return ['status' => true, 'msg_id' => $res[1]];
+        } else {
+            // Failed
+            return ['status' => false, 'message' => "Error: " . $res[1]];
+        }
+    }
 }

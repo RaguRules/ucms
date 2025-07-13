@@ -104,8 +104,6 @@ if (isset($_POST['btn_add'])) {
             throw new Exception("Registration insert failed: " . $stmtRegister->error);
         }
 
-		// $otp = strval(random_int(10000, 99999));
-
         // Insert into login table
         $stmtLogin = $conn->prepare("INSERT INTO login (username, password, status, role_id) VALUES (?, ?, 'pending', ?)");
         $stmtLogin->bind_param("sss", $txtEmail, $hashedPassword, $txtRoleId);

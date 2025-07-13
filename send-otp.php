@@ -5,37 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Unified Courts Management System of Kilinochchi - Forgot Password</title>
 
-    <!-- Bootstrap & FontAwesome -->
     <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
-    
-    <!-- Custom CSS -->
+
     <link href="assets/css/auth.css" rel="stylesheet">
 </head>
 
-<body class="light-mode"> <!-- Default is Light Mode -->
+<body class="light-mode">
 
 
     <div class="container">
         <div class="row align-items-center justify-content-center vh-100">
             
-            <!-- Left Image Section -->
             <div class="col-md-6 d-none d-md-block">
                 <img src="assets/img/auth/signup-image.jpg" class="img-fluid login-image" alt="Login">
             </div>
 
-            <!-- Right Login Form -->
             <div class="col-md-6">
                 <div class="login-container">
                     <div class="d-flex justify-content-between">
                         <h3 class="mb-4">One Time Password</h3>
-                        <!-- Theme Toggle -->
+
                         <button id="theme-toggle" class="btn btn-sm btn-outline-secondary">
                             <i class="fas fa-moon"></i> <!-- Default Moon Icon -->
                         </button>
                     </div>
 
-                    <!-- Login Form -->
                     <form action="reset-pwd.php" method="POST" id="send-OtpForm">
                         <div class="mb-3">
                             <label>Enter the OTP you recieved via email/ mobile</label>
@@ -45,12 +40,10 @@
                         <button type="submit" class="btn btn-custom mt-3">Confirm OTP</button>
                     </form>
 
-                    <!-- Register Link -->
                     <div class="text-center mt-3 small-text">
                         Don't have an account? <a href="register.php" class="text-info">Register here</a>
                     </div>
 
-                    <!-- Footer -->
                     <div class="footer">
                         © 2025 Unified Courts Management System - Kilinochchi. All rights reserved.
                     </div>
@@ -60,7 +53,6 @@
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="assets/vendor/jquery3.7/jquery.min.js"></script>
     
