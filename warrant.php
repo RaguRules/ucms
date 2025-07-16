@@ -5,6 +5,12 @@
 	
 	// Toggle Warrant
 	if (isset($_POST['toggle_warrant']) && isset($_POST['case_id'])) {
+        if ($systemUsertype != 'R01' && $systemUsertype != 'R02' && $systemUsertype != 'R03' && $systemUsertype != 'R04') {
+            die("Unauthorised access.");
+        }
+        if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+            die("Invalid CSRF token");
+        }
 	    $caseId = $_POST['case_id'];
 	    $current = (int) $_POST['current_value'];
 	    $newValue = $current ? 0 : 1;
@@ -53,7 +59,13 @@
                 <th>Status</th>
                 <th>Warrant?</th>
                 <th>Next Hearing Date</th>
+                <?php
+                if ($systemUsertype == 'R01' || $systemUsertype == 'R02' || $systemUsertype == 'R03' || $systemUsertype == 'R04') {
+                    ?>
                 <th>Action</th>
+                <?php
+                }
+                ?>
             </tr>
         </thead>
         <tbody>
@@ -80,6 +92,7 @@
                 <form method="POST" action="index.php?pg=warrant.php&option=view" onsubmit="return confirm('Toggle warrant status for this case?')">
                     <input type="hidden" name="case_id" value="<?= $row['case_id'] ?>">
                     <input type="hidden" name="current_value" value="<?= $row['is_warrant'] ?>">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                     <button type="submit" name="toggle_warrant" class="btn btn-sm <?= $row['is_warrant'] ? 'btn-outline-danger' : 'btn-outline-success' ?>">
                     <?= $row['is_warrant'] ? 'Remove Warrant' : 'Add Warrant' ?>
                     </button>
@@ -95,7 +108,7 @@
 </div>
 	<hr>
 	<?php
-		if ($systemUsertype == 'R01' || $systemUsertype == 'R02' || $systemUsertype == 'R03' || $systemUsertype == 'R04'|| $systemUsertype == 'R05') {
+		if ($systemUsertype == 'R01' || $systemUsertype == 'R02' || $systemUsertype == 'R03' || $systemUsertype == 'R04') {
 	?>
 
 	<h4 class="text-success mt-4">➕ Add Warrant to Another Case</h4>
@@ -112,6 +125,7 @@
 			</select>
 		</div>
 		<input type="hidden" name="current_value" value="0">
+        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
 		<div class="col-md-12">
 			<button type="submit" name="toggle_warrant" class="btn btn-primary">Add Warrant</button>
 		</div>
@@ -121,3 +135,5 @@
 		}
 	?>
 </div>
+
+<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

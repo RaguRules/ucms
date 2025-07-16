@@ -891,28 +891,6 @@ foreach ($cases as $case) {
   </div>
 </div>
 
-
-  <div class="accordion-item">
-    <h2 class="accordion-header" id="headingThree">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-        Accordion Item #3
-      </button>
-    </h2>
-    <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExample">
-      <div class="accordion-body">
-        <strong>This is the third item's accordion body.</strong> It is hidden by default...
-      </div>
-    </div>
-  </div>
-</div>
-
-
-
-
-
-
-
-
 		<?php
 			// <!-- ADD SECTION -->
 			}elseif (isset($_GET['option']) && $_GET['option'] == "add") {

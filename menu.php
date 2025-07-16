@@ -43,7 +43,7 @@
                         <ul>
                             <li><a href="index.php?pg=dailycaseactivities.php">Daily Case Activities</a></li>
                             <li><a href="index.php?pg=order.php">Orders</a></li>
-                            <li><a href="index.php?pg=notifications.php">Notifications</a></li>
+                            <li><a href="index.php?pg=notification.php">Notifications</a></li>
                             <li><a href="index.php?pg=notes.php">Notes</a></li>
                         </ul>
                     </li>
@@ -57,7 +57,7 @@
                             <li><a href="index.php?pg=lawyer.php&option=view">Lawyer</a></li>
                             <li><a href="index.php?pg=police.php&option=view">Police</a></li>
                             <li><a href="index.php?pg=roles.php">Roles</a></li>
-							<li><a href="index.php?pg=approve.php">Pending Approvals</a></li>
+							              <li><a href="index.php?pg=approve.php">Pending Approvals</a></li>
                         </ul>
                     </li>
 

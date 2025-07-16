@@ -87,10 +87,10 @@
 
             if (theme === "dark") {
                 body.classList.add("dark-mode");
-                themeIcon.classList.replace("fa-moon", "fa-sun"); // Change to Sun Icon
+                themeIcon.classList.replace("fa-moon", "fa-sun");
             } else {
                 body.classList.add("light-mode");
-                themeIcon.classList.replace("fa-sun", "fa-moon"); // Change to Moon Icon
+                themeIcon.classList.replace("fa-sun", "fa-moon"); 
             }
         }
 
@@ -101,37 +101,19 @@
 
             if (body.classList.contains("dark-mode")) {
                 body.classList.replace("dark-mode", "light-mode");
-                themeIcon.classList.replace("fa-sun", "fa-moon"); // Change to Moon Icon
-                setCookie("theme", "light", 30); // Save in cookie for 30 days
+                themeIcon.classList.replace("fa-sun", "fa-moon");
+                setCookie("theme", "light", 30); 
             } else {
                 body.classList.replace("light-mode", "dark-mode");
-                themeIcon.classList.replace("fa-moon", "fa-sun"); // Change to Sun Icon
-                setCookie("theme", "dark", 30); // Save in cookie for 30 days
+                themeIcon.classList.replace("fa-moon", "fa-sun");
+                setCookie("theme", "dark", 30);
             }
         });
 
-        // Apply theme on page load
+
         applySavedTheme();
     </script>
-    
-    
-    
-    <!-- <script>
-        // Theme Toggle Script
-        const themeToggle = document.getElementById('theme-toggle');
-        const body = document.body;
-
-        themeToggle.addEventListener('click', () => {
-            body.classList.toggle('dark-mode');
-            body.classList.toggle('light-mode');
-
-            if (body.classList.contains('dark-mode')) {
-                themeToggle.innerHTML = '<i class="fas fa-sun"></i>'; // Change to Sun Icon
-            } else {
-                themeToggle.innerHTML = '<i class="fas fa-moon"></i>'; // Change to Moon Icon
-            }
-        });
-    </script> -->
+   
 
 </body>
 </html>

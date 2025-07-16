@@ -1,9 +1,16 @@
 <?php
-$helper = new Helper($conn);
-$security = new Security();
+
+	if($systemUsertype == 'GUEST'){
+	    echo "<script>location.href='index.php?pg=404.php';</script>";
+	}
 
 // Mark case as appeal
 if (isset($_POST['toggle_appeal']) && isset($_POST['case_name'])) {
+
+    if ($systemUsertype != 'R01' && $systemUsertype != 'R03' && $systemUsertype != 'R04' && $systemUsertype != 'R05') {
+		die("Unauthorised access.");
+	}
+
     $caseName = $_POST['case_name'];
     $today = date('Y-m-d');
 
@@ -40,6 +47,9 @@ if (isset($_POST['toggle_appeal']) && isset($_POST['case_name'])) {
 
 // Update appeal follow-up status
 if (isset($_POST['update_appeal']) && isset($_POST['case_name']) && isset($_POST['appeal_status'])) {
+	if ($systemUsertype != 'R01' && $systemUsertype != 'R03' && $systemUsertype != 'R04' && $systemUsertype != 'R05') {
+		die("Unauthorised access.");
+	}
     $caseName = $_POST['case_name'];
     $today = date('Y-m-d');
     $appealStatus = $_POST['appeal_status'];
@@ -51,7 +61,7 @@ if (isset($_POST['update_appeal']) && isset($_POST['case_name']) && isset($_POST
     // Determine nextStatus from outcome
     switch ($appealStatus) {
         case 'Appeal Dismissed':
-            $nextStatus = 'Completed/ Closed';
+            $nextStatus = 'Dismissed';
             break;
         case 'Refixed for Trial':
             $nextStatus = 'Trial';
@@ -121,9 +131,13 @@ $result = $conn->query($sql);
 $judgementCases = $conn->query("
     SELECT d.case_name, MAX(d.activity_date) as latest_date
     FROM dailycaseactivities d
-    WHERE d.next_status = 'Completed/ Closed'
+    WHERE d.next_status = 'Completed - Judgement Delivered' 
+       OR d.next_status = 'Completed - Order Made' 
+       OR d.next_status = 'Dismissed' 
+       OR d.next_status = 'Order'
     GROUP BY d.case_name
 ");
+
 ?>
 
 <div class="container py-4">
@@ -150,7 +164,13 @@ $judgementCases = $conn->query("
                     <th>Case Name</th>
                     <th>Summary</th>
                     <th>Appealed On</th>
+						<?php
+							if($systemUsertype == 'R01' || $systemUsertype == 'R02' || $systemUsertype == 'R03' || $systemUsertype == 'R04') {
+						?>
                     <th>Action</th>
+					<?php
+						}
+					?>
                 </tr>
             </thead>
             <tbody>
@@ -159,6 +179,9 @@ $judgementCases = $conn->query("
                         <td><?= Security::sanitize($row['proper_case_name']) ?></td>
                         <td><?= Security::sanitize($row['summary']) ?></td>
                         <td><?= Security::sanitize($row['activity_date']) ?></td>
+							<?php
+								if($systemUsertype == 'R01' || $systemUsertype == 'R02' || $systemUsertype == 'R03' || $systemUsertype == 'R04') {
+							?>
                         <td>
                             <form method="POST" action="index.php?pg=appeal.php&option=view" class="row g-2">
                                 <input type="hidden" name="case_name" value="<?= Security::sanitize($row['case_name']) ?>">
@@ -180,6 +203,9 @@ $judgementCases = $conn->query("
                                 </div>
                             </form>
                         </td>
+						<?php
+							}
+						?>
                     </tr>
                 <?php endwhile; ?>
             </tbody>
@@ -187,14 +213,19 @@ $judgementCases = $conn->query("
     </div>
 
     <hr>
+	<?php
+		if($systemUsertype == 'R01' || $systemUsertype == 'R02' || $systemUsertype == 'R03' || $systemUsertype == 'R04') {
+	?>
     <h4 class="text-success mt-4">➕ Add Case to Appeal</h4>
     <form method="POST" action="index.php?pg=appeal.php&option=view" class="row g-3">
         <div class="col-md-6">
             <label for="case_name" class="form-label">Select Judgement Case</label>
             <select name="case_name" class="form-select" required>
                 <option value="">-- Select a Case --</option>
-                <?php while ($r = $judgementCases->fetch_assoc()): ?>
-                    <option value="<?= Security::sanitize($r['case_name']) ?>"><?= Security::sanitize($r['case_name']) ?></option>
+                <?php while ($r = $judgementCases->fetch_assoc()): 
+                    $realCaseName = $helper->getCaseData($r['case_name']);
+                    ?>
+                    <option value="<?= Security::sanitize($r['case_name']) ?>"><?= $realCaseName['case_name'] ?></option>
                 <?php endwhile; ?>
             </select>
         </div>
@@ -202,4 +233,7 @@ $judgementCases = $conn->query("
             <button type="submit" name="toggle_appeal" class="btn btn-primary">Mark as Appealed</button>
         </div>
     </form>
+	<?php
+		}
+	?>
 </div>

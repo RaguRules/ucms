@@ -3,9 +3,17 @@ if (!isset($_SESSION)) {
     session_start();
 }
 
+include_once('lib/db.php');
+require_once('lib/security.php');
+require_once('lib/helper.php');
+
+$helper = new Helper($conn);
+$security = new Security();
+
 if (isset($_SESSION["LOGIN_USERTYPE"])) {
     $systemUsertype = $_SESSION["LOGIN_USERTYPE"];
     $systemUsername = $_SESSION["LOGIN_USERNAME"];
+    $systemCourtType = $_SESSION["LOGIN_COURTTYPE"] = $helper->getCourtIdForStaff($systemUsername);
 
 } else {
     $systemUsertype = "GUEST";
@@ -24,10 +32,6 @@ if (isset($_GET['logout']) && $_GET['logout'] === 'true') {
     exit;
 }
 
-include_once('lib/db.php');
-require_once('lib/security.php');
-require_once('lib/helper.php');
-
 Security::logVisitor();
 
 Security::blockAccessByIP([
@@ -35,9 +39,6 @@ Security::blockAccessByIP([
     '192.168.1.25',
     '203.0.113.42'
 ]);
-
-$helper = new Helper($conn);
-$security = new Security();
 
 $allowed_pages = [
     'cases.php', 'appeal.php', 'motion.php', 'judgement.php',

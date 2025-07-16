@@ -166,6 +166,23 @@ class Helper {
         return $stmt->get_result();
     }
 
+    public function getCourtIdForStaff($username) {
+        $stmt = $this->conn->prepare("SELECT court_id FROM staff WHERE email = ?");
+        if (!$stmt) {
+            return null;
+        }
+
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($row = $result->fetch_assoc()) {
+            return $row['court_id'];
+        }
+
+        return null;
+    }
+
     public function getCourtName($court_id) {
         $courts = [
             'C01' => "Magistrate's Court",
@@ -230,7 +247,7 @@ class Helper {
             return $row[$idColumn];
         }
 
-        return null; // No matching user found
+        return null;
     }
 
     public function getStaffEmailByRoleAndCourt($role_id, $court_id) {

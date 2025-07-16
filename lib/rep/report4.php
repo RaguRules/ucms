@@ -1,8 +1,8 @@
 <?php
-ob_start(); // Start output buffering
+ob_start();
 
-require_once('../../vendor/autoload.php'); // Composer autoload for TCPDF
-include_once('../db.php'); // Adjust as needed
+require_once('../../vendor/autoload.php'); 
+include_once('../db.php'); 
 
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);

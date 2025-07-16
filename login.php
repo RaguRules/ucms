@@ -138,10 +138,6 @@ if (isset($_POST["btn_login"])) {
                         </div>
 
                         <div class="d-flex justify-content-between">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="rememberMe">
-                                <label class="form-check-label small-text" for="rememberMe">Remember me</label>
-                            </div>
                             <a href="forgot.php" class="small-text text-info">Forgot password?</a>
                         </div>
 

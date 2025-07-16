@@ -1,19 +1,19 @@
 <?php return array(
     'root' => array(
-        'name' => 'ragur/ucms',
+        'name' => 'ragurajsrirajeswaran/ucms',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'c87b020dbab590f145bbc1104840d22bbecbd205',
+        'reference' => '649fa6e596e0c6465d8831bb4a4ad62358c0f4cb',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
         'dev' => true,
     ),
     'versions' => array(
-        'ragur/ucms' => array(
+        'ragurajsrirajeswaran/ucms' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'c87b020dbab590f145bbc1104840d22bbecbd205',
+            'reference' => '649fa6e596e0c6465d8831bb4a4ad62358c0f4cb',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

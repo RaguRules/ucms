@@ -1,14 +1,14 @@
 {
-    "name": "ragur/ucms",
+    "name": "ragurajsrirajeswaran/ucms",
+    "description": "Unified Courts Management System",
     "autoload": {
         "psr-4": {
-            "Ragur\\Ucms\\": "src/"
+            "Ragurajsrirajeswaran\\Ucms\\": "src/"
         }
     },
     "authors": [
         {
-            "name": "Raguraj",
-            "email": "sriraguraj@gmail.com"
+            "name": "Ragurajh S"
         }
     ],
     "require": {

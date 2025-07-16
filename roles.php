@@ -1,22 +1,22 @@
 <?php
 
+	if ($systemUsertype != 'R01'){
+		echo "<script>location.href='index.php?pg=404.php';</script>";
+	}
+
 	// Flash message system
 	$message = $_SESSION['message'] ?? null;
 	unset($_SESSION['message']);
 	
-	// Handle POST requests
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-	    // Validate CSRF token
 	    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
 	        die("Invalid CSRF token");
 	    }
 	
-	    // Add role logic
 	    if (isset($_POST['role_name'])) {
 	        $role_name = Security::sanitize($_POST['role_name']);
 	        $roleId = $helper->generateNextRoleID($conn); // Always generate server-side
 	
-	        // Check for existing role_id (defensive)
 	        $stmt = $conn->prepare("SELECT 1 FROM roles WHERE role_id = ?");
 	        $stmt->bind_param("s", $roleId);
 	        $stmt->execute();
@@ -38,16 +38,9 @@
 	    }
 
 		if (isset($_POST["btn_rename"])) {
-            // Sanitize inputs
             $txtRoleId = Security::sanitize($_POST["role_id"]);
             $txtRoleName = Security::sanitize($_POST["new_role_name"]);
 
-            // Check for CSRF Tokens
-            if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-                die("Invalid CSRF token.");
-            }
-
-            // Begin transaction
             $conn->begin_transaction();
 
             try {
@@ -73,7 +66,6 @@
             }
         }
 	
-	    // Toggle status logic
 	    if (isset($_POST['toggle_status'], $_POST['role_id'])) {
 	        $roleId = $_POST['role_id'];
 	
@@ -100,14 +92,11 @@
 			echo "<script> location.href='index.php?pg=roles.php'; </script>";
 	        exit;
 	    }
-	}
-
-	
+	}	
 	
 	// Fetch roles
 	$result = $conn->query("SELECT * FROM roles ORDER BY role_id ASC");
 	
-	// Generate next ID
 	$nextRoleId = $helper->generateNextRoleID($conn);
 	?>
 
@@ -139,7 +128,13 @@
 						<th>Role ID</th>
 						<th>Role Name</th>
 						<th>Status</th>
+						<?php
+						if ($systemUsertype == 'R01') {
+						?>
 						<th>Actions</th>
+						<?php
+						}
+						?>
 					</tr>
 				</thead>
 				<tbody>
@@ -148,6 +143,7 @@
 						<td><?= Security::sanitize($row['role_id']) ?></td>
 						<td><?= Security::sanitize($row['role_name']) ?></td>
 						<td><?= $row['role_status'] ? 'active' : 'inactive' ?></td>
+						
 						<td>
 							<?php if ($row['role_id'] !== 'R01'): ?>
 							<form method="POST" action="index.php?pg=roles.php" style="display:inline;">
@@ -197,7 +193,6 @@
 								<label for="role_id" class="form-label">Role ID</label>
 								<input type="text" value="<?= Security::sanitize($nextRoleId) ?>"
 									class="form-control" name="role_id_display" readonly disabled>
-								<!-- Hidden, generated server-side -->
 							</div>
 							<div class="mb-3">
 								<label for="role_name" class="form-label">Role Name</label>
@@ -211,6 +206,7 @@
 				</div>
 			</div>
 		</div>
+		
  <!-- Rename Role Modal -->
 <div class="modal fade" id="renameModal" tabindex="-1" aria-labelledby="renameModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -237,20 +233,22 @@
     </div>
 </div>
 
+	<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
 	<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const renameButtons = document.querySelectorAll('.rename-btn');
-    const roleIdInput = document.getElementById('RoleId');
+	document.addEventListener('DOMContentLoaded', function () {
+		const renameButtons = document.querySelectorAll('.rename-btn');
+		const roleIdInput = document.getElementById('RoleId');
 
-    renameButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            const roleId = this.getAttribute('data-role-id');
-            roleIdInput.value = roleId;
-        });
-    });
-});
+		renameButtons.forEach(button => {
+			button.addEventListener('click', function () {
+				const roleId = this.getAttribute('data-role-id');
+				roleIdInput.value = roleId;
+			});
+		});
+	});
 </script>
 
 </body>
 </html>
+
