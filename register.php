@@ -1,140 +1,137 @@
 <?php
-if (!isset($_SESSION)){
-	session_start();
-}
-
-include_once ('lib/db.php');
-require_once ('lib/security.php');
-require_once ('lib/helper.php');
-
-$helper = new Helper($conn);
-$security = new Security();
+	if (!isset($_SESSION)){
+		session_start();
+	}
 	
-$type = $_GET['type'] ?? '';
-
-if ($type === 'lawyer') {
-	$role = "LAWYER";
-
-} elseif ($type === 'police') {
-	$role = "POLICE";
-
-} else {
-	$role = "null";
-	$role_id = "null";
-	echo "<script> location.href='index.php'; </script>";
-	exit;
-}
-
-
-
-$next_reg_id = $helper->generateNextRegistrationID();
-
-if (isset($_POST['btn_add'])) {
-    // Sanitize input
-    $txtRegId = Security::sanitize($_POST["txt_reg_id"]);
-    $txtFirstName = Security::sanitize($_POST["txt_first_name"]);
-    $txtLastName = Security::sanitize($_POST["txt_last_name"]);
-    $intMobile = Security::sanitize($_POST["int_mobile"]);
-    $txtEmail = Security::sanitize($_POST["txt_email"]);
-    $txtAddress = Security::sanitize($_POST["txt_address"]);
-    $txtNicNumber = Security::sanitize($_POST["txt_nic_number"]);
-    $txtRoleId = Security::sanitize($_POST["txt_role_id"]);
-    $userType = Security::sanitize($_POST["type"]); // Fixed undefined $type
-    $txtEnrolmentNumber = '';
-    $intBadgeNumber = '';
-
-    if ($userType === 'lawyer') {
-        $txtEnrolmentNumber = isset($_POST["txt_enrolment_number"]) ? Security::sanitize($_POST["txt_enrolment_number"]) : '';
-    } elseif ($userType === 'police') {
-        $intBadgeNumber = isset($_POST["int_badge_number"]) ? Security::sanitize($_POST["int_badge_number"]) : '';
-    }
-
-    $selectStation = Security::sanitize($_POST["select_station"]);
-    $dateJoinedDate = Security::sanitize($_POST["date_joined_date"]);
-    $dateDateOfBirth = Security::sanitize($_POST["date_date_of_birth"]);
-    $status = "Pending";
-    $selectGender = Security::sanitize($_POST["select_gender"]);
-    $txtPassword = Security::sanitize($_POST["txt_password"]);
-    $hashedPassword = password_hash($txtPassword, PASSWORD_DEFAULT);
-
-    $txtImagePath = '';
-
-    // Validate & upload image
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $uploadResult = $security->uploadImage('img_profile_photo');
-
-        if (!$uploadResult['success']) {
-            echo '<script>alert("Image upload failed: ' . $uploadResult['error'] . '");</script>';
-            exit;
-        }
-
-        $txtImagePath = 'uploads/' . Security::sanitize($uploadResult['filename']);
-    }
-
-    // Begin DB transaction
-    $conn->begin_transaction();
-
-    try {
-        // Insert into registration table
-        $stmtRegister = $conn->prepare("INSERT INTO registration 
-            (reg_id, first_name, last_name, mobile, email, address, nic_number, enrolment_number, badge_number, station, joined_date, date_of_birth, status, role_id, password, image_path, gender) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        
-        $stmtRegister->bind_param("sssssssssssssssss",
-            $txtRegId,
-            $txtFirstName,
-            $txtLastName,
-            $intMobile,
-            $txtEmail,
-            $txtAddress,
-            $txtNicNumber,
-            $txtEnrolmentNumber,
-            $intBadgeNumber,
-            $selectStation,
-            $dateJoinedDate,
-            $dateDateOfBirth,
-            $status,
-            $txtRoleId,
-            $hashedPassword,
-            $txtImagePath,
-            $selectGender
-        );
-
-        if (!$stmtRegister->execute()) {
-            throw new Exception("Registration insert failed: " . $stmtRegister->error);
-        }
-
-        // Insert into login table
-        $stmtLogin = $conn->prepare("INSERT INTO login (username, password, status, role_id) VALUES (?, ?, 'pending', ?)");
-        $stmtLogin->bind_param("sss", $txtEmail, $hashedPassword, $txtRoleId);
-
-        if (!$stmtLogin->execute()) {
-            throw new Exception("Login insert failed: " . $stmtLogin->error);
-        }
-
-        $conn->commit();
-
-		// Determine user type and ID
-		$type = ($_POST['type'] === 'lawyer') ? 'lawyer' : 'police';
-
-		$helper->triggerPendingRequests($type, $txtRegId);
-
-        echo '<script>alert("Successfully submitted your registration request. Please wait for Admin approval.");</script>';
-        echo '<script>window.location.href = "index.php";</script>';
-        exit;
-
-    } catch (Exception $e) {
-        // Rollback transaction on failure
-        $conn->rollback();
-
-        // Log the error or alert user
-        echo '<script>alert("Registration failed: ' . htmlspecialchars($e->getMessage()) . '");</script>';
-    }
-}
-?>
-
-
-
+	include_once ('lib/db.php');
+	require_once ('lib/security.php');
+	require_once ('lib/helper.php');
+	
+	$helper = new Helper($conn);
+	$security = new Security();
+		
+	$type = $_GET['type'] ?? '';
+	
+	if ($type === 'lawyer') {
+		$role = "LAWYER";
+	
+	} elseif ($type === 'police') {
+		$role = "POLICE";
+	
+	} else {
+		$role = "null";
+		$role_id = "null";
+		echo "<script> location.href='index.php'; </script>";
+		exit;
+	}
+	
+	
+	
+	$next_reg_id = $helper->generateNextRegistrationID();
+	
+	if (isset($_POST['btn_add'])) {
+	    // Sanitize input
+	    $txtRegId = Security::sanitize($_POST["txt_reg_id"]);
+	    $txtFirstName = Security::sanitize($_POST["txt_first_name"]);
+	    $txtLastName = Security::sanitize($_POST["txt_last_name"]);
+	    $intMobile = Security::sanitize($_POST["int_mobile"]);
+	    $txtEmail = Security::sanitize($_POST["txt_email"]);
+	    $txtAddress = Security::sanitize($_POST["txt_address"]);
+	    $txtNicNumber = Security::sanitize($_POST["txt_nic_number"]);
+	    $txtRoleId = Security::sanitize($_POST["txt_role_id"]);
+	    $userType = Security::sanitize($_POST["type"]); // Fixed undefined $type
+	    $txtEnrolmentNumber = '';
+	    $intBadgeNumber = '';
+	
+	    if ($userType === 'lawyer') {
+	        $txtEnrolmentNumber = isset($_POST["txt_enrolment_number"]) ? Security::sanitize($_POST["txt_enrolment_number"]) : '';
+	    } elseif ($userType === 'police') {
+	        $intBadgeNumber = isset($_POST["int_badge_number"]) ? Security::sanitize($_POST["int_badge_number"]) : '';
+	    }
+	
+	    $selectStation = Security::sanitize($_POST["select_station"]);
+	    $dateJoinedDate = Security::sanitize($_POST["date_joined_date"]);
+	    $dateDateOfBirth = Security::sanitize($_POST["date_date_of_birth"]);
+	    $status = "Pending";
+	    $selectGender = Security::sanitize($_POST["select_gender"]);
+	    $txtPassword = Security::sanitize($_POST["txt_password"]);
+	    $hashedPassword = password_hash($txtPassword, PASSWORD_DEFAULT);
+	
+	    $txtImagePath = '';
+	
+	    // Validate & upload image
+	    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+	        $uploadResult = $security->uploadImage('img_profile_photo');
+	
+	        if (!$uploadResult['success']) {
+	            echo '<script>alert("Image upload failed: ' . $uploadResult['error'] . '");</script>';
+	            exit;
+	        }
+	
+	        $txtImagePath = 'uploads/' . Security::sanitize($uploadResult['filename']);
+	    }
+	
+	    // Begin DB transaction
+	    $conn->begin_transaction();
+	
+	    try {
+	        // Insert into registration table
+	        $stmtRegister = $conn->prepare("INSERT INTO registration 
+	            (reg_id, first_name, last_name, mobile, email, address, nic_number, enrolment_number, badge_number, station, joined_date, date_of_birth, status, role_id, password, image_path, gender) 
+	            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+	        
+	        $stmtRegister->bind_param("sssssssssssssssss",
+	            $txtRegId,
+	            $txtFirstName,
+	            $txtLastName,
+	            $intMobile,
+	            $txtEmail,
+	            $txtAddress,
+	            $txtNicNumber,
+	            $txtEnrolmentNumber,
+	            $intBadgeNumber,
+	            $selectStation,
+	            $dateJoinedDate,
+	            $dateDateOfBirth,
+	            $status,
+	            $txtRoleId,
+	            $hashedPassword,
+	            $txtImagePath,
+	            $selectGender
+	        );
+	
+	        if (!$stmtRegister->execute()) {
+	            throw new Exception("Registration insert failed: " . $stmtRegister->error);
+	        }
+	
+	        // Insert into login table
+	        $stmtLogin = $conn->prepare("INSERT INTO login (username, password, status, role_id) VALUES (?, ?, 'pending', ?)");
+	        $stmtLogin->bind_param("sss", $txtEmail, $hashedPassword, $txtRoleId);
+	
+	        if (!$stmtLogin->execute()) {
+	            throw new Exception("Login insert failed: " . $stmtLogin->error);
+	        }
+	
+	        $conn->commit();
+	
+			// Determine user type and ID
+			$type = ($_POST['type'] === 'lawyer') ? 'lawyer' : 'police';
+	
+			$helper->triggerPendingRequests($type, $txtRegId);
+	
+	        echo '<script>alert("Successfully submitted your registration request. Please wait for Admin approval.");</script>';
+	        echo '<script>window.location.href = "index.php";</script>';
+	        exit;
+	
+	    } catch (Exception $e) {
+	        // Rollback transaction on failure
+	        $conn->rollback();
+	
+	        // Log the error or alert user
+	        echo '<script>alert("Registration failed: ' . htmlspecialchars($e->getMessage()) . '");</script>';
+	    }
+	}
+	?>
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -156,12 +153,9 @@ if (isset($_POST['btn_add'])) {
 		<link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
 		<link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
 		<link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
-
 		<script src="assets/vendor/jquery3.7/jquery.min.js"></script>
 		<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 		<script src="assets/js/jsfunctions.js"></script>
-		
-		
 	</head>
 	<body>
 		<div class="container-fluid bg-primary text-white text-center py-3">

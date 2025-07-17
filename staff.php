@@ -1,92 +1,95 @@
 <?php
-
-if (isset($_POST["btn_add"])) {
-    // Sanitize inputs
-    $txtStaffId = Security::sanitize($_POST["txt_staff_id"]);
-    $txtFirstName = Security::sanitize($_POST["txt_first_name"]);
-    $txtLastName = Security::sanitize($_POST["txt_last_name"]);
-    $intMobile = Security::sanitize($_POST["int_mobile"]);
-    $txtNicNumber = Security::sanitize($_POST["txt_nic_number"]);
-    $dateDateOfBirth = Security::sanitize($_POST["date_date_of_birth"]);
-    $txtEmail = Security::sanitize($_POST["txt_email"]);
-    $txtAddress = Security::sanitize($_POST["txt_address"]);
-    $selectCourtName = Security::sanitize($_POST["select_court_name"]);
-    $dateJoinedDate = Security::sanitize($_POST["date_joined_date"]);
-    $selectRoleName = Security::sanitize($_POST["select_role_name"]);
-    $selectGender = Security::sanitize($_POST["select_gender"]);
-    $selectAppointment = Security::sanitize($_POST["select_appointment"]);
-    $status = "active";
-
-	// Check for CSRF Tokens
-	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-		die("Invalid CSRF token.");
+	if ($systemUsertype != 'R01'){
+		echo "<script>location.href='index.php?pg=404.php';</script>";
 	}
-
-    // Validate inputs
-    $errors = [];
-
-    if (!preg_match('/^[0-9]{10}$/', $intMobile)) {
-        $errors[] = "Mobile number must be exactly 10 digits.";
-    }
-
-    if (!filter_var($txtEmail, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = "Invalid email format.";
-    }
-
-    if (!preg_match('/^[0-9]{9}[vVxX0-9]{1,3}$/', $txtNicNumber)) {
-        $errors[] = "Invalid NIC number format.";
-    }
-
-    if (!$helper->validateDate($dateDateOfBirth)) {
-        $errors[] = "Invalid date of birth.";
-    }
-
-    if (!$helper->validateDate($dateJoinedDate)) {
-        $errors[] = "Invalid joined date.";
-    }
-
-    if (empty($txtFirstName) || empty($txtLastName) || empty($txtAddress)) {
-        $errors[] = "Name and address fields cannot be empty.";
-    }
-
-    if (!empty($errors)) {
-        foreach ($errors as $error) {
-            echo "<script>alert('$error');</script>";
-        }
-        exit;
-    }
-
-	// Before Insert staff, check for duplicates in staff, lawyer, and police tables
-	Security::checkDuplicate($conn, "nic_number", $txtNicNumber, "", "NIC Number already exists!", $txtStaffId);
-	Security::checkDuplicate($conn, "mobile", $intMobile, "", "Mobile number already exists!", $txtStaffId);
-	Security::checkDuplicate($conn, "email", $txtEmail, "", "Email already exists!", $txtStaffId);
-
-    // Image upload
-    $upload_result = $security->uploadImage('img_profile_photo');
-
-    if (!$upload_result['success']) {
-    ?>
-	<!-- Display error message if upload failed -->
-    <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
-        <strong>Upload Failed:</strong> <?= Security::sanitize($upload_result['error']) ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-	<?php
+	
+	if (isset($_POST["btn_add"])) {
+	    // Sanitize inputs
+	    $txtStaffId = Security::sanitize($_POST["txt_staff_id"]);
+	    $txtFirstName = Security::sanitize($_POST["txt_first_name"]);
+	    $txtLastName = Security::sanitize($_POST["txt_last_name"]);
+	    $intMobile = Security::sanitize($_POST["int_mobile"]);
+	    $txtNicNumber = Security::sanitize($_POST["txt_nic_number"]);
+	    $dateDateOfBirth = Security::sanitize($_POST["date_date_of_birth"]);
+	    $txtEmail = Security::sanitize($_POST["txt_email"]);
+	    $txtAddress = Security::sanitize($_POST["txt_address"]);
+	    $selectCourtName = Security::sanitize($_POST["select_court_name"]);
+	    $dateJoinedDate = Security::sanitize($_POST["date_joined_date"]);
+	    $selectRoleName = Security::sanitize($_POST["select_role_name"]);
+	    $selectGender = Security::sanitize($_POST["select_gender"]);
+	    $selectAppointment = Security::sanitize($_POST["select_appointment"]);
+	    $status = "active";
+	
+		// Check for CSRF Tokens
+		if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+			die("Invalid CSRF token.");
+		}
+	
+	    // Validate inputs
+	    $errors = [];
+	
+	    if (!preg_match('/^[0-9]{10}$/', $intMobile)) {
+	        $errors[] = "Mobile number must be exactly 10 digits.";
+	    }
+	
+	    if (!filter_var($txtEmail, FILTER_VALIDATE_EMAIL)) {
+	        $errors[] = "Invalid email format.";
+	    }
+	
+	    if (!preg_match('/^[0-9]{9}[vVxX0-9]{1,3}$/', $txtNicNumber)) {
+	        $errors[] = "Invalid NIC number format.";
+	    }
+	
+	    if (!$helper->validateDate($dateDateOfBirth)) {
+	        $errors[] = "Invalid date of birth.";
+	    }
+	
+	    if (!$helper->validateDate($dateJoinedDate)) {
+	        $errors[] = "Invalid joined date.";
+	    }
+	
+	    if (empty($txtFirstName) || empty($txtLastName) || empty($txtAddress)) {
+	        $errors[] = "Name and address fields cannot be empty.";
+	    }
+	
+	    if (!empty($errors)) {
+	        foreach ($errors as $error) {
+	            echo "<script>alert('$error');</script>";
+	        }
+	        exit;
+	    }
+	
+		// Before Insert staff, check for duplicates in staff, lawyer, and police tables
+		Security::checkDuplicate($conn, "nic_number", $txtNicNumber, "", "NIC Number already exists!", $txtStaffId);
+		Security::checkDuplicate($conn, "mobile", $intMobile, "", "Mobile number already exists!", $txtStaffId);
+		Security::checkDuplicate($conn, "email", $txtEmail, "", "Email already exists!", $txtStaffId);
+	
+	    // Image upload
+	    $upload_result = $security->uploadImage('img_profile_photo');
+	
+	    if (!$upload_result['success']) {
+	    ?>
+<!-- Display error message if upload failed -->
+<div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+	<strong>Upload Failed:</strong> <?= Security::sanitize($upload_result['error']) ?>
+	<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+<?php
 	die();
 	}
-
-    $txtImagePath = 'uploads/' . $upload_result['filename'];
-
-    // Begin transaction
-    $conn->begin_transaction();
-
-    try {
-        // Insert into staff table
-        $stmtStaff = $conn->prepare("INSERT INTO staff (staff_id, first_name, last_name, mobile, nic_number, date_of_birth, email, address, court_id, joined_date, role_id, image_path, gender, appointment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        
+	
+	   $txtImagePath = 'uploads/' . $upload_result['filename'];
+	
+	   // Begin transaction
+	   $conn->begin_transaction();
+	
+	   try {
+	       // Insert into staff table
+	       $stmtStaff = $conn->prepare("INSERT INTO staff (staff_id, first_name, last_name, mobile, nic_number, date_of_birth, email, address, court_id, joined_date, role_id, image_path, gender, appointment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+	       
 		$stmtStaff->bind_param(
-            "ssssssssssssss",
-            $txtStaffId,
+	           "ssssssssssssss",
+	           $txtStaffId,
 			$txtFirstName,
 			$txtLastName,
 			$intMobile,
@@ -100,316 +103,312 @@ if (isset($_POST["btn_add"])) {
 			$txtImagePath,
 			$selectGender,
 			$selectAppointment
-        );
-
-        $stmtStaff->execute();
-
-        // Insert into login table
-        $hashedPassword = password_hash($txtNicNumber, PASSWORD_DEFAULT);
-
-        $stmtLogin = $conn->prepare("INSERT INTO login (username, password, otp, status, role_id) VALUES (?, ?, '000000', ?, ?)");
-        $stmtLogin->bind_param("ssss", $txtEmail, $hashedPassword, $status, $selectRoleName);
-        $stmtLogin->execute();
-
-        //  Both successful
-        $conn->commit();
-
+	       );
+	
+	       $stmtStaff->execute();
+	
+	       // Insert into login table
+	       $hashedPassword = password_hash($txtNicNumber, PASSWORD_DEFAULT);
+	
+	       $stmtLogin = $conn->prepare("INSERT INTO login (username, password, otp, status, role_id) VALUES (?, ?, '000000', ?, ?)");
+	       $stmtLogin->bind_param("ssss", $txtEmail, $hashedPassword, $status, $selectRoleName);
+	       $stmtLogin->execute();
+	
+	       //  Both successful
+	       $conn->commit();
+	
 		include_once 'lib/sms_beep.php';
-        $message = "Dear {$txtFirstName} {$txtLastName}, your account has been created with Courts Complex-Kilinochchi successfully. Your login credentials are:\nUsername: {$txtEmail}\nPassword: {$txtNicNumber}";
-
-        sendSms($intMobile, $message);
-
-        echo '<script>alert("Successfully added staff member.");</script>';
-        echo "<script>location.href='index.php?pg=staff.php&option=view';</script>";
-        exit;
-
-    } catch (Exception $e) {
-        // Rollback on error
-        $conn->rollback();
-
-        // Delete uploaded image
-        if (file_exists($txtImagePath)) {
-            unlink($txtImagePath);
-        }
+	       $message = "Dear {$txtFirstName} {$txtLastName}, your account has been created with Courts Complex-Kilinochchi successfully. Your login credentials are:\nUsername: {$txtEmail}\nPassword: {$txtNicNumber}";
+	
+	       sendSms($intMobile, $message);
+	
+	       echo '<script>alert("Successfully added staff member.");</script>';
+	       echo "<script>location.href='index.php?pg=staff.php&option=view';</script>";
+	       exit;
+	
+	   } catch (Exception $e) {
+	       // Rollback on error
+	       $conn->rollback();
+	
+	       // Delete uploaded image
+	       if (file_exists($txtImagePath)) {
+	           unlink($txtImagePath);
+	       }
 		Security::logError($e->getMessage()); // log real error for admin
-
-        echo '<script>alert("An error occurred while saving. Please try again.");</script>';
-    }
-}
-
-
-if (isset($_POST["btn_update"])) {
-    // Sanitize inputs
-    $txtStaffId = Security::sanitize($_POST["txt_staff_id"]);
-    $txtFirstName = Security::sanitize($_POST["txt_first_name"]);
-    $txtLastName = Security::sanitize($_POST["txt_last_name"]);
-    $intMobile = Security::sanitize($_POST["int_mobile"]);
-    $txtNicNumber = Security::sanitize($_POST["txt_nic_number"]);
-    $dateDateOfBirth = Security::sanitize($_POST["date_date_of_birth"]);
-    $txtEmail = Security::sanitize($_POST["txt_email"]);
-    $txtAddress = Security::sanitize($_POST["txt_address"]);
-    $selectCourtName = Security::sanitize($_POST["select_court_name"]);
-    $selectGender = Security::sanitize($_POST["select_gender"]);
-    $selectRoleName = Security::sanitize($_POST["select_role_name"]);
-    $selectAppointment = Security::sanitize($_POST["select_appointment"]);
-
+	
+	       echo '<script>alert("An error occurred while saving. Please try again.");</script>';
+	   }
+	}
+	
+	
+	if (isset($_POST["btn_update"])) {
+	   // Sanitize inputs
+	   $txtStaffId = Security::sanitize($_POST["txt_staff_id"]);
+	   $txtFirstName = Security::sanitize($_POST["txt_first_name"]);
+	   $txtLastName = Security::sanitize($_POST["txt_last_name"]);
+	   $intMobile = Security::sanitize($_POST["int_mobile"]);
+	   $txtNicNumber = Security::sanitize($_POST["txt_nic_number"]);
+	   $dateDateOfBirth = Security::sanitize($_POST["date_date_of_birth"]);
+	   $txtEmail = Security::sanitize($_POST["txt_email"]);
+	   $txtAddress = Security::sanitize($_POST["txt_address"]);
+	   $selectCourtName = Security::sanitize($_POST["select_court_name"]);
+	   $selectGender = Security::sanitize($_POST["select_gender"]);
+	   $selectRoleName = Security::sanitize($_POST["select_role_name"]);
+	   $selectAppointment = Security::sanitize($_POST["select_appointment"]);
+	
 	$updateLoginStatus = null;
-
+	
 	// CSRF Protection
 	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
 		die("Invalid CSRF token.");
-    }
-
+	   }
+	
 	// Validate inputs
-    $errors = [];
-
-    if (!preg_match('/^[0-9]{10}$/', $intMobile)) {
-        $errors[] = "Mobile number must be exactly 10 digits.";
-    }
-
-    if (!filter_var($txtEmail, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = "Invalid email format.";
-    }
-
-    if (!preg_match('/^[0-9]{9}[vVxX0-9]{1,3}$/', $txtNicNumber)) {
-        $errors[] = "Invalid NIC number format.";
-    }
-
-    if (!$helper->validateDate($dateDateOfBirth)) {
-        $errors[] = "Invalid date of birth.";
-    }
-
-    if (empty($txtFirstName) || empty($txtLastName) || empty($txtAddress)) {
-        $errors[] = "Name and address fields cannot be empty.";
-    }
-
-    if (!empty($errors)) {
-        foreach ($errors as $error) {
-            echo "<script>alert('$error');</script>";
-        }
-        exit;
-    }
-
+	   $errors = [];
+	
+	   if (!preg_match('/^[0-9]{10}$/', $intMobile)) {
+	       $errors[] = "Mobile number must be exactly 10 digits.";
+	   }
+	
+	   if (!filter_var($txtEmail, FILTER_VALIDATE_EMAIL)) {
+	       $errors[] = "Invalid email format.";
+	   }
+	
+	   if (!preg_match('/^[0-9]{9}[vVxX0-9]{1,3}$/', $txtNicNumber)) {
+	       $errors[] = "Invalid NIC number format.";
+	   }
+	
+	   if (!$helper->validateDate($dateDateOfBirth)) {
+	       $errors[] = "Invalid date of birth.";
+	   }
+	
+	   if (empty($txtFirstName) || empty($txtLastName) || empty($txtAddress)) {
+	       $errors[] = "Name and address fields cannot be empty.";
+	   }
+	
+	   if (!empty($errors)) {
+	       foreach ($errors as $error) {
+	           echo "<script>alert('$error');</script>";
+	       }
+	       exit;
+	   }
+	
 	// Before update staff, check for duplicates in staff, lawyer, and police tables
 	Security::checkDuplicate($conn, "nic_number", $txtNicNumber, "", "NIC Number already exists!", $txtStaffId);
 	Security::checkDuplicate($conn, "mobile", $intMobile, "", "Mobile number already exists!", $txtStaffId);
 	Security::checkDuplicate($conn, "email", $txtEmail, "", "Email already exists!", $txtStaffId);
-
-
 	
-
-    // Start Transaction
-    $conn->begin_transaction();
-
-    try {
-        $stmtUpdate = $conn->prepare("UPDATE staff SET first_name=?, last_name=?, mobile=?, nic_number=?, date_of_birth=?, email=?, address=?, court_id=?, role_id=?, gender=?, appointment=? WHERE staff_id=?");
-        
+	
+	
+	
+	   // Start Transaction
+	   $conn->begin_transaction();
+	
+	   try {
+	       $stmtUpdate = $conn->prepare("UPDATE staff SET first_name=?, last_name=?, mobile=?, nic_number=?, date_of_birth=?, email=?, address=?, court_id=?, role_id=?, gender=?, appointment=? WHERE staff_id=?");
+	       
 		$stmtUpdate->bind_param(
-            "ssssssssssss",
-            $txtFirstName,
+	           "ssssssssssss",
+	           $txtFirstName,
 			$txtLastName,
 			$intMobile,
 			$txtNicNumber,
-            $dateDateOfBirth,
+	           $dateDateOfBirth,
 			$txtEmail,
 			$txtAddress,
 			$selectCourtName,
-            $selectRoleName,
+	           $selectRoleName,
 			$selectGender,
 			$selectAppointment,
 			$txtStaffId
-        );
-        $stmtUpdate->execute();
-
+	       );
+	       $stmtUpdate->execute();
+	
 		// 2. Update login table
 		$updateLogin = $conn->prepare("UPDATE login SET role_id = ? WHERE username = ?");
 		$updateLogin->bind_param("ss", $selectRoleName, $txtEmail);
 		$updateLogin->execute();
-
+	
 		if ($updateLogin->affected_rows === 0) {
 			throw new Exception("No login record updated. Username not found?");
 		}
-
+	
 		$conn->commit();
-
+	
 		echo '<script>alert("Final: Successfully updated staff member.");</script>';
-        exit;
-    } catch (Exception $e) {
-        $conn->rollback();
-
-        Security::logError($e->getMessage());
-        echo '<script>alert("An error occurred while updating. Please try again.");</script>';
-    }
-}
-
-
-if (isset($_POST["btn_dpchange"])) {
-
+	       exit;
+	   } catch (Exception $e) {
+	       $conn->rollback();
+	
+	       Security::logError($e->getMessage());
+	       echo '<script>alert("An error occurred while updating. Please try again.");</script>';
+	   }
+	}
+	
+	
+	if (isset($_POST["btn_dpchange"])) {
+	
 	// $txtImagePath = null;
 	$txtStaffId = Security::sanitize($_POST["txt_staff_id"]);
-    
+	   
 	// CSRF Protection
 	if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
 		die("Invalid CSRF token.");
-    }
-
+	   }
+	
 	// Upload image only if a new one was selected
-    $newImageUploaded = ($_FILES['img_profile_photo']['error'] !== 4); // Error 4 = no file uploaded
-
-    if ($newImageUploaded) {
-        $uploadResult = $security->uploadImage('img_profile_photo');
-        if (!$uploadResult['success']) {
-            die("Image upload failed: " . $uploadResult['error']);
-        }
-        $txtImagePath = 'uploads/' . $uploadResult['filename'];
-		echo "<script>alert('right way man: $txtImagePath');</script>";
-    } else {
-        // No new image, fetch old image path from database
-        $stmtOld = $conn->prepare("SELECT image_path FROM staff WHERE staff_id = ?");
-        $stmtOld->bind_param("s", $txtStaffId);
-        $stmtOld->execute();
-        $resultOld = $stmtOld->get_result();
-        $rowOld = $resultOld->fetch_assoc();
-        $txtImagePath = $rowOld['image_path']; // Use old image path
-		echo "<script>alert('going to wrong block');</script>";
-    } 
-
-    // Start Transaction
-    $conn->begin_transaction();
-
-    try {
-        $stmtUpdate = $conn->prepare("UPDATE staff SET image_path=? WHERE staff_id=?");
-        
+	   $newImageUploaded = ($_FILES['img_profile_photo']['error'] !== 4); // Error 4 = no file uploaded
+	
+	   if ($newImageUploaded) {
+	       $uploadResult = $security->uploadImage('img_profile_photo');
+	       if (!$uploadResult['success']) {
+	           die("Image upload failed: " . $uploadResult['error']);
+	       }
+	       $txtImagePath = 'uploads/' . $uploadResult['filename'];
+	   } else {
+	       // No new image, fetch old image path from database
+	       $stmtOld = $conn->prepare("SELECT image_path FROM staff WHERE staff_id = ?");
+	       $stmtOld->bind_param("s", $txtStaffId);
+	       $stmtOld->execute();
+	       $resultOld = $stmtOld->get_result();
+	       $rowOld = $resultOld->fetch_assoc();
+	       $txtImagePath = $rowOld['image_path']; // Use old image path
+	   } 
+	
+	   // Start Transaction
+	   $conn->begin_transaction();
+	
+	   try {
+	       $stmtUpdate = $conn->prepare("UPDATE staff SET image_path=? WHERE staff_id=?");
+	       
 		$stmtUpdate->bind_param(
-            "ss",
+	           "ss",
 			$txtImagePath,
 			$txtStaffId
-        );
-        $stmtUpdate->execute();
-
-        $conn->commit();
-
-        echo '<script>alert("Successfully changed profile picture.");</script>';
-        echo "<script>location.href='index.php?pg=staff.php&option=view';</script>";
-        exit;
-    } catch (Exception $e) {
-        $conn->rollback();
-
+	       );
+	       $stmtUpdate->execute();
+	
+	       $conn->commit();
+	
+	       echo '<script>alert("Successfully changed profile picture.");</script>';
+	       echo "<script>location.href='index.php?pg=staff.php&option=view';</script>";
+	       exit;
+	   } catch (Exception $e) {
+	       $conn->rollback();
+	
 		// If new image was uploaded, delete it
-        if ($newImageUploaded && file_exists($txtImagePath)) {
-            unlink($txtImagePath);
-        }
-
-        Security::logError($e->getMessage());
-        echo '<script>alert("An error occurred while updating. Please try again.");</script>';
-    }
-}
-
-
-if (isset($_POST["btn_delete"])) {
-    $txtStaffId = Security::sanitize($_POST['staff_id']);
-
-    // Start Transaction
-    $conn->begin_transaction();
-
-    try {
-        // Get email first
-        $stmtSelect = $conn->prepare("SELECT email FROM staff WHERE staff_id=?");
-        $stmtSelect->bind_param("s", $txtStaffId);
-        $stmtSelect->execute();
-        $result = $stmtSelect->get_result();
-
-        if ($result->num_rows === 0) {
-            throw new Exception("No email found for staff ID $txtStaffId.");
-        }
-
-        $row = $result->fetch_assoc();
-        $email = $row['email'];
-
-        // Set login status as deleted
-        $stmtLoginUpdate = $conn->prepare("
-            UPDATE login 
-            SET status='deleted' 
-            WHERE username=?
-        ");
-        $stmtLoginUpdate->bind_param("s", $email);
-        $stmtLoginUpdate->execute();
-
-        // Set staff is_active=0
-        $stmtStaffDelete = $conn->prepare("
-            UPDATE staff 
-            SET is_active='0' 
-            WHERE staff_id=?
-        ");
-        $stmtStaffDelete->bind_param("s", $txtStaffId);
-        $stmtStaffDelete->execute();
-
-        $conn->commit();
-
-        echo '<script>alert("Successfully deleted staff member.");</script>';
-        echo "<script>location.href='index.php?pg=staff.php&option=view';</script>";
-        exit;
-    } catch (Exception $e) {
-        $conn->rollback();
-        Security::logError($e->getMessage());
-        echo '<script>alert("An error occurred while deleting. Please try again.");</script>';
-    }
-}
-
-if (isset($_POST["btn_reactivate"])) {
-    $txtStaffId = Security::sanitize($_POST['staff_id']);
-
-    // Start Transaction
-    $conn->begin_transaction();
-
-    try {
-        // Get email first
-        $stmtSelect = $conn->prepare("SELECT email FROM staff WHERE staff_id=?");
-        $stmtSelect->bind_param("s", $txtStaffId);
-        $stmtSelect->execute();
-        $result = $stmtSelect->get_result();
-
-        if ($result->num_rows === 0) {
-            throw new Exception("No email found for staff ID $txtStaffId.");
-        }
-
-        $row = $result->fetch_assoc();
-        $email = $row['email'];
-
-        // Set login status as active
-        $stmtLoginUpdate = $conn->prepare("
-            UPDATE login 
-            SET status='active' 
-            WHERE username=?
-        ");
-        $stmtLoginUpdate->bind_param("s", $email);
-        $stmtLoginUpdate->execute();
-
-        // Set staff is_active=1 (reactivate)
-        $stmtStaffReactivate = $conn->prepare("
-            UPDATE staff 
-            SET is_active='1' 
-            WHERE staff_id=?
-        ");
-        $stmtStaffReactivate->bind_param("s", $txtStaffId);
-        $stmtStaffReactivate->execute();
-
-        $conn->commit();
-
-        echo '<script>alert("Successfully reactivated staff member.");</script>';
-        echo "<script>location.href='index.php?pg=staff.php&option=view';</script>";
-        exit;
-    } catch (Exception $e) {
-        $conn->rollback();
-        Security::logError($e->getMessage());
-        echo '<script>alert("An error occurred while reactivating. Please try again.");</script>';
-    }
-}
-
-
-?>
-
-
+	       if ($newImageUploaded && file_exists($txtImagePath)) {
+	           unlink($txtImagePath);
+	       }
+	
+	       Security::logError($e->getMessage());
+	       echo '<script>alert("An error occurred while updating. Please try again.");</script>';
+	   }
+	}
+	
+	
+	if (isset($_POST["btn_delete"])) {
+	   $txtStaffId = Security::sanitize($_POST['staff_id']);
+	
+	   // Start Transaction
+	   $conn->begin_transaction();
+	
+	   try {
+	       // Get email first
+	       $stmtSelect = $conn->prepare("SELECT email FROM staff WHERE staff_id=?");
+	       $stmtSelect->bind_param("s", $txtStaffId);
+	       $stmtSelect->execute();
+	       $result = $stmtSelect->get_result();
+	
+	       if ($result->num_rows === 0) {
+	           throw new Exception("No email found for staff ID $txtStaffId.");
+	       }
+	
+	       $row = $result->fetch_assoc();
+	       $email = $row['email'];
+	
+	       // Set login status as deleted
+	       $stmtLoginUpdate = $conn->prepare("
+	           UPDATE login 
+	           SET status='deleted' 
+	           WHERE username=?
+	       ");
+	       $stmtLoginUpdate->bind_param("s", $email);
+	       $stmtLoginUpdate->execute();
+	
+	       // Set staff is_active=0
+	       $stmtStaffDelete = $conn->prepare("
+	           UPDATE staff 
+	           SET is_active='0' 
+	           WHERE staff_id=?
+	       ");
+	       $stmtStaffDelete->bind_param("s", $txtStaffId);
+	       $stmtStaffDelete->execute();
+	
+	       $conn->commit();
+	
+	       echo '<script>alert("Successfully deleted staff member.");</script>';
+	       echo "<script>location.href='index.php?pg=staff.php&option=view';</script>";
+	       exit;
+	   } catch (Exception $e) {
+	       $conn->rollback();
+	       Security::logError($e->getMessage());
+	       echo '<script>alert("An error occurred while deleting. Please try again.");</script>';
+	   }
+	}
+	
+	if (isset($_POST["btn_reactivate"])) {
+	   $txtStaffId = Security::sanitize($_POST['staff_id']);
+	
+	   // Start Transaction
+	   $conn->begin_transaction();
+	
+	   try {
+	       // Get email first
+	       $stmtSelect = $conn->prepare("SELECT email FROM staff WHERE staff_id=?");
+	       $stmtSelect->bind_param("s", $txtStaffId);
+	       $stmtSelect->execute();
+	       $result = $stmtSelect->get_result();
+	
+	       if ($result->num_rows === 0) {
+	           throw new Exception("No email found for staff ID $txtStaffId.");
+	       }
+	
+	       $row = $result->fetch_assoc();
+	       $email = $row['email'];
+	
+	       // Set login status as active
+	       $stmtLoginUpdate = $conn->prepare("
+	           UPDATE login 
+	           SET status='active' 
+	           WHERE username=?
+	       ");
+	       $stmtLoginUpdate->bind_param("s", $email);
+	       $stmtLoginUpdate->execute();
+	
+	       // Set staff is_active=1 (reactivate)
+	       $stmtStaffReactivate = $conn->prepare("
+	           UPDATE staff 
+	           SET is_active='1' 
+	           WHERE staff_id=?
+	       ");
+	       $stmtStaffReactivate->bind_param("s", $txtStaffId);
+	       $stmtStaffReactivate->execute();
+	
+	       $conn->commit();
+	
+	       echo '<script>alert("Successfully reactivated staff member.");</script>';
+	       echo "<script>location.href='index.php?pg=staff.php&option=view';</script>";
+	       exit;
+	   } catch (Exception $e) {
+	       $conn->rollback();
+	       Security::logError($e->getMessage());
+	       echo '<script>alert("An error occurred while reactivating. Please try again.");</script>';
+	   }
+	}
+	
+	
+	?>
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -427,16 +426,14 @@ if (isset($_POST["btn_reactivate"])) {
 				</a>
 			</div>
 			<?php
-			if(isset($_GET['option']) && $_GET['option'] == "view") {
-			
-				// $sql_read = "SELECT staff_id, first_name, last_name, nic_number, mobile, court_id, staff_id, email FROM staff WHERE is_active = 1";
+				if(isset($_GET['option']) && $_GET['option'] == "view") {
 				
-				$sql_read = "SELECT staff_id, first_name, last_name, nic_number, mobile, court_id, staff_id, email, is_active FROM staff";
-				$result = $conn->query($sql_read);
-
-			
-				if ($result && $result->num_rows > 0) {
-			?>
+					$sql_read = "SELECT staff_id, first_name, last_name, nic_number, mobile, court_id, staff_id, email, is_active FROM staff";
+					$result = $conn->query($sql_read);
+				
+				
+					if ($result && $result->num_rows > 0) {
+				?>
 			<div class="table-responsive">
 				<table class="table table-striped attractive-table w-100">
 					<thead>
@@ -453,15 +450,15 @@ if (isset($_POST["btn_reactivate"])) {
 						<?php
 							$count = 1;
 							while ($row = $result->fetch_assoc()) {
-						?>
+							?>
 						<tr>
 							<td><?php echo $count; ?></td>
 							<td>
 								<strong><?php echo $row['first_name']." ".$row['last_name']; ?></strong><br>
 								<?php if ($row['is_active']) { ?>
-									<span class="badge bg-warning">Active</span>
-									<?php } else { ?>
-									<span class="badge bg-dark">Deleted</span>
+								<span class="badge bg-warning">Active</span>
+								<?php } else { ?>
+								<span class="badge bg-dark">Deleted</span>
 								<?php } ?>
 								<small class="text-muted"><?php echo $row['email']; ?></small>
 							</td>
@@ -486,23 +483,23 @@ if (isset($_POST["btn_reactivate"])) {
 									</form>
 									<!-- Delete Button or Reactive Button based on status -->
 									<?php if ($row['is_active']) { ?>
-										<!-- Delete Button for Active User -->
-										<form method="POST" action="#" class="d-inline delete-form">
-											<input type="hidden" name="staff_id" value="<?php echo Security::sanitize($row['staff_id']); ?>">
-											<input type="hidden" name="btn_delete" value="1">
-											<button type="button" class="btn btn-danger btn-sm" onclick="deleteConfirmModal(() => this.closest('form').submit())">
-												<i class="fas fa-trash-alt"></i> Delete
-											</button>
-										</form>
+									<!-- Delete Button for Active User -->
+									<form method="POST" action="#" class="d-inline delete-form">
+										<input type="hidden" name="staff_id" value="<?php echo Security::sanitize($row['staff_id']); ?>">
+										<input type="hidden" name="btn_delete" value="1">
+										<button type="button" class="btn btn-danger btn-sm" onclick="deleteConfirmModal(() => this.closest('form').submit())">
+										<i class="fas fa-trash-alt"></i> Delete
+										</button>
+									</form>
 									<?php } else { ?>
-										<!-- Reactive Button for Deleted/Inactive User -->
-										<form method="POST" action="#" class="d-inline reactive-form">
-											<input type="hidden" name="staff_id" value="<?php echo Security::sanitize($row['staff_id']); ?>">
-											<input type="hidden" name="btn_reactivate" value="1">
-											<button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" onclick="reactivateConfirmModal(() => this.closest('form').submit())">
-												<i class="fas fa-refresh"></i> Reactive
-											</button>
-										</form>
+									<!-- Reactive Button for Deleted/Inactive User -->
+									<form method="POST" action="#" class="d-inline reactive-form">
+										<input type="hidden" name="staff_id" value="<?php echo Security::sanitize($row['staff_id']); ?>">
+										<input type="hidden" name="btn_reactivate" value="1">
+										<button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" onclick="reactivateConfirmModal(() => this.closest('form').submit())">
+										<i class="fas fa-refresh"></i> Reactive
+										</button>
+									</form>
 									<?php } ?>
 								</div>
 							</td>
@@ -535,18 +532,17 @@ if (isset($_POST["btn_reactivate"])) {
 								class="img-thumbnail shadow-sm border border-3 border-primary" 
 								style="width: 300px; height: 300px; object-fit: cover;"
 								>
-								<form method="POST" action="index.php?pg=staff.php&option=dpchange" enctype="multipart/form-data" class="mt-3">
-									<div class="mb-2">
-										<input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-										<input hidden type="text" class="form-control" id="txt_staff_id" name="txt_staff_id" value="<?php echo Security::sanitize($staffId); ?>" readonly required>
-										<input type="file" name="img_profile_photo" id="img_profile_photo" accept="image/*" class="form-control form-control-sm" required>
-									</div>
-									<button class="btn btn-secondary btn-sm" name="btn_dpchange" id="btn_dpchange" type="submit">
-										<i class="fas fa-upload"></i> Upload New Photo
-									</button>
-								</form>
+							<form method="POST" action="index.php?pg=staff.php&option=dpchange" enctype="multipart/form-data" class="mt-3">
+								<div class="mb-2">
+									<input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+									<input hidden type="text" class="form-control" id="txt_staff_id" name="txt_staff_id" value="<?php echo Security::sanitize($staffId); ?>" readonly required>
+									<input type="file" name="img_profile_photo" id="img_profile_photo" accept="image/*" class="form-control form-control-sm" required>
+								</div>
+								<button class="btn btn-secondary btn-sm" name="btn_dpchange" id="btn_dpchange" type="submit">
+								<i class="fas fa-upload"></i> Upload New Photo
+								</button>
+							</form>
 						</div>
-						
 						<div class="col-md-9">
 							<div class="card-footer text-end bg-light rounded-bottom-4">
 								<div class="d-flex justify-content-between">
@@ -684,23 +680,23 @@ if (isset($_POST["btn_reactivate"])) {
 						<!-- JS submits form, so actual button isn't sent. Add hidden 'btn_delete' input so PHP can detect it. -->
 						<!-- Delete Button or Reactive Button based on status -->
 						<?php if ($row['is_active']) { ?>
-							<!-- Delete Button for Active User -->
-							<form method="POST" action="#" class="d-inline delete-form">
-								<input type="hidden" name="staff_id" value="<?php echo Security::sanitize($row['staff_id']); ?>">
-								<input type="hidden" name="btn_delete" value="1">
-								<button type="button" class="btn btn-danger btn-sm" onclick="deleteConfirmModal(() => this.closest('form').submit())">
-									<i class="fas fa-trash-alt"></i> Delete
-								</button>
-							</form>
+						<!-- Delete Button for Active User -->
+						<form method="POST" action="#" class="d-inline delete-form">
+							<input type="hidden" name="staff_id" value="<?php echo Security::sanitize($row['staff_id']); ?>">
+							<input type="hidden" name="btn_delete" value="1">
+							<button type="button" class="btn btn-danger btn-sm" onclick="deleteConfirmModal(() => this.closest('form').submit())">
+							<i class="fas fa-trash-alt"></i> Delete
+							</button>
+						</form>
 						<?php } else { ?>
-							<!-- Reactive Button for Deleted/Inactive User -->
-							<form method="POST" action="#" class="d-inline reactive-form">
-								<input type="hidden" name="staff_id" value="<?php echo Security::sanitize($row['staff_id']); ?>">
-								<input type="hidden" name="btn_reactivate" value="1">
-								<button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" onclick="reactivateConfirmModal(() => this.closest('form').submit())">
-									<i class="fas fa-refresh"></i> Reactive
-								</button>
-							</form>
+						<!-- Reactive Button for Deleted/Inactive User -->
+						<form method="POST" action="#" class="d-inline reactive-form">
+							<input type="hidden" name="staff_id" value="<?php echo Security::sanitize($row['staff_id']); ?>">
+							<input type="hidden" name="btn_reactivate" value="1">
+							<button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" onclick="reactivateConfirmModal(() => this.closest('form').submit())">
+							<i class="fas fa-refresh"></i> Reactive
+							</button>
+						</form>
 						<?php } ?>
 					</div>
 				</div>
@@ -809,7 +805,6 @@ if (isset($_POST["btn_reactivate"])) {
 							</div>
 						</div>
 						<label>* Plese be kind enough to note that Password will be generated, & sent to Registered email/ mobile</label><br><br>
-						
 						<div>
 							<label hidden for="joined_date" class="form-label">Joined Date</label>
 							<input hidden type="date" class="form-control" id="date_joined_date" max="<?php echo date('Y-m-d'); ?>" name="date_joined_date" value="<?php echo date('Y-m-d'); ?>" required>
@@ -825,7 +820,7 @@ if (isset($_POST["btn_reactivate"])) {
 			// <!-- EDIT SECTION -->
 			}elseif(isset($_GET['option']) && $_GET['option'] == "edit" && isset($_POST['staff_id'])) {
 				$data = $helper->getStaffData($_POST['staff_id']);
-
+			
 				$txtFirstName = $data['first_name'];
 				$txtLastName = $data['last_name'];
 				$intMobile = $data['mobile'];
@@ -981,14 +976,13 @@ if (isset($_POST["btn_reactivate"])) {
 					<div class="modal-footer">
 						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
 						<button type="button" class="btn btn-success" id="reactivateConfirmBtn" 
-								onclick="this.closest('form').submit(); document.getElementById('reactivateConfirmModal').modal('hide');">
-							Reactivate
+							onclick="this.closest('form').submit(); document.getElementById('reactivateConfirmModal').modal('hide');">
+						Reactivate
 						</button>
 					</div>
 				</div>
 			</div>
 		</div>
-
 		<!-- Generic Modal (Reusable for various cases) -->
 		<div class="modal fade" id="genericModal" tabindex="-1" aria-labelledby="genericModalLabel" aria-hidden="true">
 			<div class="modal-dialog">

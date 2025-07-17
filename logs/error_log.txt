@@ -10,3 +10,5 @@
 [2025-07-16 17:31:12] Unauthorized access attempt to case C00000002 by S00000001 on 2025-07-16 17:31:12
 [2025-07-16 17:52:26] Unauthorized access attempt to case C00000003 by L00000003 on 2025-07-16 17:52:26
 [2025-07-16 17:52:34] Unauthorized access attempt to case C00000001 by L00000003 on 2025-07-16 17:52:34
+[2025-07-17 18:09:22] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'SET image_path=? WHERE staff_id=?' at line 1
+[2025-07-17 18:17:30] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '=?' at line 1

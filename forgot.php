@@ -118,7 +118,7 @@ if(isset($_POST["btn_forgot"])){
             <div class="col-md-6">
                 <div class="login-container">
                     <div class="d-flex justify-content-between">
-                        <h3 class="mb-4">Forgot your password?</h3>
+                        <h3 class="mb-4">Want to change your password?</h3>
                     </div>
 
                     <!-- Forgot Form -->

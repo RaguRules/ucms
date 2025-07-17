@@ -44,7 +44,7 @@ $allowed_pages = [
     'cases.php', 'appeal.php', 'motion.php', 'judgement.php',
     'warrant.php', 'parties.php', 'dailycaseactivities.php',
     'order.php', 'notification.php', 'notes.php', 'courts.php',
-    'staff.php', 'lawyer.php', 'police.php', 'roles.php',
+    'staff.php', 'lawyer.php', 'police.php', 'roles.php', 'profile.php',
     'about.php', 'contact.php', 'approve.php', 'caselist.php', '404.php'
 ];
 ?>

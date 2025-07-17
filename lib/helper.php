@@ -67,6 +67,10 @@ class Helper {
         return $this->generateNextID('notes', 'note_id', 'N', 8);
     }
 
+    public function generateNextWarrantID() {
+        return $this->generateNextID('warrants', 'warrant_id', 'W', 8);
+    }
+
     public function generateNextNotificationID() {
         return $this->generateNextID('notifications', 'notification_id', 'N', 8);
     }
