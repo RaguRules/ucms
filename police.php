@@ -543,15 +543,19 @@
 		<div class="container mt-4">
 			<!-- For bigger list  <div class="container-fluid mt-4"> -->
 			<div class="d-flex justify-content-start mb-3">
+            <?php 
+				if ($systemUsertype == 'R01' || $systemUsertype == 'R02' || $systemUsertype == 'R03' || $systemUsertype == 'R04'){
+			?>
 				<a href="index.php?pg=police.php&option=add" class="btn btn-success btn-sm me-1">
 				<i class="fas fa-plus"></i> Add police
 				</a>
+            <?php
+                }
+            ?>
 			</div>
 			<?php
 				if(isset($_GET['option']) && $_GET['option'] == "view") {
 				
-					// $sql_read = "SELECT police_id, first_name, last_name, nic_number, mobile, court_id, police_id, email FROM staff WHERE is_active = 1";
-					
 					$sql_read = "SELECT police_id, first_name, last_name, nic_number, mobile, email, badge_number, is_active FROM police";
 					$result = $conn->query($sql_read);
 				
@@ -587,12 +591,18 @@
 							<td><?php echo $row['badge_number']; ?></td>
 							<td>
 								<div class="d-flex flex-wrap gap-1">
+                                    <?php 
+                                        if ($systemUsertype == 'R01' || $systemUsertype == 'R02' || $systemUsertype == 'R03' || $systemUsertype == 'R04'){
+                                    ?>
 									<form method="POST" action="index.php?pg=police.php&option=edit" class="d-inline">
 										<input type="hidden" name="police_id" value="<?php echo Security::sanitize($row['police_id']); ?>">
 										<button class="btn btn-primary btn-sm" type="submit" name="btn_edit">
 										<i class="fas fa-edit"></i> Edit
 										</button>
 									</form>
+                                    <?php
+                                        }if ($systemUsertype == 'R01' || $systemUsertype == 'R02' || $systemUsertype == 'R03' || $systemUsertype == 'R04' || $systemUsertype == 'R07'){
+                                    ?>
 									<form method="GET" action="index.php" class="d-inline">
 										<input type="hidden" name="pg" value="police.php">
 										<input type="hidden" name="option" value="full_view">
@@ -601,6 +611,10 @@
 										<i class="fas fa-eye"></i> Full View
 										</button>
 									</form>
+                                    <?php
+                                        }if ($systemUsertype == 'R01' || $systemUsertype == 'R02' || $systemUsertype == 'R03' || $systemUsertype == 'R04'){
+                                    ?>
+                                    <!-- Check if the user is active or not -->
 									<!-- Delete Button or Reactive Button based on status -->
 									<?php if ($row['is_active']) { ?>
 									<!-- Delete Button for Active User -->
@@ -622,7 +636,7 @@
 										<i class="fas fa-refresh"></i> Reactive
 										</button>
 									</form>
-									<?php } ?>
+									<?php } } ?>
 								</div>
 							</td>
 						</tr>
@@ -782,6 +796,9 @@
 				<div class="card-footer bg-light rounded-bottom-4">
 					<div class="d-flex justify-content-center gap-2">
 						<!-- Edit Button within Full View-->
+                        <?php 
+                            if ($systemUsertype == 'R01' || $systemUsertype == 'R02' || $systemUsertype == 'R03' || $systemUsertype == 'R04'){
+                        ?>
 						<form method="POST" action="http://localhost/ucms/index.php?pg=police.php&option=edit" class="d-inline">
 							<input type="hidden" name="police_id" value="<?php echo Security::sanitize($row['police_id']); ?>">
 							<button type="submit" class="btn btn-primary btn-sm" name="btn_edit">
@@ -811,14 +828,14 @@
 							<i class="fas fa-refresh"></i> Reactive
 							</button>
 						</form>
-						<?php } ?>
+						<?php } } ?>
 					</div>
 				</div>
 			</div>
 		</div>
 		<?php
 			// Fetch case results
-			$query1 = "SELECT * FROM cases WHERE plaintiff_police = ? OR defendant_police = ?";
+			$query1 = "SELECT * FROM cases WHERE plaintiff_lawyer = ? OR defendant_lawyer = ?";
 			$cstmt = $conn->prepare($query1);
 			$cstmt->bind_param("ss", $policeId, $policeId);
 			$cstmt->execute();
@@ -868,76 +885,7 @@
 			    $stmt3->close();
 			}
 			?>
-		<div class="accordion" id="accordionExample">
-			<div class="accordion-item">
-				<h2 class="accordion-header" id="headingOne">
-					<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-					Client Details
-					</button>
-				</h2>
-				<div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-					<div class="accordion-body">
-						<?php
-							foreach ($partyDetails as $party) {
-							?>
-						<div class='card mb-3 shadow-sm'>
-							<div class='card-body'>
-								<h5 class='card-title'>Client Name: <?php echo "{$party['first_name']} {$party['last_name']}"; ?></h5>
-								<p><strong>NIC:</strong> <?php echo Security::sanitize("{$party['nic_number']}"); ?></p>
-								<p><strong>Mobile:</strong> <?php echo Security::sanitize("{$party['mobile']}"); ?></p>
-								<p><strong>Email:</strong> <?php echo Security::sanitize("{$party['email']}"); ?></p>
-								<p><strong>DOB:</strong> <?php echo Security::sanitize("{$party['date_of_birth']}"); ?></p>
-								<p><strong>Joined:</strong> <?php echo Security::sanitize("{$party['joined_date']}"); ?></p>
-								<p><strong>Address:</strong> <?php echo Security::sanitize("{$party['address']}"); ?></p>
-							</div>
-						</div>
-						<?php
-							}
-							?>
-					</div>
-				</div>
-			</div>
-			<div class="accordion-item">
-				<h2 class="accordion-header" id="headingTwo">
-					<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-					Case Details
-					</button>
-				</h2>
-				<div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
-					<div class="accordion-body">
-						<?php foreach ($cases as $case): ?>
-						<div class="card mb-3 shadow-sm">
-							<div class="card-body">
-								<h5 class="card-title">Case: <?= Security::sanitize($case['case_name']) ?></h5>
-								<p><strong>Status:</strong> <?= Security::sanitize($case['status']) ?></p>
-								<p><strong>Next Date:</strong> <?= Security::sanitize($case['next_date']) ?></p>
-								<p><strong>For:</strong> <?= Security::sanitize($case['for_what']) ?></p>
-								<form method="POST" action="index.php?pg=police.php&option=full_view&id=<?= $policeId ?>" class="d-inline">
-									<input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-									<input type="hidden" name="case_id" value="<?= urlencode($case['case_id']) ?>">
-									<button type="submit" class="btn btn-info btn-sm text-white">
-									<i class="fas fa-eye"></i> Full View
-									</button>
-								</form>
-							</div>
-						</div>
-						<?php endforeach; ?>
-					</div>
-				</div>
-			</div>
-			<div class="accordion-item">
-				<h2 class="accordion-header" id="headingThree">
-					<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-					Accordion Item #3
-					</button>
-				</h2>
-				<div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExample">
-					<div class="accordion-body">
-						<strong>This is the third item's accordion body.</strong> It is hidden by default...
-					</div>
-				</div>
-			</div>
-		</div>
+		
 		<?php
 			// <!-- ADD SECTION -->
 			}elseif (isset($_GET['option']) && $_GET['option'] == "add") {

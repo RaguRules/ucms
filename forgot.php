@@ -58,7 +58,7 @@ if(isset($_POST["btn_forgot"])){
                 $otp = rand(100000, 999999); // Generate a random 6-digit OTP
                 $sqlUpdate = "UPDATE login SET otp = '$otp' WHERE username = '$username'";
                 mysqli_query($conn, $sqlUpdate);
-                echo "<script> alert('OTP has been Generated'); </script>";
+                echo "<script> alert('OTP has been sent to your registered mobile number.'); </script>";
                 $to = "94".$dbMobile;
                 $message = "If you've requested to reset your password, your verification code is $otp. - Kilinochchi Courts";
 

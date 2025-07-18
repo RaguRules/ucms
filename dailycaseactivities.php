@@ -303,8 +303,8 @@
 	        }
 	    }
 	}
-	
 	?>
+
 <!-- FINAL UI OUTPUT -->
 <div class="container py-4">
 	<a href="index.php?pg=dailycaseactivities.php&view=e-daybook" class="btn btn-outline-secondary d-print-none float-end mb-3">
@@ -327,7 +327,7 @@
 					<th>Actions</th>
 					<?php
 						}
-						?>
+					?>
 				</tr>
 			</thead>
 			<tbody>
@@ -415,7 +415,13 @@
 			</div>
 			<div class="col-md-6" id="next-date-container">
 				<label>Next Date</label>
-				<input type="date" name="next_date" class="form-control" min="<?= date('Y-m-d') ?>" required>
+				<input type="date" name="next_date" id="next_date" class="form-control" min="<?= date('Y-m-d') ?>" required>
+			</div>
+			<div class="col-md-6 mt-2">
+				<label>&nbsp;</label>
+				<button type="button" class="btn btn-outline-primary w-100" id="suggest_trial_date">
+				📅 Suggest Next Date
+				</button>
 			</div>
 			<div class="col-md-6">
 				<label>Arrest Warrant Issued?</label>
@@ -624,3 +630,52 @@
 	    });
 	});
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const suggestButton = document.getElementById('suggest_trial_date');
+    const dateInput = document.getElementById('next_date');
+
+    if (!suggestButton || !dateInput) {
+        console.error("❌ Required elements not found (button or input missing).");
+        return;
+    }
+
+    suggestButton.addEventListener('click', function () {
+        console.log("📡 Requesting suggested trial date...");
+
+        fetch('action/get_trial_date.ajax.php')
+            .then(response => {
+                console.log("🔄 Response status:", response.status);
+                const contentType = response.headers.get("Content-Type") || "";
+                console.log("🧾 Content-Type:", contentType);
+
+                if (!response.ok) {
+                    throw new Error(`Server returned status ${response.status}`);
+                }
+
+                if (!contentType.includes("application/json")) {
+                    throw new Error("Response is not JSON.");
+                }
+
+                return response.json();
+            })
+            .then(data => {
+                console.log("📦 Received data:", data);
+
+                if (data.date) {
+                    dateInput.value = data.date;
+                    alert("✅ Suggested date filled: " + data.date);
+                } else {
+                    alert("⚠️ No date received from server.");
+                }
+            })
+            .catch(error => {
+                alert("⚠️ Could not fetch suggested date.");
+                console.error("🔥 Error fetching suggested date:", error);
+            });
+    });
+});
+</script>
+
+

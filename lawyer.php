@@ -23,7 +23,7 @@
 	
 	if (isset($_POST['case_id'])) {
 	
-			if ($systemUsertype != 'R01' && $systemUsertype != 'R02' && $systemUsertype != 'R03' && $systemUsertype != 'R04') {
+			if ($systemUsertype != 'R01' && $systemUsertype != 'R02' && $systemUsertype != 'R03' && $systemUsertype != 'R04' && $systemUsertype != 'R06') {
 		            die("Unauthorised access.");
 		    }
 		if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
@@ -504,9 +504,15 @@
 		<div class="container mt-4">
 			<!-- For bigger list  <div class="container-fluid mt-4"> -->
 			<div class="d-flex justify-content-start mb-3">
+			<?php 
+				if ($systemUsertype == 'R01' || $systemUsertype == 'R02' || $systemUsertype == 'R03' || $systemUsertype == 'R04'){
+			?>
 				<a href="index.php?pg=lawyer.php&option=add" class="btn btn-success btn-sm me-1">
 				<i class="fas fa-plus"></i> Add Lawyer
 				</a>
+			<?php
+				}
+			?>
 			</div>
 			<?php
 				if(isset($_GET['option']) && $_GET['option'] == "view") {
@@ -546,12 +552,18 @@
 							<td><?php echo $row['enrolment_number']; ?></td>
 							<td>
 								<div class="d-flex flex-wrap gap-1">
+									<?php
+										if ($systemUsertype == 'R01' || $systemUsertype == 'R02' || $systemUsertype == 'R03' || $systemUsertype == 'R04'){
+									?>
 									<form method="POST" action="index.php?pg=lawyer.php&option=edit" class="d-inline">
 										<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
 										<button class="btn btn-primary btn-sm" type="submit" name="btn_edit">
 										<i class="fas fa-edit"></i> Edit
 										</button>
 									</form>
+									<?php }
+									if ($systemUsertype == 'R01' || $systemUsertype == 'R02' || $systemUsertype == 'R03' || $systemUsertype == 'R04' || $systemUsertype == 'R06'){
+									?>
 									<form method="GET" action="#" class="d-inline">
 										<input type="hidden" name="pg" value="lawyer.php">
 										<input type="hidden" name="option" value="full_view">
@@ -562,7 +574,10 @@
 										</button>
 									</form>
 									<!-- Delete Button or Reactive Button based on status -->
-									<?php if ($row['is_active']) { ?>
+									<?php
+									}
+									if ($systemUsertype == 'R01' || $systemUsertype == 'R02' || $systemUsertype == 'R03' || $systemUsertype == 'R04'){
+									if ($row['is_active']) { ?>
 									<!-- Delete Button for Active User -->
 									<form method="POST" action="#" class="d-inline delete-form">
 										<input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">	
@@ -582,7 +597,7 @@
 										<i class="fas fa-refresh"></i> Reactive
 										</button>
 									</form>
-									<?php } ?>
+									<?php } } ?>
 								</div>
 							</td>
 						</tr>
@@ -742,17 +757,26 @@
 				<div class="card-footer bg-light rounded-bottom-4">
 					<div class="d-flex justify-content-center gap-2">
 						<!-- Edit Button within Full View-->
+						<?php
+							if ($systemUsertype == 'R01' || $systemUsertype == 'R02' || $systemUsertype == 'R03' || $systemUsertype == 'R04' ){
+						?>
 						<form method="POST" action="http://localhost/ucms/index.php?pg=lawyer.php&option=edit" class="d-inline">
 							<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
 							<button type="submit" class="btn btn-primary btn-sm" name="btn_edit">
 							<i class="fas fa-pen-to-square me-1"></i> Edit
 							</button>
 						</form>
+						<?php
+							}if ($systemUsertype == 'R01' || $systemUsertype == 'R02' || $systemUsertype == 'R03' || $systemUsertype == 'R04'){
+						?>
 						<!-- Delete Button within Full View, This will be submitted by JS, so another Input is created in the button_delete name, so it will received by backend.-->
 						<!-- JS submits form, so actual button isn't sent. Add hidden 'btn_delete' input so PHP can detect it. -->
 						<!-- Delete Button or Reactive Button based on status -->
-						<?php if ($row['is_active']) { ?>
+						<?php if ($systemUsertype == 'R01' || $systemUsertype == 'R02' || $systemUsertype == 'R03' || $systemUsertype == 'R04'){
+							if ($row['is_active']) { 
+						?>
 						<!-- Delete Button for Active User -->
+
 						<form method="POST" action="#" class="d-inline delete-form">
 							<input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 							<input type="hidden" name="lawyer_id" value="<?php echo Security::sanitize($row['lawyer_id']); ?>">
@@ -771,7 +795,7 @@
 							<i class="fas fa-refresh"></i> Reactive
 							</button>
 						</form>
-						<?php } ?>
+						<?php } } } ?>
 					</div>
 				</div>
 			</div>
@@ -1144,7 +1168,6 @@
 			</div>
 		</div>
 		<!-- Case Detail Modal -->
-		<!-- Case Detail Modal -->
 		<div class="modal fade" id="caseDetailModal" tabindex="-1" aria-labelledby="caseDetailModalLabel" aria-hidden="true">
 			<div class="modal-dialog modal-xl modal-dialog-scrollable">
 				<div class="modal-content" style="background-color: #C0C0C0;">
@@ -1184,9 +1207,8 @@
 								        $stmt_activities->bind_param("s", $caseName);
 								        $stmt_activities->execute();
 								        $activities_result = $stmt_activities->get_result();
-								
-								        // Start building the modal content
 								        ?>
+
 							<div class="case-header"><?= Security::sanitize($case_name) ?></div>
 							<div class="case-row">
 								<div class="case-column">

@@ -4,6 +4,10 @@
 	}
 	
 	if (isset($_POST['toggle_warrant']) && isset($_POST['case_id'])) {
+
+		if ($systemUsertype != 'R01' && $systemUsertype != 'R02' && $systemUsertype != 'R03' && $systemUsertype != 'R04' && $systemUsertype != 'R06') {
+			die("Unauthorised access.");
+		}
 	
 		if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
 			die("Invalid CSRF token");
@@ -97,6 +101,7 @@
 						</span>
 					</td>
 					<td><?= Security::sanitize($row['next_date']) ?></td>
+					<?php if ($systemUsertype == 'R01' || $systemUsertype == 'R02' || $systemUsertype == 'R03' || $systemUsertype == 'R04'){ ?>
 					<td>
 						<?php
 							// Check if the case has a warrant (based on the warrants table)
@@ -117,6 +122,7 @@
 						</form>
 						<?php endif; ?>
 					</td>
+					<?php } ?>
 				</tr>
 				<?php endwhile; ?>
 			</tbody>

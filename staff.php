@@ -1002,4 +1002,5 @@
 			</div>
 		</div>
 	</body>
+<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 </html>
